@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>&lt;object type="$1" data="$2" width="${3:290}" height="${4:45}"&gt;
+	&lt;param name="src" value="$5"${TM_POLYGLOT}&gt;
+	&lt;param name="autoplay" value="${6:false}"${TM_POLYGLOT}&gt;
+	&lt;param name="autoStart" value="${7:0}"${TM_POLYGLOT}&gt;
+&lt;/object&gt;$0</string>
+	<key>name</key>
+	<string>&lt;object&gt;</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>tabTrigger</key>
+	<string>object</string>
+	<key>uuid</key>
+	<string>187ED135-0799-4E06-80AD-A3E5C7FA2E49</string>
+</dict>
+</plist>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>&lt;script src="//ajax.googleapis.com/ajax/libs/yui/${1:2.8}/build/yuiloader/yuiloader${2:-min}.js"&gt;&lt;/script&gt;</string>
+	<key>name</key>
+	<string>Google AJAX Libraries: YUI!</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>tabTrigger</key>
+	<string>yui</string>
+	<key>uuid</key>
+	<string>F3BE0F2E-93D8-40FD-BA2B-4636F7726DDC</string>
+</dict>
+</plist>
+

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>&lt;video${1:${2: autobuffer}${3: autoloop}${4: loop}${5: controls}}&gt;
+  &lt;source src="${6:/media/video.oga}"${TM_POLYGLOT}&gt;
+  &lt;source src="${7:/media/video.m4v}"${TM_POLYGLOT}&gt;
+  &lt;object type="video/ogg" data="$6" width="${8:320}" height="${9:240}"&gt;
+    &lt;param name="src" value="$6"${TM_POLYGLOT}&gt;
+    &lt;param name="autoplay" value="${10:false}"${TM_POLYGLOT}&gt;
+    &lt;param name="autoStart" value="${11:0}"${TM_POLYGLOT}&gt;
+    ${12:&lt;p&gt;&lt;a href="$6"&gt;${13:Download this video file.}&lt;/a&gt;&lt;/p&gt;}
+  &lt;/object&gt;
+&lt;/video&gt;$0</string>
+	<key>name</key>
+	<string>&lt;video&gt; w/ legacy &lt;object&gt;</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>tabTrigger</key>
+	<string>video</string>
+	<key>uuid</key>
+	<string>828CFBFA-C61E-4957-9554-0BC59534BFDD</string>
+</dict>
+</plist>

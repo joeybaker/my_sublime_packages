@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>&lt;base href="${1:http://example.com/}"${2: target="${3:_blank, _self, _parent, _top}"}${TM_POLYGLOT}&gt;$0</string>
+	<key>name</key>
+	<string>&lt;base&gt;</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>tabTrigger</key>
+	<string>base</string>
+	<key>uuid</key>
+	<string>4462A6B8-A08A-11D9-A5A2-000D93C8BE28</string>
+</dict>
+</plist>

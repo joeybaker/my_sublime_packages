@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>&lt;head&gt;${1:
+	&lt;meta charset="utf-8"${TM_POLYGLOT}&gt;}
+	&lt;title&gt;$2&lt;/title&gt;
+&lt;/head&gt;
+$0</string>
+	<key>name</key>
+	<string>&lt;head&gt;</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>tabTrigger</key>
+	<string>head</string>
+	<key>uuid</key>
+	<string>EE9882E9-DEB6-46BB-9CF2-038A4AC6DD73</string>
+</dict>
+</plist>

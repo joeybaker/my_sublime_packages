@@ -1,0 +1,5 @@
+[
+	 { "keys": ["super+shift+ctrl+w"], "command": "wrap_each" }
+	 , { "keys": ["super+alt+."], "command": "close_tag" }
+	 //, { "keys": ["super+shift+7"], "command": "convert_special_characters" }
+]

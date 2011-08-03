@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>&lt;audio src="$1"${2:${3: autobuffer}${4: autoloop}${5: loop}${6: controls}}&gt;&lt;/audio&gt;$0</string>
+	<key>name</key>
+	<string>&lt;audio&gt;</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>tabTrigger</key>
+	<string>audio</string>
+	<key>uuid</key>
+	<string>1882B588-F340-4CEE-8E96-3F0776596457</string>
+</dict>
+</plist>

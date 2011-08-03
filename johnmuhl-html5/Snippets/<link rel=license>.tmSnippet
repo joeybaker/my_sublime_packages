@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>&lt;link rel="license" href="${2:http://example.com/license}"${TM_POLYGLOT}&gt;$0</string>
+	<key>name</key>
+	<string>&lt;link rel=license&gt;</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>tabTrigger</key>
+	<string>link</string>
+	<key>uuid</key>
+	<string>526CA680-5A5C-401A-AEA3-EDB17AD3DD2A</string>
+</dict>
+</plist>

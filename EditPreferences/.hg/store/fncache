@@ -1,0 +1,5 @@
+data/.hgignore.i
+data/editprefs.py.i
+data/Default.sublime-keymap.i
+data/newKeyMap.sublime-snippet.i
+data/README.txt.i

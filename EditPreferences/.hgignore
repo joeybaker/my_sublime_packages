@@ -1,0 +1,8 @@
+syntax: glob
+*.pyc
+tags
+tags_sorted_by_file
+wiki/*
+local_settings.py
+
+syntax: regexp

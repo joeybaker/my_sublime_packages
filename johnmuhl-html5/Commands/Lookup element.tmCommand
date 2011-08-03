@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby
+#
+# Lookup current word as a tag name on whatwg.org
+#
+# The mapping below was generated using:
+# ruby -e 'STDOUT &lt;&lt; "$tags = {\n" &lt;&lt; `curl -s http://www.whatwg.org/specs/web-apps/current-work/`.scan(%r{&lt;dfn id="(.*?)"&gt;&lt;code&gt;(.*?)&lt;/code&gt;&lt;/dfn&gt;}).map { |e| "  \"#{e[1]}\"".ljust(14) + " =&gt; \"#{e[0]}\"" }.join(",\n") &lt;&lt; "\n}\n"'
+
+$tags = {
+"html" =&gt; "the-html-element",
+"head" =&gt; "the-head-element",
+"title" =&gt; "the-title-element",
+"base" =&gt; "the-base-element",
+"link" =&gt; "the-link-element",
+"meta" =&gt; "meta",
+"style" =&gt; "the-style-element",
+"script" =&gt; "script",
+"noscript" =&gt; "the-noscript-element",
+"body" =&gt; "the-body-element",
+"section" =&gt; "the-section-element",
+"nav" =&gt; "the-nav-element",
+"article" =&gt; "the-article-element",
+"aside" =&gt; "the-aside-element",
+"h1" =&gt; "the-h1,-h2,-h3,-h4,-h5,-and-h6-elements",
+"h2" =&gt; "the-h1,-h2,-h3,-h4,-h5,-and-h6-elements",
+"h3" =&gt; "the-h1,-h2,-h3,-h4,-h5,-and-h6-elements",
+"h4" =&gt; "the-h1,-h2,-h3,-h4,-h5,-and-h6-elements",
+"h5" =&gt; "the-h1,-h2,-h3,-h4,-h5,-and-h6-elements",
+"h6" =&gt; "the-h1,-h2,-h3,-h4,-h5,-and-h6-elements",
+"hgroup" =&gt; "the-hgroup-element",
+"header" =&gt; "the-header-element",
+"footer" =&gt; "the-footer-element",
+"address" =&gt; "the-address-element",
+"p" =&gt; "the-p-element",
+"hr" =&gt; "the-hr-element",
+"br" =&gt; "the-br-element",
+"pre" =&gt; "the-pre-element",
+"dialog" =&gt; "the-dialog-element",
+"blockquote" =&gt; "the-blockquote-element",
+"ol" =&gt; "the-ol-element",
+"ul" =&gt; "the-ul-element",
+"li" =&gt; "the-li-element",
+"dl" =&gt; "the-dl-element",
+"dt" =&gt; "the-dt-element",
+"dd" =&gt; "the-dd-element",
+"a" =&gt; "the-a-element",
+"q" =&gt; "the-q-element",
+"cite" =&gt; "the-cite-element",
+"em" =&gt; "the-em-element",
+"strong" =&gt; "the-strong-element",
+"small" =&gt; "the-small-element",
+"mark" =&gt; "the-mark-element",
+"dfn" =&gt; "the-dfn-element",
+"abbr" =&gt; "the-abbr-element",
+"time" =&gt; "the-time-element",
+"progress" =&gt; "the-progress-element",
+"meter" =&gt; "the-meter-element",
+"code" =&gt; "the-code-element",
+"var" =&gt; "the-var-element",
+"samp" =&gt; "the-samp-element",
+"kbd" =&gt; "the-kbd-element",
+"sub" =&gt; "the-sub-and-sup-elements",
+"sup" =&gt; "the-sub-and-sup-elements",
+"span" =&gt; "the-span-element",
+"i" =&gt; "the-i-element",
+"b" =&gt; "the-b-element",
+"bdo" =&gt; "the-bdo-element",
+"ruby" =&gt; "the-ruby-element",
+"rt" =&gt; "the-rt-element",
+"rp" =&gt; "the-rp-element",
+"ins" =&gt; "the-ins-element",
+"del" =&gt; "the-del-element",
+"figure" =&gt; "the-figure-element",
+"figcaption" =&gt; "the-figcaption-element",
+"img" =&gt; "the-img-element",
+"iframe" =&gt; "the-iframe-element",
+"embed" =&gt; "the-embed-element",
+"object" =&gt; "the-object-element",
+"param" =&gt; "the-param-element",
+"video" =&gt; "video",
+"audio" =&gt; "audio",
+"source" =&gt; "the-source-element",
+"canvas" =&gt; "the-canvas-element",
+"map" =&gt; "the-map-element",
+"area" =&gt; "the-area-element",
+"table" =&gt; "the-table-element",
+"caption" =&gt; "the-caption-element",
+"colgroup" =&gt; "the-colgroup-element",
+"col" =&gt; "the-col-element",
+"tbody" =&gt; "the-tbody-element",
+"thead" =&gt; "the-thead-element",
+"tfoot" =&gt; "the-tfoot-element",
+"tr" =&gt; "the-tr-element",
+"td" =&gt; "the-td-element",
+"th" =&gt; "the-th-element",
+"form" =&gt; "the-form-element",
+"fieldset" =&gt; "the-fieldset-element",
+"label" =&gt; "the-label-element",
+"input" =&gt; "the-input-element",
+"button" =&gt; "the-button-element",
+"select" =&gt; "the-select-element",
+"datalist" =&gt; "the-datalist-element",
+"optgroup" =&gt; "the-optgroup-element",
+"option" =&gt; "the-option-element",
+"textarea" =&gt; "the-textarea-element",
+"output" =&gt; "the-output-element",
+"details" =&gt; "the-details-element",
+"summary" =&gt; "the-summary-element",
+"datagrid" =&gt; "datagrid",
+"command" =&gt; "the-command",
+"bb" =&gt; "the-bb-element",
+"menu" =&gt; "menus",
+"legend" =&gt; "the-legend-element",
+"div" =&gt; "the-div-element"
+}
+
+def request_tag_name (default_tag = "body")
+  res, tag = %x{ "$TM_SUPPORT_PATH/bin/CocoaDialog.app/Contents/MacOS/CocoaDialog" \
+    inputbox --float --title 'Documentation for Tag' \
+    --informative-text 'What tag would you like to lookup?' \
+    --text '#{default_tag}' --button1 'Lookup' --button2 'Cancel' \
+    --button3 'Show All Tags'
+  }.split("\n")
+  case res.to_i
+    when 1 then $tags[tag.to_s] || "semantics.html"
+    when 2 then abort "&lt;script&gt;window.close()&lt;/script&gt;"
+    when 3 then "semantics.html"
+  end
+end
+
+line, col = ENV["TM_CURRENT_LINE"].to_s, ENV["TM_LINE_INDEX"].to_i
+tag = line =~ /\A.{0,#{col}}&lt;\s*(\w+)/ ? $1 : ENV["TM_CURRENT_WORD"].to_s
+
+path = $tags[tag] || request_tag_name(tag)
+url = "http://www.whatwg.org/specs/web-apps/current-work/?slow-browser#" + path
+system("open '#{url}'")</string>
+	<key>input</key>
+	<string>none</string>
+	<key>keyEquivalent</key>
+	<string>^h</string>
+	<key>name</key>
+	<string>Lookup element</string>
+	<key>output</key>
+	<string>discard</string>
+	<key>scope</key>
+	<string>text.html, text.html entity.name.tag</string>
+	<key>uuid</key>
+	<string>637CEA2B-578C-429C-BB74-30E8D42BFA22</string>
+</dict>
+</plist>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>&lt;input name="$2" value="$3"${TM_POLYGLOT}&gt;$0</string>
+	<key>name</key>
+	<string>&lt;input type=text&gt;</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>tabTrigger</key>
+	<string>input</string>
+	<key>uuid</key>
+	<string>E14F25E5-CD93-4E44-8729-9A836EE7E91D</string>
+</dict>
+</plist>
