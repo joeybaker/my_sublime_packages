@@ -1,5 +1,6 @@
 // While you can edit this file, it's generally best to put your changes in
 // "User/Base File.sublime-settings", which overrides the settings in here.
+//
 // Settings may also be placed in file type specific options files, for example,
 // in Packages/Python/Python.sublime-settings for python files.
 {
@@ -41,6 +42,9 @@
 	// If translate_tabs_to_spaces is true, use_tab_stops will make tab and
 	// backspace insert/delete up to the next tabstop
 	"use_tab_stops": true,
+
+	// Set to false to disable detection of tabs vs. spaces on load
+	"detect_indentation": true,
 
 	// Set to false to disable automatic indentation
 	"auto_indent": true,
@@ -98,21 +102,32 @@
 	// matchBrackets is true
 	"match_brackets_angle": false,
 
-	// Set to false to disable detection of tabs vs. spaces on load
-	"detect_indentation": true,
-
 	// Additional spacing at the top of each line, in pixels
 	"line_padding_top": 0,
 
 	// Additional spacing at the bottom of each line, in pixels
 	"line_padding_bottom": 0,
 
-	// Set to false to disable scrolling past the end of the buffer
+	// Set to false to disable scrolling past the end of the buffer.
+	// On OS X, this value is overridden in the platform specific settings, so
+	// you'll need to place this line in your user settings to override it.
 	"scroll_past_end": true,
 
 	// Set to "none" to turn off drawing white space, "selection" to draw only the
 	// white space within the selection, and "all" to draw all white space
 	"draw_white_space": "selection",
+
+	// Set to false to turn off the indentation guides.
+	// The color and width of the indent guides may be customized by editing
+	// the corresponding .tmTheme file, and specifying the colors "guide",
+	// "activeGuide" and "stackGuide"
+	"draw_indent_guides": true,
+
+	// Controls how the indent guides are drawn, valid options are
+	// "draw_normal", "draw_active", "draw_stack" and "normal_stippled",
+	// "active_stippled" and "stack_stippled"
+	"indent_guide_options": ["draw_normal", "draw_active", "draw_stack",
+		"normal_stippled", "stack_stippled", "active_stippled"],
 
 	// Set to true to removing trailing white space on save
 	"trim_trailing_white_space_on_save": false,

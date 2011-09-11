@@ -19,10 +19,19 @@
 	// dock icon, this controls if a new window is created or not.
 	"open_files_in_new_window": true,
 
+	// Set to true to close windows as soon as the last file is closed, unless
+	// there's a folder open within the window. This is always enabled on OS X,
+	// changing it here won't modify the behavior.
+	"close_windows_when_empty": false,
+
 	// OS X 10.7 only: Set to true to disable Lion style full screen support.
 	// Sublime Text must be restarted for this to take effect.
 	"use_simple_full_screen": false,
 
 	// Valid values are "system", "enabled" and "disabled"
-	"overlay_scroll_bars": "system"
+	"overlay_scroll_bars": "system",
+
+	// List any packages to ignore here. When removing entries from this list,
+	// a restart may be required if the package contains plugins.
+	"ignored_packages": ["Vintage"]
 }

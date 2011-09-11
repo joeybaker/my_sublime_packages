@@ -13,7 +13,7 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	{ "keys": ["super+alt+s"], "command": "save_all" },
 	{ "keys": ["super+w"], "command": "close" },
 
-	{ "keys": ["ctrl+s"], "command": "toggle_side_bar" },
+	{ "keys": ["super+k", "super+b"], "command": "toggle_side_bar" },
 	{ "keys": ["super+ctrl+f"], "command": "toggle_full_screen" },
 	{ "keys": ["super+ctrl+shift+f"], "command": "toggle_distraction_free" },
 
@@ -117,6 +117,11 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	},
 	{ "keys": ["shift+tab"], "command": "unindent", "context":
 		[
+			{ "key": "preceding_text", "operator": "regex_match", "operand": "^[\t ]*" }
+		]
+	},
+	{ "keys": ["shift+tab"], "command": "unindent", "context":
+		[
 			{ "key": "text", "operator": "regex_contains", "operand": "\n" }
 		]
 	},
@@ -136,6 +141,9 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	{ "keys": ["super+shift+space"], "command": "expand_selection", "args": {"to": "scope"} },
 	{ "keys": ["ctrl+shift+m"], "command": "expand_selection", "args": {"to": "brackets"} },
 	{ "keys": ["ctrl+m"], "command": "move_to", "args": {"to": "brackets"} },
+	{ "keys": ["super+shift+a"], "command": "expand_selection", "args": {"to": "tag"} },
+
+	{ "keys": ["super+alt+."], "command": "close_tag" },
 
 	{ "keys": ["ctrl+q"], "command": "toggle_record_macro" },
 	{ "keys": ["ctrl+shift+q"], "command": "run_macro" },
@@ -194,8 +202,10 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	},
 
 	{ "keys": ["super+alt+p"], "command": "show_scope_name" },
+	{ "keys": ["ctrl+shift+p"], "command": "show_scope_name" },
 
 	{ "keys": ["super+b"], "command": "build" },
+	{ "keys": ["f7"], "command": "build" },
 
 	{ "keys": ["ctrl+t"], "command": "transpose" },
 
@@ -490,6 +500,10 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 
 	{ "keys": ["super+alt+q"], "command": "wrap_lines" },
 
+	{ "keys": ["super+alt+o"], "command": "toggle_overwrite" },
+
+	{ "keys": ["alt+f2"], "command": "context_menu" },
+
 	{ "keys": ["super+alt+c"], "command": "toggle_case_sensitive", "context":
 		[
 			{ "key": "setting.is_widget", "operator": "equal", "operand": true }
@@ -505,13 +519,48 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 			{ "key": "setting.is_widget", "operator": "equal", "operand": true }
 		]
 	},
-	{ "keys": ["super+alt+p"], "command": "toggle_preserve_case", "context":
+	{ "keys": ["super+alt+a"], "command": "toggle_preserve_case", "context":
 		[
 			{ "key": "setting.is_widget", "operator": "equal", "operand": true }
 		]
 	},
 
-	{ "keys": ["super+alt+o"], "command": "toggle_overwrite" },
+	// Find panel key bindings
+	{ "keys": ["enter"], "command": "find_next", "context":
+		[{"key": "panel", "operand": "find"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["shift+enter"], "command": "find_prev", "context":
+		[{"key": "panel", "operand": "find"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["alt+enter"], "command": "find_all", "args": {"close_panel": true},
+		 "context": [{"key": "panel", "operand": "find"}, {"key": "panel_has_focus"}]
+	},
+
+	// Replace panel key bindings
+	{ "keys": ["enter"], "command": "find_next", "context":
+		[{"key": "panel", "operand": "replace"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["shift+enter"], "command": "find_prev", "context":
+		[{"key": "panel", "operand": "replace"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["alt+enter"], "command": "find_all", "args": {"close_panel": true},
+		"context": [{"key": "panel", "operand": "replace"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["ctrl+alt+enter"], "command": "replace_all", "args": {"close_panel": true},
+		 "context": [{"key": "panel", "operand": "replace"}, {"key": "panel_has_focus"}]
+	},
+
+	// Incremental find panel key bindings
+	{ "keys": ["enter"], "command": "hide_panel", "context":
+		[{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["shift+enter"], "command": "find_prev", "context":
+		[{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["alt+enter"], "command": "find_all", "args": {"close_panel": true},
+		"context": [{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
+	},
+
 	{ "keys": ["super+,"], "command": "open_file", "args": {"file": "${packages}/User/Base File.sublime-settings"} },
 
 	// These are OS X builtin commands, and don't need to be listed here, but

@@ -1,19 +1,17 @@
 {
 	"auto_match_enabled": true,
-	"color_scheme": "Packages/Color Scheme - User/Joey's.tmTheme",
+	"color_scheme": "Packages/Color Scheme - User/Joey's Clouds Midnight.tmTheme",
 	"default_line_ending": "unix",
 	"detect_indentation": false,
 	"ensure_newline_at_eof_on_save": true,
 	"fallback_encoding": "UTF-8",
 	"font_face": "Inconsolata",
-	"font_size": 13,
+	"font_size": 12,
 	"highlight_line": true,
 	"indent_subsequent_lines": true,
 	"save_on_focus_lost": true,
 	"shift_tab_unindent": true,
 	"spell_check": false,
 	"translate_tabs_to_spaces": false,
-	"trim_trailing_white_space_on_save": false,
-	"word_wrap": true,
-	"wrap_width": 0
+	"trim_trailing_white_space_on_save": false
 }

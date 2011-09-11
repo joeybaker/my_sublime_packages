@@ -7,6 +7,7 @@
         [
             { "command": "new_file", "caption": "New File", "mnemonic": "N" },
             { "command": "prompt_open_file", "caption": "Open File…", "mnemonic": "O" },
+            { "command": "prompt_open_folder", "caption": "Open Folder…" },
             { "command": "clone_file", "mnemonic": "e" },
             {
                 "caption": "Open Recent",
@@ -21,6 +22,15 @@
                     { "command": "open_recent_file", "args": {"index": 5 } },
                     { "command": "open_recent_file", "args": {"index": 6 } },
                     { "command": "open_recent_file", "args": {"index": 7 } },
+                    { "caption": "-" },
+                    { "command": "open_recent_folder", "args": {"index": 0 } },
+                    { "command": "open_recent_folder", "args": {"index": 1 } },
+                    { "command": "open_recent_folder", "args": {"index": 2 } },
+                    { "command": "open_recent_folder", "args": {"index": 3 } },
+                    { "command": "open_recent_folder", "args": {"index": 4 } },
+                    { "command": "open_recent_folder", "args": {"index": 5 } },
+                    { "command": "open_recent_folder", "args": {"index": 6 } },
+                    { "command": "open_recent_folder", "args": {"index": 7 } },
                     { "caption": "-" },
                     { "command": "clear_recent_files", "caption": "Clear Items" }
                 ]
@@ -165,6 +175,16 @@
                 ]
             },
             {
+                "caption": "Tag",
+                "id": "tag",
+                "children":
+                [
+                    { "command": "close_tag" },
+                    { "command": "expand_selection", "args": {"to": "tag"}, "caption": "Expand Selection to Tag" },
+                    { "command": "insert_snippet", "args": { "name": "Packages/XML/long-tag.sublime-snippet" }, "caption": "Wrap Selection With Tag" }
+                ]
+            },
+            {
                 "caption": "Mark",
                 "id": "mark",
                 "children":
@@ -252,7 +272,8 @@
                     { "command": "expand_selection", "args": {"to": "word"}, "caption": "Expand Selection to Word" },
                     { "command": "expand_selection_to_paragraph", "caption": "Expand Selection to Paragraph" },
                     { "command": "expand_selection", "args": {"to": "scope"}, "caption": "Expand Selection to Scope" },
-                    { "command": "expand_selection", "args": {"to": "brackets"}, "caption": "Expand Selection to Brackets" }
+                    { "command": "expand_selection", "args": {"to": "brackets"}, "caption": "Expand Selection to Brackets" },
+                    { "command": "expand_selection", "args": {"to": "tag"}, "caption": "Expand Selection to Tag" }
                 ]
             },
             { "caption": "-" },
@@ -343,7 +364,16 @@
         "id": "view",
         "children":
         [
-            { "command": "toggle_side_bar" },
+            {
+                "caption": "Side Bar",
+                "id": "side_bar",
+                "children":
+                [
+                    { "command": "toggle_side_bar" },
+                    { "caption": "-" },
+                    { "command": "toggle_show_open_files" }
+                ]
+            },
             { "command": "toggle_minimap" },
             { "command": "toggle_tabs" },
             { "command": "toggle_status_bar" },
@@ -557,6 +587,7 @@
                 [
                     { "command": "set_build_system", "args": { "file": "" }, "caption": "Automatic", "checkbox": true },
                     { "caption": "-" },
+                    { "command": "$project_build_systems" },
                     { "command": "$build_systems" },
                     { "caption": "-" },
                     { "command": "new_build_system", "caption": "New Build System…" }
@@ -595,8 +626,7 @@
         "id": "project",
         "children":
         [
-            { "command": "open_project", "caption": "Open Project…", "mnemonic": "O" },
-            { "command": "prompt_select_project", "caption": "Select Project…", "mnemonic": "S" },
+            { "command": "prompt_open_project", "caption": "Open Project…", "mnemonic": "O" },
             {
                 "caption": "Recent Projects",
                 "mnemonic": "R",
@@ -614,37 +644,41 @@
                     { "command": "clear_recent_projects", "caption": "Clear Items" }
                 ]
             },
+            { "caption": "-" },
+            { "command": "prompt_select_project", "caption": "Switch Project…", "mnemonic": "S" },
             { "command": "save_project_as", "caption": "Save Project As…", "mnemonic": "A" },
             { "command": "close_project", "mnemonic": "C" },
+            { "command": "open_file", "args": {"file": "${project}"}, "caption": "Edit Project" },
             { "caption": "-" },
             { "command": "prompt_add_folder", "caption": "Add Folder to Project…", "mnemonic": "d" },
             { "command": "close_folder_list", "caption": "Remove all Folders from Project", "mnemonic": "m" },
             { "command": "refresh_folder_list", "caption": "Refresh Folders", "mnemonic": "e" },
             { "caption": "-" },
-            { "command": "show_panel", "args": {"panel": "find_in_files", "location": "<open folders>" }, "caption": "Find in Project", "mnemonic": "F" }
+            { "command": "show_panel", "args": {"panel": "find_in_files", "location": "<open folders>" }, "caption": "Find in Project", "mnemonic": "F" },
+            { "caption": "-", "id": "end" }
         ]
     },
     {
         "caption": "Preferences",
-        "mnemonic": "r",
+        "mnemonic": "n",
         "id": "preferences",
         "children":
         [
             { "command": "open_dir", "args": {"dir": "$packages"}, "caption": "Browse Packages…", "mnemonic": "B" },
             { "caption": "-" },
-            { "command": "open_file", "args": {"file": "${packages}/Default/Base File.sublime-settings"}, "caption": "Default File Settings" },
-            { "command": "open_file", "args": {"file": "${packages}/User/Base File.sublime-settings"}, "caption": "User File Settings" },
+            { "command": "open_file", "args": {"file": "${packages}/Default/Base File.sublime-settings"}, "caption": "File Settings – Default" },
+            { "command": "open_file", "args": {"file": "${packages}/User/Base File.sublime-settings"}, "caption": "File Settings – User" },
             {
-                "caption": "More",
+                "caption": "File Settings – More",
                 "children":
                 [
-                    { "command": "open_file_settings", "caption": "User Syntax Specific Settings" },
-                    { "command": "open_file", "args": {"file": "${packages}/User/Distraction Free.sublime-settings"}, "caption": "User Distraction Free Settings" }
+                    { "command": "open_file_settings", "caption": "Syntax Specific – User" },
+                    { "command": "open_file", "args": {"file": "${packages}/User/Distraction Free.sublime-settings"}, "caption": "Distraction Free – User" }
                 ]
             },
             { "caption": "-" },
-            { "command": "open_file", "args": {"file": "${packages}/Default/Global.sublime-settings"}, "caption": "Default Global Settings" },
-            { "command": "open_file", "args": {"file": "${packages}/User/Global.sublime-settings"}, "caption": "User Global Settings" },
+            { "command": "open_file", "args": {"file": "${packages}/Default/Global.sublime-settings"}, "caption": "Global Settings – Default" },
+            { "command": "open_file", "args": {"file": "${packages}/User/Global.sublime-settings"}, "caption": "Global Settings – User" },
             { "caption": "-" },
             {
                 "command": "open_file", "args":
@@ -652,7 +686,7 @@
                     "file": "${packages}/Default/Default (Windows).sublime-keymap",
                     "platform": "Windows"
                 },
-                "caption": "Default Key Bindings"
+                "caption": "Key Bindings – Default"
             },
             {
                 "command": "open_file", "args":
@@ -660,7 +694,7 @@
                     "file": "${packages}/Default/Default (OSX).sublime-keymap",
                     "platform": "OSX"
                 },
-                "caption": "Default Key Bindings"
+                "caption": "Key Bindings – Default"
             },
             {
                 "command": "open_file", "args":
@@ -668,7 +702,7 @@
                     "file": "${packages}/Default/Default (Linux).sublime-keymap",
                     "platform": "Linux"
                 },
-                "caption": "Default Key Bindings"
+                "caption": "Key Bindings – Default"
             },
             {
                 "command": "open_file", "args":
@@ -676,7 +710,7 @@
                     "file": "${packages}/User/Default (Windows).sublime-keymap",
                     "platform": "Windows"
                 },
-                "caption": "User Key Bindings"
+                "caption": "Key Bindings – User"
             },
             {
                 "command": "open_file", "args":
@@ -684,7 +718,7 @@
                     "file": "${packages}/User/Default (OSX).sublime-keymap",
                     "platform": "OSX"
                 },
-                "caption": "User Key Bindings"
+                "caption": "Key Bindings – User"
             },
             {
                 "command": "open_file", "args":
@@ -692,7 +726,7 @@
                     "file": "${packages}/User/Default (Linux).sublime-keymap",
                     "platform": "Linux"
                 },
-                "caption": "User Key Bindings"
+                "caption": "Key Bindings – User"
             },
             { "caption": "-" },
             {
