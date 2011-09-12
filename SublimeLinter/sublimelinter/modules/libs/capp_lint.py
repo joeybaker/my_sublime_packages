@@ -147,12 +147,6 @@ class LintChecker(object):
             'type': ERROR_TYPE_ILLEGAL
         },
         {
-            'regex': re.compile(ur'([^\t -~])'),
-            'error': 'line contains non-ASCII characters',
-            'showPositionForGroup': 1,
-            'type': ERROR_TYPE_ILLEGAL
-        },
-        {
             'regex': re.compile(ur'^\s*(?:(?:else )?if|for|switch|while|with)(\()'),
             'error': 'missing space between control statement and parentheses',
             'showPositionForGroup': 1,
