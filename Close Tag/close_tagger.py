@@ -1,6 +1,6 @@
 import sublime, sublime_plugin, re
 
-class CloseTagCommand(sublime_plugin.TextCommand):
+class CloseTaggerCommand(sublime_plugin.TextCommand):
     def run(self, edit ):
         leftOfCursor = self.view.substr(sublime.Region(0, self.view.sel()[0].begin()))
         regex = re.compile('<(/?\w+)[^>]*>')

@@ -3,20 +3,36 @@
 import subprocess
 import sublime
 
-from module_utils import get_startupinfo
+from module_utils import get_executable, get_startupinfo
+
+# start sublimelint perl plugin
+import re
+__all__ = ['run', 'language']
+language = 'Perl'
+linter_executable = 'perl'
+description =\
+'''* view.run_command("lint", "Perl")
+        Turns background linter off and runs the default Perl linter
+        (perl - c, assumed to be on $PATH) on current view.
+'''
 
 
 def is_enabled():
+    global linter_executable
+    linter_executable = get_executable('perl', 'perl')
+
     try:
-        subprocess.Popen(('perl', '-v'), startupinfo=get_startupinfo())
+        subprocess.Popen((linter_executable, '-v'), startupinfo=get_startupinfo(),
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
     except OSError:
-        return (False, 'perl cannot be found')
+        return (False, '"{0}" cannot be found'.format(linter_executable))
 
-    return True
+    return (True, 'using "{0}" for executable'.format(linter_executable))
 
 
-def check(codeString, filename):
-    process = subprocess.Popen(('perl', '-c'),
+def check(codeString):
+    global linter_executable
+    process = subprocess.Popen((linter_executable, '-c'),
                                 stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT,
@@ -25,21 +41,9 @@ def check(codeString, filename):
 
     return result
 
-# start sublimelint perl plugin
-import re
-__all__ = ['run', 'language']
-language = 'Perl'
-description =\
-'''* view.run_command("lint", "Perl")
-        Turns background linter off and runs the default Perl linter
-        (perl - c, assumed to be on $PATH) on current view.
-'''
-
 
 def run(code, view, filename='untitled'):
-    errors = check(code, filename)
-    print errors
-
+    errors = check(code)
     lines = set()
     underline = []  # leave this here for compatibility with original plugin
 

@@ -37,6 +37,8 @@ import os.path
 import re
 import sys
 
+import sublime
+
 
 EXIT_CODE_SHOW_HTML = 205
 EXIT_CODE_SHOW_TOOLTIP = 206
@@ -147,6 +149,14 @@ class LintChecker(object):
             'type': ERROR_TYPE_ILLEGAL
         },
         {
+            'regex': re.compile(ur'([^\t -~])'),
+            'error': 'line contains non-ASCII characters',
+            'showPositionForGroup': 1,
+            'type': ERROR_TYPE_ILLEGAL,
+            'option': 'sublimelinter_objj_check_ascii',
+            'optionDefault': False
+        },
+        {
             'regex': re.compile(ur'^\s*(?:(?:else )?if|for|switch|while|with)(\()'),
             'error': 'missing space between control statement and parentheses',
             'showPositionForGroup': 1,
@@ -253,7 +263,8 @@ class LintChecker(object):
     TEXT_ERROR_SINGLE_FILE_TEMPLATE = Template(u'$lineNum: $message.\n+$line\n')
     TEXT_ERROR_MULTI_FILE_TEMPLATE = Template(u'$filename:$lineNum: $message.\n+$line\n')
 
-    def __init__(self, basedir='', var_declarations=VAR_DECLARATIONS_SINGLE, verbose=False):
+    def __init__(self, view, basedir='', var_declarations=VAR_DECLARATIONS_SINGLE, verbose=False):
+        self.view = view
         self.basedir = unicode(basedir, 'utf-8')
         self.errors = []
         self.errorFiles = []
@@ -273,6 +284,14 @@ class LintChecker(object):
 
     def run_line_checks(self):
         for check in self.LINE_CHECKLIST:
+            option = check.get('option')
+
+            if option:
+                default = check.get('optionDefault', False)
+
+                if not self.view.settings().get(option, default):
+                    continue
+
             line = self.line
             lineFilter = check.get('filter')
 

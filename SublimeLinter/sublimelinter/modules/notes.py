@@ -20,7 +20,7 @@ description =\
 
 
 def is_enabled():
-    return True
+    return (True, 'built in')
 
 
 def run(code, view):

@@ -74,6 +74,7 @@ class Loader(object):
 
         try:
             language = mod.language
+            lc_language = language.lower()
             enabled = mod.is_enabled()
 
             if isinstance(enabled, bool):
@@ -88,12 +89,12 @@ class Loader(object):
 
             if is_enabled:
                 print 'SublimeLinter: {0} enabled{1}'.format(language, ' ({0})'.format(reason) if reason else '')
-                self.linters[language] = mod
+                self.linters[lc_language] = mod
             else:
                 print 'SublimeLinter: {0} disabled ({1})'.format(language, reason)
 
-                if language in self.linters:
-                    del self.linters[language]
+                if lc_language in self.linters:
+                    del self.linters[lc_language]
         except AttributeError:
             print 'SublimeLinter: loaded {0} - no language specified'.format(name)
             is_enabled = False

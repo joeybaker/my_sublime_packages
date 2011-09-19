@@ -64,7 +64,7 @@ description =\
 
 
 def is_enabled():
-    return True
+    return (True, 'built in')
 
 
 class Pep8Error(pyflakes.messages.Message):
@@ -86,10 +86,10 @@ class Pep8Warning(pyflakes.messages.Message):
 
 
 class OffsetError(pyflakes.messages.Message):
-    message = '%r at offset %r'
+    message = '%r at column %r'
 
     def __init__(self, filename, loc, text, offset):
-        pyflakes.messages.Message.__init__(self, filename, loc, level='E', message_args=(text, offset))
+        pyflakes.messages.Message.__init__(self, filename, loc, level='E', message_args=(text, offset + 1))
         self.text = text
         self.offset = offset
 

@@ -1,0 +1,27 @@
+[
+    {
+        "caption": "SublimeLinter: Lint Current File",
+        "command": "sublimelinter_lint",
+        "args": {"action": "lint"}
+    },
+    {
+        "caption": "SublimeLinter: Enable Background Linting",
+        "command": "sublimelinter_lint",
+        "args": {"action": "on"}
+    },
+    {
+        "caption": "SublimeLinter: Disable Background Linting",
+        "command": "sublimelinter_disable",
+        "args": {"action": "off"}
+    },
+    {
+        "caption": "SublimeLinter: Reset",
+        "command": "sublimelinter_lint",
+        "args": {"action": "reset"}
+    },
+    {
+        "caption": "SublimeLinter: Show Commands",
+        "command": "sublimelinter",
+        "args": {"action": "help"}
+    }
+]

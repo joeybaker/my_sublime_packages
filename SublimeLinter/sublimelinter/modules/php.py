@@ -2,20 +2,37 @@
 
 import subprocess
 
-from module_utils import get_startupinfo
+from module_utils import get_executable, get_startupinfo
+
+
+# start sublimelint php plugin
+import re
+__all__ = ['run', 'language']
+language = 'PHP'
+linter_executable = 'php'
+description =\
+'''* view.run_command("lint", "PHP")
+        Turns background linter off and runs the default PHP linter
+        (php - l, assumed to be on $PATH) on current view.
+'''
 
 
 def is_enabled():
+    global linter_executable
+    linter_executable = get_executable('php', 'php')
+
     try:
-        subprocess.Popen(('php', '-v'), startupinfo=get_startupinfo())
+        subprocess.Popen((linter_executable, '-v'), startupinfo=get_startupinfo(),
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
     except OSError:
-        return (False, 'php cannot be found')
+        return (False, '"{0}" cannot be found'.format(linter_executable))
 
-    return True
+    return (True, 'using "{0}" for executable'.format(linter_executable))
 
 
-def check(codeString, args=[]):
-    process = subprocess.Popen(('php', '-l', '-d display_errors=On'),
+def check(codeString):
+    global linter_executable
+    process = subprocess.Popen((linter_executable, '-l', '-d display_errors=On'),
                                 stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
                                 startupinfo=get_startupinfo())
@@ -26,16 +43,6 @@ def check(codeString, args=[]):
         result = ''
 
     return result
-
-# start sublimelint php plugin
-import re
-__all__ = ['run', 'language']
-language = 'PHP'
-description =\
-'''* view.run_command("lint", "PHP")
-        Turns background linter off and runs the default PHP linter
-        (php - l, assumed to be on $PATH) on current view.
-'''
 
 
 def run(code, view, filename='untitled'):

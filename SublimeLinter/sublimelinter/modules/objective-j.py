@@ -55,7 +55,7 @@ description =\
 
 
 def is_enabled():
-    return True
+    return (True, 'built in')
 
 
 def run(code, view, filename='untitled'):
@@ -65,7 +65,7 @@ def run(code, view, filename='untitled'):
     warningUnderlines = []
     warningMessages = {}
 
-    checker = LintChecker()
+    checker = LintChecker(view)
     checker.lint_text(code, filename)
 
     def addMessage(lineno, message, type):

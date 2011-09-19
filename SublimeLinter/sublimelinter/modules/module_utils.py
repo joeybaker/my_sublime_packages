@@ -4,6 +4,21 @@
 import os
 import subprocess
 
+import sublime
+
+
+def get_executable(language, default):
+    settings = sublime.load_settings('Base File.sublime-settings')
+    map = settings.get('sublimelinter_executable_map')
+
+    if map:
+        lang = language.lower()
+
+        if lang in map:
+            return map[lang]
+
+    return default
+
 
 def get_startupinfo():
     info = None

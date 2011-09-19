@@ -2,20 +2,37 @@
 
 import subprocess
 
-from module_utils import get_startupinfo
+from module_utils import get_executable, get_startupinfo
+
+
+# start sublimelint Ruby plugin
+import re
+__all__ = ['run', 'language']
+language = 'Ruby'
+linter_executable = 'ruby'
+description =\
+'''* view.run_command("lint", "Ruby")
+        Turns background linter off and runs the default Ruby linter
+        (ruby -c, assumed to be on $PATH) on current view.
+'''
 
 
 def is_enabled():
-    try:
-        subprocess.Popen(('ruby', '-v'), startupinfo=get_startupinfo())
-    except OSError:
-        return (False, 'ruby cannot be found')
+    global linter_executable
+    linter_executable = get_executable('ruby', 'ruby')
 
-    return True
+    try:
+        subprocess.Popen((linter_executable, '-v'), startupinfo=get_startupinfo(),
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
+    except OSError:
+        return (False, '"{0}" cannot be found'.format(linter_executable))
+
+    return (True, 'using "{0}" for executable'.format(linter_executable))
 
 
 def check(codeString, filename):
-    process = subprocess.Popen(('ruby', '-wc'),
+    global linter_executable
+    process = subprocess.Popen((linter_executable, '-wc'),
                   stdin=subprocess.PIPE,
                   stdout=subprocess.PIPE,
                   stderr=subprocess.STDOUT,
@@ -23,16 +40,6 @@ def check(codeString, filename):
     result = process.communicate(codeString)[0]
 
     return result
-
-# start sublimelint Ruby plugin
-import re
-__all__ = ['run', 'language']
-language = 'Ruby'
-description =\
-'''* view.run_command("lint", "Ruby")
-        Turns background linter off and runs the default Ruby linter
-        (ruby -c, assumed to be on $PATH) on current view.
-'''
 
 
 def run(code, view, filename='untitled'):

@@ -21,7 +21,7 @@ description =\
 
 
 def is_enabled():
-    return (PYLINT_AVAILABLE, '' if PYLINT_AVAILABLE else 'the pylint module could not be imported')
+    return (PYLINT_AVAILABLE, 'built in' if PYLINT_AVAILABLE else 'the pylint module could not be imported')
 
 
 def run_pylint(code):
