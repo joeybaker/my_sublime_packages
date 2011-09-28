@@ -53,6 +53,9 @@
 	"trim_automatic_white_space": true,
 
 	// Set to false for horizontal scrolling
+	// NOTE: word_wrap is explicitly turned off in several syntax specific
+	// settings, you'll need to set it via your user syntax specific settings
+	// to ensure these are overridden.
 	"word_wrap": true,
 
 	// Set to a value other than 0 to force wrapping at that column rather than the
@@ -101,6 +104,9 @@
 	// Set to false to not highlight angle brackets. This only takes effect if
 	// matchBrackets is true
 	"match_brackets_angle": false,
+
+	// Enable visualisation of the matching tag in HTML and XML
+	"match_tags": true,
 
 	// Additional spacing at the top of each line, in pixels
 	"line_padding_top": 0,
