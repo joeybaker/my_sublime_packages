@@ -11,7 +11,7 @@
     The MIT License
     http://www.opensource.org/licenses/mit-license.php
 
-    usage: node /path/to/jshint_wrapper.js "{option1:true,option2:false}"
+    usage: node /path/to/jshint_node.js ["{option1:true,option2:false}"]
     */
 
 var _fs = require('fs'),
@@ -29,7 +29,7 @@ function _removeJsComments(str) {
 
 function hint() {
     var code = '',
-        config = JSON.parse(process.argv[2]);
+        config = JSON.parse(process.argv[2] || '{}');
 
     process.stdin.resume();
     process.stdin.setEncoding('utf8');

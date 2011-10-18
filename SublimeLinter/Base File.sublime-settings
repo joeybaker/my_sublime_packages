@@ -2,7 +2,13 @@
     SublimeLinter default settings
 */
 {
-    // Turns background linting on (true) or off (false) for new views.
+    /*
+        Sets the mode in which SublimeLinter runs:
+
+        true - Linting occurs in the background as you type (the default).
+        false - Linting only occurs when you initiate it.
+        "load-save" - Linting occurs only when a file is loaded and saved.
+    */
     "sublimelinter": true,
 
     /*
@@ -39,6 +45,16 @@
     "sublimelinter_disable":
     [
     ],
+
+    /*
+        The minimum delay in seconds (fractional seconds are okay) before
+        a linter is run when the "sublimelinter" setting is true. This allows
+        you to have background linting active, but defer the actual linting
+        until you are idle. When this value is greater than the built in linting delay,
+        errors are erased when the file is modified, since the assumption is
+        you don't want to see errors while you type.
+    */
+    "sublimelinter_delay": 0,
 
     // If true, lines with errors or warnings will be filled in with the outline color.
     "sublimelinter_fill_outlines": false,

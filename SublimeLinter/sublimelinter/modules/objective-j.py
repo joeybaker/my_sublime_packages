@@ -3,7 +3,7 @@
 # It provides a list of line numbers to outline and offsets to highlight.
 #
 # This specific module is part of the SublimeLinter project.
-# It is a fork by Aparajita Fishman from the Kronuz fork of the original SublimeLint project,
+# It is a fork of the original SublimeLint project,
 # (c) 2011 Ryan Hileman and licensed under the MIT license.
 # URL: http://bochs.info/
 #
@@ -36,59 +36,24 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-import os
-import sublime
-import sys
-
-libs_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'libs'))
-if libs_path not in sys.path:
-    sys.path.insert(0, libs_path)
-
 from capp_lint import LintChecker
+from base_linter import BaseLinter
 
-language = 'Objective-J'
-description =\
-'''* view.run_command("lint", "Objective-J")
-        Turns background linter off and runs the default Objective-J linter
-        (capp_lint) on current view.
-'''
+CONFIG = {
+    'language': 'Objective-J'
+}
 
 
-def is_enabled():
-    return (True, 'built in')
+class Linter(BaseLinter):
+    def built_in_check(self, view, code, filename):
+        checker = LintChecker(view)
+        checker.lint_text(code, filename)
+        return checker.errors
 
+    def parse_errors(self, view, errors, lines, errorUnderlines, violationUnderlines, warningUnderlines, errorMessages, violationMessages, warningMessages):
+        for error in errors:
+            lineno = error['lineNum']
+            self.add_message(lineno, lines, error['message'], errorMessages if type == LintChecker.ERROR_TYPE_ILLEGAL else warningMessages)
 
-def run(code, view, filename='untitled'):
-    lines = set()
-    errorUnderlines = []  # leave this here for compatibility with original plugin
-    errorMessages = {}
-    warningUnderlines = []
-    warningMessages = {}
-
-    checker = LintChecker(view)
-    checker.lint_text(code, filename)
-
-    def addMessage(lineno, message, type):
-        message = message.capitalize()
-        errors = errorMessages if type == LintChecker.ERROR_TYPE_ILLEGAL else warningMessages
-
-        if lineno in errors:
-            errors[lineno].append(message)
-        else:
-            errors[lineno] = [message]
-
-    def underlineRange(lineno, position, type):
-        line = view.full_line(view.text_point(lineno, 0))
-        position += line.begin()
-        underlines = errorUnderlines if type == LintChecker.ERROR_TYPE_ILLEGAL else warningUnderlines
-        underlines.append(sublime.Region(position))
-
-    for error in checker.errors:
-        lineno = error['lineNum'] - 1  # ST2 wants zero-based numbers
-        lines.add(lineno)
-        addMessage(lineno, error['message'], error['type'])
-
-        for position in error.get('positions', []):
-            underlineRange(lineno, position, error['type'])
-
-    return lines, errorUnderlines, [], warningUnderlines, errorMessages, {}, warningMessages
+            for position in error.get('positions', []):
+                self.underline_range(view, lineno, position, errorUnderlines if type == LintChecker.ERROR_TYPE_ILLEGAL else warningUnderlines)

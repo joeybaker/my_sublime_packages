@@ -3,86 +3,88 @@
 
 Used to highlight user-defined "annotations" such as TODO, README, etc.,
 depending user choice.
-
 '''
+
 import sublime
 
-default_notes = ["TODO", "README", "FIXME"]
-language = "annotations"
-description =\
-'''* view.run_command("lint", "annotations")
-        Turns background linter off and highlight user notes.
+from base_linter import BaseLinter
 
-        User notes are "words" that can be specified as a user preference named
-        "annotations". If no user preferences has been set, the following will
-        be assumed: annotations = %s
-''' % default_notes
+CONFIG = {
+    'language': 'annotations'
+}
 
 
-def is_enabled():
-    return (True, 'built in')
+class Linter(BaseLinter):
+    DEFAULT_NOTES = ["TODO", "README", "FIXME"]
 
+    def built_in_check(self, view, code, filename):
+        annotations = self.select_annotations(view)
+        regions = []
 
-def run(code, view):
-    '''linter method called by default'''
-    annotations = select_(view)
+        for annotation in annotations:
+            regions.extend(self.find_all(code, annotation, view))
 
-    regions = []
-    for note in annotations:
-        regions.extend(find_all(code, note, view))
-    return regions
+        return regions
 
+    def select_annotations(self, view):
+        '''selects the list of annotations to use'''
+        annotations = view.settings().get("annotations")
 
-def select_(view):
-    '''selects the list of annotations to use'''
-    annotations = view.settings().get("annotations")
-    if annotations is None:
-        return default_notes
-    else:
-        return annotations
+        if annotations is None:
+            return self.DEFAULT_NOTES
+        else:
+            return annotations
 
+    def extract_annotations(self, code, view, filename):
+        '''extract all lines with annotations'''
+        annotations = self.select_annotations(view)
+        annotation_starts = []
 
-def extract_annotations(code, view, filename):
-    '''extract all lines with annotations'''
-    annotations = select_(view)
-    note_starts = []
-    for note in annotations:
+        for annotation in annotations:
+            start = 0
+            length = len(annotation)
+
+            while True:
+                start = code.find(annotation, start)
+
+                if start != -1:
+                    end = start + length
+                    annotation_starts.append(start)
+                    start = end
+                else:
+                    break
+
+        regions_with_notes = set([])
+
+        for point in annotation_starts:
+            regions_with_notes.add(view.extract_scope(point))
+
+        regions_with_notes = sorted(list(regions_with_notes))
+        text = []
+
+        for region in regions_with_notes:
+            row, col = view.rowcol(region.begin())
+            text.append("[%s:%s]" % (filename, row + 1))
+            text.append(view.substr(region))
+
+        return '\n'.join(text)
+
+    def find_all(self, text, string, view):
+        ''' finds all occurences of "string" in "text" and notes their positions
+            as a sublime Region
+        '''
+        found = []
+        length = len(string)
         start = 0
-        length = len(note)
+
         while True:
-            start = code.find(note, start)
+            start = text.find(string, start)
+
             if start != -1:
                 end = start + length
-                note_starts.append(start)
+                found.append(sublime.Region(start, end))
                 start = end
             else:
                 break
-    regions_with_notes = set([])
-    for point in note_starts:
-        regions_with_notes.add(view.extract_scope(point))
-    regions_with_notes = sorted(list(regions_with_notes))
-    text = []
-    for region in regions_with_notes:
-        row, col = view.rowcol(region.begin())
-        text.append("[[%s:%s]]" % (filename, row + 1))
-        text.append(view.substr(region))
 
-    return '\n'.join(text)
-
-
-def find_all(text, string, view):
-    ''' finds all occurences of "string" in "text" and notes their positions
-       as a sublime Region
-       '''
-    found = []
-    length = len(string)
-    start = 0
-    while True:
-        start = text.find(string, start)
-        if start != -1:
-            end = start + length
-            found.append(sublime.Region(start, end))
-            start = end
-        else:
-            break
-    return found
+        return found

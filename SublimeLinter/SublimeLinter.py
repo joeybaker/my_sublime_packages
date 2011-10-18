@@ -1,13 +1,6 @@
-'''This plugin controls a linter meant to work in the background
-and to provide information as a file is edited.
-
-It requires that the user setting "sublimelinter" be set to true
-to be activated - or, alternatively, that the user runs the command
-view.run_command("lint", "on")
-
-Questions: andre.roberge (at) gmail.com
-'''
+# -*- coding: utf-8 -*-
 import os
+import sys
 import time
 import threading
 
@@ -15,6 +8,7 @@ import sublime
 import sublime_plugin
 
 from sublimelinter.loader import Loader
+from sublimelinter.modules.base_linter import INPUT_METHOD_FILE
 
 LINTERS = {}     # mapping of language name to linter module
 QUEUE = {}       # views waiting to be processed by linter
@@ -23,8 +17,7 @@ ERRORS = {}      # error messages on given line obtained from linter; they are
 VIOLATIONS = {}  # violation messages, they are displayed in the status bar
 WARNINGS = {}    # warning messages, they are displayed in the status bar
 TIMES = {}       # collects how long it took the linting to complete
-HELP = []        # collects all "help" (docstring, etc.) information
-MOD_LOAD = Loader(os.getcwd(), LINTERS, HELP)  # utility to load (and reload
+MOD_LOAD = Loader(os.getcwd(), LINTERS)  # utility to load (and reload
                  # if necessary) linter modules [useful when working on plugin]
 
 # For snappier linting, different delays are used for different linting times:
@@ -38,30 +31,21 @@ DELAYS = (
 )
 
 
-HELP.insert(0,
-'''SublimeLinter command help
-==================================================================
+def get_delay(t, view):
+    delay = 0
 
-The following information is extracted dynamically from the source
-code files and *should* be reflecting accurately all the available
-options:
-------------------------------------------------------------------
-'''
-)
-
-
-def help_collector(fn):
-    '''decorator used to automatically extract docstrings and collect them
-    for future display'''
-    HELP.append(fn.__doc__)
-    return fn
-
-
-def get_delay(t):
     for _t, d in DELAYS:
         if t >= _t:
-            return d
-    return DELAYS[-1][1]
+            delay = d
+    delay = DELAYS[-1][1]
+    minDelay = int(view.settings().get('sublimelinter_delay', 0) * 1000)
+
+    # If the user specifies a delay greater than the built in delay,
+    # figure they only want to see marks when idle.
+    if minDelay > delay[1]:
+        erase_lint_marks(view)
+
+    return (minDelay, minDelay) if minDelay > delay[1] else delay
 
 
 def last_selected_lineno(view):
@@ -84,26 +68,29 @@ def update_statusbar(view):
 
 def background_run(linter, view):
     '''run a linter on a given view if settings is set appropriately'''
-    if view.settings().get('sublimelinter', True):
-        if linter:
-            run_once(linter, view)
+    if linter:
+        run_once(linter, view)
+
     if view.settings().get('sublimelinter_notes'):
         highlight_notes(view)
 
 
 def run_once(linter, view):
     '''run a linter on a given view regardless of user setting'''
-    if linter == LINTERS["annotations"]:
+    if linter == LINTERS.get('annotations', None):
         highlight_notes(view)
         return
+
     vid = view.id()
     start = time.time()
     text = view.substr(sublime.Region(0, view.size())).encode('utf-8')
+
     if view.file_name():
         filename = view.file_name()  # os.path.split(view.file_name())[-1]
     else:
         filename = 'untitled'
-    lines, error_underlines, violation_underlines, warning_underlines, ERRORS[vid], VIOLATIONS[vid], WARNINGS[vid] = linter.run(text, view, filename)
+
+    lines, error_underlines, violation_underlines, warning_underlines, ERRORS[vid], VIOLATIONS[vid], WARNINGS[vid] = linter.run(view, text, filename)
     add_lint_marks(view, lines, error_underlines, violation_underlines, warning_underlines)
     update_statusbar(view)
     end = time.time()
@@ -124,6 +111,7 @@ def add_lint_marks(view, lines, error_underlines, violation_underlines, warning_
         fill_outlines = view.settings().get('sublimelinter_fill_outlines', False)
         gutter_mark = 'cross' if view.settings().get('sublimelinter_gutter_marks', False) else ''
         outlines = {'warning': [], 'violation': [], 'illegal': []}
+
         for line in lines:
             if line in ERRORS[vid]:
                 outlines['illegal'].append(view.full_line(view.text_point(line, 0)))
@@ -131,6 +119,7 @@ def add_lint_marks(view, lines, error_underlines, violation_underlines, warning_
                 outlines['warning'].append(view.full_line(view.text_point(line, 0)))
             elif line in VIOLATIONS[vid]:
                 outlines['violation'].append(view.full_line(view.text_point(line, 0)))
+
         for lint_type in outlines:
             if outlines[lint_type]:
                 args = [
@@ -200,6 +189,7 @@ def select_linter(view, ignore_disabled=False):
     syntax = syntax_name(view)
     lc_syntax = syntax.lower()
     language = None
+    linter = None
 
     if lc_syntax in LINTERS:
         language = lc_syntax
@@ -216,23 +206,35 @@ def select_linter(view, ignore_disabled=False):
             disabled = view.settings().get('sublimelinter_disable', [])
 
         if language not in disabled:
-            return LINTERS[language]
+            linter = LINTERS[language]
 
-    return None
+            # If the enabled state is False, it must be checked.
+            # Enabled checking has to be deferred to first view use because
+            # user settings cannot be loaded during plugin startup.
+            if not linter.enabled:
+                enabled, message = linter.check_enabled(view)
+                print 'SublimeLinter: {0} {1} ({2})'.format(language, 'enabled' if enabled else 'disabled', message)
+
+                if not enabled:
+                    del LINTERS[language]
+                    linter = None
+
+    return linter
 
 
 def highlight_notes(view):
     '''highlight user-specified annotations in a file'''
     view.erase_regions('lint-annotations')
     text = view.substr(sublime.Region(0, view.size()))
-    regions = LINTERS["annotations"].run(text, view)
+    regions = LINTERS['annotations'].run(view, text)
+
     if regions:
-        view.add_regions('lint-annotations', regions, "sublimelinter.annotations", sublime.DRAW_EMPTY_AS_OVERWRITE)
+        view.add_regions('lint-annotations', regions, 'sublimelinter.annotations', sublime.DRAW_EMPTY_AS_OVERWRITE)
 
 
-def queue_linter(view, timeout, busy_timeout, preemptive=False):
+def queue_linter(linter, view, timeout, busy_timeout, preemptive=False):
     '''Put the current view in a queue to be examined by a linter'''
-    if select_linter(view) is None:
+    if linter is None:
         erase_lint_marks(view)  # may have changed file type and left marks behind
 
         # No point in queuing anything if no linters will run
@@ -244,8 +246,8 @@ def queue_linter(view, timeout, busy_timeout, preemptive=False):
         linter = select_linter(view)
         try:
             background_run(linter, view)
-        except RuntimeError, excp:
-            print excp
+        except RuntimeError, ex:
+            print ex
 
     queue(view, _update_view, timeout, busy_timeout, preemptive)
 
@@ -257,6 +259,7 @@ def background_linter():
         QUEUE.clear()
     finally:
         __lock_.release()
+
     for view, callback, args, kwargs in views:
         def _callback():
             callback(view, *args, **kwargs)
@@ -266,15 +269,16 @@ def background_linter():
 # Queue dispatcher system:
 
 queue_dispatcher = background_linter
-queue_thread_name = "background linter"
+queue_thread_name = 'background linter'
 MAX_DELAY = 10
 
 
 def queue_loop():
     '''An infinite loop running the linter in a background thread meant to
-        update the view after user modifies it and then does no further
-        modifications for some time as to not slow down the UI with linting.'''
+       update the view after user modifies it and then does no further
+       modifications for some time as to not slow down the UI with linting.'''
     global __signaled_, __signaled_first_
+
     while __loop_:
         #print 'acquire...'
         __semaphore_.acquire()
@@ -288,6 +292,7 @@ def queue(view, callback, timeout, busy_timeout=None, preemptive=False, args=[],
     global __signaled_, __signaled_first_
     now = time.time()
     __lock_.acquire()
+
     try:
         QUEUE[view.id()] = (view, callback, args, kwargs)
         if now < __signaled_ + timeout * 4:
@@ -306,17 +311,22 @@ def queue(view, callback, timeout, busy_timeout=None, preemptive=False, args=[],
 def _delay_queue(timeout, preemptive):
     global __signaled_, __queued_
     now = time.time()
+
     if not preemptive and now <= __queued_ + 0.01:
         return  # never delay queues too fast (except preemptively)
+
     __queued_ = now
     _timeout = float(timeout) / 1000
+
     if __signaled_first_:
         if MAX_DELAY > 0 and now - __signaled_first_ + _timeout > MAX_DELAY:
             _timeout -= now - __signaled_first_
             if _timeout < 0:
                 _timeout = 0
             timeout = int(round(_timeout * 1000, 0))
+
     new__signaled_ = now + _timeout - 0.01
+
     if __signaled_ >= now - 0.01 and (preemptive or new__signaled_ >= __signaled_ - 0.01):
         __signaled_ = new__signaled_
         #print 'delayed to', (preemptive, __signaled_ - now)
@@ -351,6 +361,7 @@ __pre_initialized_ = False
 
 def queue_finalize(timeout=None):
     global __pre_initialized_
+
     for thread in threading.enumerate():
         if thread.isAlive() and thread.name == queue_thread_name:
             __pre_initialized_ = True
@@ -373,6 +384,50 @@ UNRECOGNIZED = '''
 '''
 
 
+def view_in_tab(view, title, text, file_type):
+    '''Helper function to display information in a tab.
+    '''
+    tab = view.window().new_file()
+    tab.set_name(title)
+    _id = tab.buffer_id()
+    tab.set_scratch(_id)
+    tab.settings().set('gutter', True)
+    tab.settings().set('line_numbers', False)
+    tab.set_syntax_file(file_type)
+    ed = tab.begin_edit()
+    tab.insert(ed, 0, text)
+    tab.end_edit(ed)
+    return tab, _id
+
+
+def lint_views(linter):
+    if not linter:
+        return
+
+    viewsToLint = []
+
+    for window in sublime.windows():
+        for view in window.views():
+            viewLinter = select_linter(view)
+
+            if viewLinter == linter:
+                viewsToLint.append(view)
+
+    for view in viewsToLint:
+        queue_linter(linter, view, 0, 0, True)
+
+
+def reload_view_module(view):
+    for name, linter in LINTERS.items():
+        module = sys.modules[linter.__module__]
+
+        if module.__file__ == view.file_name():
+            print 'SublimeLinter: reloading language:', linter.language
+            MOD_LOAD.reload_module(module)
+            lint_views(linter)
+            break
+
+
 class LintCommand(sublime_plugin.TextCommand):
     '''command to interact with linters'''
 
@@ -383,132 +438,51 @@ class LintCommand(sublime_plugin.TextCommand):
     def run_(self, action):
         '''method called by default via view.run_command;
            used to dispatch to appropriate method'''
-        if action is None:
-            self.help_()
+        if not action:
             return
 
         try:
             lc_action = action.lower()
         except AttributeError:
-            HELP.insert(0, UNRECOGNIZED % action)
-            self.help()
-            del HELP[0]
             return
 
-        if lc_action == "help":
-            self.help()
-        elif lc_action == "reset":
+        if lc_action == 'reset':
             self.reset()
-        elif lc_action == "on":
+        elif lc_action == 'on':
             self.on()
-        elif lc_action == "off":
+        elif lc_action == 'load-save':
+            self.enable_load_save()
+        elif lc_action == 'off':
             self.off()
         elif action.lower() in LINTERS:
             self._run(lc_action)
-        else:
-            HELP.insert(0, UNRECOGNIZED % action)
-            self.help()
-            del HELP[0]
 
-    @help_collector
-    def help_(self):
-        '''* view.run_command("lint"):
-        Displays information about how to use this plugin
-        '''
-        self.help()
-
-    @help_collector
-    def help(self):
-        '''* view.run_command("lint", "help"):
-        Displays information about how to use this plugin
-        '''
-        help_view, _id = self.view_in_tab("Sublime help", '\n'.join(HELP),
-                                    "Packages/Markdown/Markdown.tmLanguage")
-        help_view.set_read_only(_id)
-
-    def view_in_tab(self, title, text, file_type):
-        '''Helper function to display information in a tab.
-        '''
-        tab = self.view.window().new_file()
-        tab.set_name(title)
-        _id = tab.buffer_id()
-        tab.set_scratch(_id)
-        tab.settings().set("gutter", True)
-        tab.settings().set("line_numbers", False)
-        tab.set_syntax_file(file_type)
-        ed = tab.begin_edit()
-        tab.insert(ed, 0, text)
-        tab.end_edit(ed)
-        return tab, _id
-
-    @help_collector
     def reset(self):
-        '''* view.run_command("lint", "reset")
-        Removes existing lint marks and restore (if needed) the settings
-        so that the relevant "background" linter can run.
-        '''
+        '''Removes existing lint marks and restores user settings.'''
+        erase_lint_marks(self.view)
+        settings = sublime.load_settings('Base File.sublime-settings')
+        self.view.settings().set('sublimelinter', settings.get('sublimelinter', True))
+
+    def on(self):
+        '''Turns background linting on.'''
+        self.view.settings().set('sublimelinter', True)
+        queue_linter(select_linter(self.view), self.view, 0, 0, True)
+
+    def enable_load_save(self):
+        '''Turns load-save linting on.'''
+        self.view.settings().set('sublimelinter', 'load-save')
+        print self.view.settings().get('sublimelinter')
         erase_lint_marks(self.view)
 
-        if self.view.settings().get('sublimelinter') is None:
-            self.view.settings().set('sublimelinter', True)
-
-    @help_collector
-    def on(self):
-        '''* view.run_command("lint", "on")
-        Turns background linting on.
-        '''
-        self.view.settings().set('sublimelinter', True)
-        queue_linter(self.view, 0, 0, True)
-
-    @help_collector
     def off(self):
-        '''* view.run_command("lint", "off")
-        Turns background linting off.
-        '''
+        '''Turns background linting off.'''
         self.view.settings().set('sublimelinter', False)
         erase_lint_marks(self.view)
 
     def _run(self, name):
         '''runs an existing linter'''
-        if self.view.settings().get('sublimelinter'):
-            self.view.settings().set('sublimelinter', None)
+        self.view.settings().set('sublimelinter', False)
         run_once(LINTERS[name.lower()], self.view)
-
-
-class Annotations(LintCommand):
-    '''Commands to extract annotations and display them in
-       a file
-    '''
-    def run_(self, action):
-        '''method called by default via view.run_command;
-           used to dispatch to appropriate method'''
-        if action is None:
-            self.extract_from_current_view()
-            return
-
-        try:
-            lc_action = action.lower()
-        except AttributeError:
-            HELP.insert(0, UNRECOGNIZED % action)
-            self.help()
-            del HELP[0]
-            return
-
-        if lc_action == "help":
-            self.help()
-        else:
-            HELP.insert(0, UNRECOGNIZED % action)
-            self.help()
-            del HELP[0]
-
-    def extract_from_current_view(self):
-        text = self.view.substr(sublime.Region(0, self.view.size()))
-        filename = self.view.file_name()
-        notes = LINTERS["annotations"].extract_annotations(text, self.view, filename)
-        _, filename = os.path.split(filename)
-        annotations_view, _id = self.view_in_tab("Annotations from %s" %
-                                                    filename, notes,
-                                                "Packages/sublime_orgmode/orgmode.tmLanguage")
 
 
 class BackgroundLinter(sublime_plugin.EventListener):
@@ -524,23 +498,32 @@ class BackgroundLinter(sublime_plugin.EventListener):
     def on_modified(self, view):
         if view.is_scratch():
             return
-        delay = get_delay(TIMES.get(view.id(), 100))
-        queue_linter(view, *delay)
+
+        if view.settings().get('sublimelinter') != True:
+            erase_lint_marks(view)
+            return
+
+        linter = select_linter(view)
+
+        # File-based linters are not invoked during a modify
+        if linter and linter.input_method == INPUT_METHOD_FILE:
+            erase_lint_marks(view)
+            return
+
+        delay = get_delay(TIMES.get(view.id(), 100), view)
+        queue_linter(linter, view, *delay)
 
     def on_load(self, view):
-        if view.is_scratch():
+        if view.is_scratch() or view.settings().get('sublimelinter') == False:
             return
         background_run(select_linter(view), view)
 
     def on_post_save(self, view):
-        if view.is_scratch():
+        if view.is_scratch() or view.settings().get('sublimelinter') == False:
             return
-        for name, module in LINTERS.items():
-            if module.__file__ == view.file_name():
-                print 'SublimeLinter: reloading language:', module.language
-                MOD_LOAD.reload_module(module)
-                break
-        queue_linter(view, 0, 0, True)
+
+        reload_view_module(view)
+        background_run(select_linter(view), view)
 
     def on_selection_modified(self, view):
         if view.is_scratch():
@@ -603,9 +586,8 @@ class FindLintErrorCommand(sublime_plugin.TextCommand):
 
 
 class FindNextLintErrorCommand(FindLintErrorCommand):
-    @help_collector
     def run(self, edit):
-        '''* view.run_command("find_next_lint_error")
+        '''
         Move the cursor to the next lint error in the current view.
         The search will wrap to the top unless the sublimelinter_wrap_find
         setting is set to false.
@@ -614,9 +596,8 @@ class FindNextLintErrorCommand(FindLintErrorCommand):
 
 
 class FindPreviousLintErrorCommand(FindLintErrorCommand):
-    @help_collector
     def run(self, edit):
-        '''* view.run_command("find_previous_lint_error")
+        '''
         Move the cursor to the previous lint error in the current view.
         The search will wrap to the bottom unless the sublimelinter_wrap_find
         setting is set to false.
@@ -624,20 +605,57 @@ class FindPreviousLintErrorCommand(FindLintErrorCommand):
         self.find_lint_error(forward=False)
 
 
-class SublimelinterCommand(sublime_plugin.WindowCommand):
+class SublimelinterWindowCommand(sublime_plugin.WindowCommand):
     def is_enabled(self):
         view = self.window.active_view()
 
         if view:
             if view.is_scratch():
                 return False
+            else:
+                return True
+        else:
+            return False
 
-        linter = select_linter(view, ignore_disabled=True)
+    def run_(self, args):
+        pass
 
+
+class SublimelinterAnnotationsCommand(SublimelinterWindowCommand):
+    '''Commands to extract annotations and display them in
+       a file
+    '''
+    def run_(self, args):
+        linter = LINTERS.get('annotations', None)
+
+        if linter is None:
+            return
+
+        view = self.window.active_view()
+
+        if not view:
+            return
+
+        text = view.substr(sublime.Region(0, view.size()))
+        filename = view.file_name()
+        notes = linter.extract_annotations(text, view, filename)
+        _, filename = os.path.split(filename)
+        annotations_view, _id = view_in_tab(view, 'Annotations from %s' % filename, notes, '')
+
+
+class SublimelinterCommand(SublimelinterWindowCommand):
+    def is_enabled(self):
+        enabled = super(SublimelinterCommand, self).is_enabled()
+
+        if not enabled:
+            return False
+
+        linter = select_linter(self.window.active_view(), ignore_disabled=True)
         return linter is not None
 
-    def run(self, action=''):
+    def run_(self, args={}):
         view = self.window.active_view()
+        action = args.get('action', '')
 
         if view and action:
             if action == 'lint':
@@ -668,7 +686,20 @@ class SublimelinterLintCommand(SublimelinterCommand):
         if enabled:
             view = self.window.active_view()
 
-            if view and view.settings().get('sublimelinter', False):
+            if view and view.settings().get('sublimelinter') == True:
+                return False
+
+        return enabled
+
+
+class SublimelinterEnableLoadSaveCommand(SublimelinterCommand):
+    def is_enabled(self):
+        enabled = super(SublimelinterEnableLoadSaveCommand, self).is_enabled()
+
+        if enabled:
+            view = self.window.active_view()
+
+            if view and view.settings().get('sublimelinter') == 'load-save':
                 return False
 
         return enabled
@@ -681,7 +712,7 @@ class SublimelinterDisableCommand(SublimelinterCommand):
         if enabled:
             view = self.window.active_view()
 
-            if view and not view.settings().get('sublimelinter', False):
+            if view and not view.settings().get('sublimelinter') == True:
                 return False
 
         return enabled

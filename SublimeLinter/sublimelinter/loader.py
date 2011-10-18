@@ -1,21 +1,28 @@
-# Note: Unlike what is the case for language linter modules,
-# changes made to this module will NOT take effect until
+# Note: Unlike linter modules, changes made to this module will NOT take effect until
 # Sublime Text is restarted.
+
 import glob
 import os
+import os.path
 import sys
+
+import modules.base_linter as base_linter
+
+libs_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'modules', 'libs'))
+
+if libs_path not in sys.path:
+    sys.path.insert(0, libs_path)
 
 
 class Loader(object):
     '''utility class to load (and reload if necessary) SublimeLinter modules'''
-    def __init__(self, basedir, linters, descriptions):
+    def __init__(self, basedir, linters):
         '''assign relevant variables and load all existing linter modules'''
         self.basedir = basedir
         self.basepath = 'sublimelinter/modules'
         self.linters = linters
         self.modpath = self.basepath.replace('/', '.')
-        self.ignored = ('__init__', 'module_utils')
-        self.descriptions = descriptions
+        self.ignored = ('__init__', 'base_linter')
         self.fix_path()
         self.load_all()
 
@@ -70,45 +77,32 @@ class Loader(object):
         # if saved with sublime text
         mod.__file__ = os.path.abspath(mod.__file__).rstrip('co')
 
-        is_enabled = True
+        language = ''
 
         try:
-            language = mod.language
-            lc_language = language.lower()
-            enabled = mod.is_enabled()
+            config = base_linter.CONFIG.copy()
 
-            if isinstance(enabled, bool):
-                is_enabled = enabled
-                reason = ''
-            elif isinstance(enabled, tuple) and len(enabled) == 2:
-                is_enabled = enabled[0]
-                reason = enabled[1]
-            else:
-                is_enabled = False
-                reason = 'Could not determine the enabled state'
-
-            if is_enabled:
-                print 'SublimeLinter: {0} enabled{1}'.format(language, ' ({0})'.format(reason) if reason else '')
-                self.linters[lc_language] = mod
-            else:
-                print 'SublimeLinter: {0} disabled ({1})'.format(language, reason)
-
-                if lc_language in self.linters:
-                    del self.linters[lc_language]
-        except AttributeError:
-            print 'SublimeLinter: loaded {0} - no language specified'.format(name)
-            is_enabled = False
-        except:
-            print 'SublimeLinter: general error importing {0} ({1})'.format(name, language)
-            is_enabled = False
-
-        if is_enabled:
             try:
-                self.descriptions.append(mod.description)
-            except AttributeError:
-                print 'SublimeLinter: no description present for {0}'.format(language)
-            except:
-                print 'SublimeLinter: error seeking description of {0}'.format(language)
+                config.update(mod.CONFIG)
+                language = config['language']
+            except (AttributeError, KeyError):
+                pass
+
+            if language:
+                if hasattr(mod, 'Linter'):
+                    linter = mod.Linter(config)
+                else:
+                    linter = base_linter.BaseLinter(config)
+
+                lc_language = language.lower()
+                self.linters[lc_language] = linter
+                print 'SublimeLinter: {0} loaded'.format(language)
+            else:
+                print 'SublimeLinter: {0} disabled (no language specified in module)'.format(name)
+
+        except KeyError:
+            print 'SublimeLinter: general error importing {0} ({1})'.format(name, language or '<unknown>')
+            is_enabled = False
 
         os.chdir(pushd)
 
@@ -118,6 +112,7 @@ class Loader(object):
            linter module so that changes can be viewed immediately
            upon saving without having to restart Sublime Text'''
         fullmod = module.__name__
+
         if not fullmod.startswith(self.modpath):
             return
 
