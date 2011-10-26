@@ -20,13 +20,14 @@ class Linter(BaseLinter):
         self.use_jsc = False
         self.jshint_options = None
 
-    def get_executable(self):
+    def get_executable(self, view):
         if os.path.exists(self.JSC_PATH):
             self.use_jsc = True
             return (True, self.JSC_PATH, 'using JavaScriptCore')
         try:
-            subprocess.call(['node', '-v'], startupinfo=self.get_startupinfo())
-            return (True, 'node', '')
+            path = self.get_mapped_executable(view, 'node')
+            subprocess.call([path, '-v'], startupinfo=self.get_startupinfo())
+            return (True, path, '')
         except OSError:
             return (False, '', 'JavaScriptCore or node.js is required')
 

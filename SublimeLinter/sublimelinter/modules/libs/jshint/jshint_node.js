@@ -17,41 +17,47 @@
 var _fs = require('fs'),
     _util = require('util'),
     _path = require('path'),
-    _jshint = require(_path.join(_path.dirname(process.argv[1]), 'jshint.js')),
-    _config;
+    _jshint = require(_path.join(_path.dirname(process.argv[1]), 'jshint.js'));
 
-function _removeJsComments(str) {
-    str = str || '';
-    str = str.replace(/\/\*[\s\S]*(?:\*\/)/g, ''); //everything between "/* */"
-    str = str.replace(/\/\/[^\n\r]*/g, ''); //everything after "//"
-    return str;
+function hint(code, config)
+{
+    var results = [];
+
+    if (!_jshint.JSHINT(code, config)) {
+        _jshint.JSHINT.errors.forEach(function (error) {
+            if (error) {
+                results.push(error);
+            }
+        });
+    }
+
+    _util.puts(JSON.stringify(results));
+    process.exit(0);
 }
 
-function hint() {
+function run()
+{
     var code = '',
-        config = JSON.parse(process.argv[2] || '{}');
+        config = JSON.parse(process.argv[2] || '{}'),
+        filename = process.argv[3] || '';
 
-    process.stdin.resume();
-    process.stdin.setEncoding('utf8');
+    if (filename)
+    {
+        hint(_fs.readFileSync(filename, 'utf-8'), config);
+    }
+    else
+    {
+        process.stdin.resume();
+        process.stdin.setEncoding('utf8');
 
-    process.stdin.on('data', function (chunk) {
-        code += chunk;
-    });
+        process.stdin.on('data', function (chunk) {
+            code += chunk;
+        });
 
-    process.stdin.on('end', function () {
-        var results = [];
-
-        if (!_jshint.JSHINT(code, config)) {
-            _jshint.JSHINT.errors.forEach(function (error) {
-                if (error) {
-                    results.push(error);
-                }
-            });
-        }
-
-        _util.puts(JSON.stringify(results));
-        process.exit(0);
-    });
+        process.stdin.on('end', function () {
+            hint(code, config);
+        });
+    }
 }
 
-hint();
+run();

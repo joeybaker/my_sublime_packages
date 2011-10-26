@@ -226,7 +226,7 @@ def highlight_notes(view):
     '''highlight user-specified annotations in a file'''
     view.erase_regions('lint-annotations')
     text = view.substr(sublime.Region(0, view.size()))
-    regions = LINTERS['annotations'].run(view, text)
+    regions = LINTERS['annotations'].built_in_check(view, text, '')
 
     if regions:
         view.add_regions('lint-annotations', regions, 'sublimelinter.annotations', sublime.DRAW_EMPTY_AS_OVERWRITE)

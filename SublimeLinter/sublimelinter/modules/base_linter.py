@@ -93,7 +93,7 @@ class BaseLinter(object):
     def check_enabled(self, view):
         if hasattr(self, 'get_executable'):
             try:
-                self.enabled, self.executable, message = self.get_executable()
+                self.enabled, self.executable, message = self.get_executable(view)
 
                 if self.enabled and not message:
                     message = 'using "{0}"'.format(self.executable) if self.executable else 'built in'
@@ -138,6 +138,7 @@ class BaseLinter(object):
 
     def executable_check(self, view, code, filename):
         args = [self.executable]
+        tmpfile = None
 
         if self.input_method == INPUT_METHOD_STDIN:
             args.extend(self._get_lint_args(view, code, filename))
@@ -157,12 +158,17 @@ class BaseLinter(object):
         else:
             return ''
 
-        process = subprocess.Popen(args,
-                                   stdin=subprocess.PIPE,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT,
-                                   startupinfo=self.get_startupinfo())
-        result = process.communicate(code)[0]
+        try:
+            process = subprocess.Popen(args,
+                                       stdin=subprocess.PIPE,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT,
+                                       startupinfo=self.get_startupinfo())
+            result = process.communicate(code)[0]
+        finally:
+            if self.input_method == INPUT_METHOD_TEMP_FILE and tmpfile:
+                os.remove(tmpfile.name)
+
         return result.strip()
 
     def parse_errors(self, view, errors, lines, errorUnderlines, violationUnderlines, warningUnderlines, errorMessages, violationMessages, warningMessages):
