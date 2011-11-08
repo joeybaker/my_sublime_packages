@@ -33,15 +33,14 @@ DELAYS = (
 
 def get_delay(t, view):
     delay = 0
-
     for _t, d in DELAYS:
-        if t >= _t:
+        if _t >= t:
             delay = d
-    delay = DELAYS[-1][1]
-    minDelay = int(view.settings().get('sublimelinter_delay', 0) * 1000)
+    delay = delay or DELAYS[-1][1]
 
     # If the user specifies a delay greater than the built in delay,
     # figure they only want to see marks when idle.
+    minDelay = int(view.settings().get('sublimelinter_delay', 0) * 1000)
     if minDelay > delay[1]:
         erase_lint_marks(view)
 

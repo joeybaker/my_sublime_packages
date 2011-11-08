@@ -192,7 +192,7 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	{ "keys": ["super+j"], "command": "join_lines" },
 	{ "keys": ["super+shift+d"], "command": "duplicate_line" },
 
-	{ "keys": ["ctrl+backquote"], "command": "show_panel", "args": {"panel": "console"} },
+	{ "keys": ["ctrl+backquote"], "command": "show_panel", "args": {"panel": "console", "toggle": true} },
 
 	{ "keys": ["ctrl+space"], "command": "auto_complete" },
 	{ "keys": ["ctrl+space"], "command": "replace_completion_with_auto_complete", "context":
@@ -465,6 +465,7 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	{ "keys": ["ctrl+shift+2"], "command": "move_to_group", "args": { "group": 1 } },
 	{ "keys": ["ctrl+shift+3"], "command": "move_to_group", "args": { "group": 2 } },
 	{ "keys": ["ctrl+shift+4"], "command": "move_to_group", "args": { "group": 3 } },
+	{ "keys": ["ctrl+0"], "command": "focus_side_bar" },
 
 	{ "keys": ["super+1"], "command": "select_by_index", "args": { "index": 0 } },
 	{ "keys": ["super+2"], "command": "select_by_index", "args": { "index": 1 } },
@@ -579,11 +580,13 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 
 	{ "keys": ["super+,"], "command": "open_file", "args": {"file": "${packages}/User/Base File.sublime-settings"} },
 
-	// These are OS X builtin commands, and don't need to be listed here, but
+	// These are OS X built in commands, and don't need to be listed here, but
 	// doing so lets them show up in the menu
 	{ "keys": ["ctrl+y"], "command": "yank" },
 	{ "keys": ["ctrl+k"], "command": "run_macro_file", "args": {"file": "Packages/Default/Delete to Hard EOL.sublime-macro"} },
 	{ "keys": ["super+backspace"], "command": "run_macro_file", "args": {"file": "Packages/Default/Delete to Hard BOL.sublime-macro"} },
+	// super+delete isn't a built in command, but makes sense anyway
+	{ "keys": ["super+delete"], "command": "run_macro_file", "args": {"file": "Packages/Default/Delete to Hard EOL.sublime-macro"} },
 	{ "keys": ["ctrl+l"], "command": "show_at_center" },
 	{ "keys": ["ctrl+o"], "command": "insert_snippet", "args": { "contents": "$0\n" } },
 	{ "keys": ["ctrl+super+d"], "command": "noop" },
@@ -593,4 +596,5 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	{ "keys": ["super+k", "super+k"], "command": "run_macro_file", "args": {"file": "Packages/Default/Delete to Hard EOL.sublime-macro"} },
 	{ "keys": ["super+k", "super+backspace"], "command": "run_macro_file", "args": {"file": "Packages/Default/Delete to Hard BOL.sublime-macro"} },
 	{ "keys": ["super+k", "super+c"], "command": "show_at_center" }
+
 ]

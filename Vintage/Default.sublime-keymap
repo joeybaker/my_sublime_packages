@@ -35,6 +35,8 @@
 		]
 	},
 
+	{ "keys" : ["z", "z"], "command" : "center_on_cursor", "context": [] },
+
 	{ "keys": ["i"], "command": "enter_insert_mode", "context": [{"key": "setting.command_mode"}] },
 	{ "keys": ["I"], "command": "enter_insert_mode", "args":
 		{"insert_command": "vi_move_to_first_non_white_space_character"},
@@ -54,6 +56,14 @@
 		{"insert_command": "run_macro_file", "insert_args": {"file": "Packages/Default/Add Line.sublime-macro"} },
 		"context": [{"key": "setting.command_mode"}]
 	},
+	{ "keys": ["o"], "command": "vi_reverse_selections_direction",
+		"context":
+		[
+			{"key": "setting.command_mode"},
+			{"key": "selection_empty", "operator": "equal", "operand": false}
+		]
+	},
+
 	{ "keys": ["O"], "command": "enter_insert_mode", "args":
 		{"insert_command": "run_macro_file", "insert_args": {"file": "Packages/Default/Add Line Before.sublime-macro"} },
 		"context": [{"key": "setting.command_mode"}]
@@ -75,12 +85,11 @@
 			{"key": "vi_has_action" }
 		]
 	},
-
-	{ "keys": ["v"], "command": "exit_visual_mode",
+	{ "keys": ["v"], "command": "exit_visual_mode", "args": {"toggle": true},
 		"context":
 		[
 			{"key": "setting.command_mode"},
-			{ "key": "selection_empty", "operator": "equal", "operand": false, "match_all": false }
+			{"key": "selection_empty", "operator": "equal", "operand": false, "match_all": false}
 		]
 	},
 
@@ -172,6 +181,11 @@
 		"context": [{"key": "setting.command_mode"}]
 	},
 
+	{ "keys": ["'", "<character>"], "command": "vi_select_bookmark",
+		"args": {"select_bol": true},
+		"context": [{"key": "setting.command_mode"}]
+	},
+
 	{ "keys": ["q", "<character>"], "command": "vi_begin_record_macro",
 		"context": [{"key": "setting.command_mode"}]
 	},
@@ -236,6 +250,10 @@
 		"context": [{"key": "setting.command_mode"}]
 	},
 
+	{ "keys": ["g", "f"], "command": "vi_open_file_under_selection",
+		"context": [{"key": "setting.command_mode"}]
+	},
+
 	{ "keys": [">"], "command": "set_action", "args": {"action": "vi_indent", "description": "Indent", "motion_mode": "auto_line"},
 		"context": [{"key": "setting.command_mode"}]
 	},
@@ -244,9 +262,24 @@
 		"context": [{"key": "setting.command_mode"}]
 	},
 
+	{ "keys": ["="], "command": "set_action", "args": {"action": "reindent", "description": "Reindent"},
+		"context": [{"key": "setting.command_mode"}]
+	},
+
 	//
 	// Motions
 	//
+	{ "keys": ["{"], "command": "set_motion", "args": {
+		"motion": "move",
+		"motion_args": {"by": "stops", "word_begin": false, "empty_line": true, "separators": "", "forward": false, "extend": true }},
+		"context": [{"key": "setting.command_mode"}]
+	},
+
+	{ "keys": ["}"], "command": "set_motion", "args": {
+		"motion": "move",
+		"motion_args": {"by": "stops", "word_begin": false, "empty_line": true, "separators": "", "forward": true, "extend": true }},
+		"context": [{"key": "setting.command_mode"}]
+	},
 
 	{ "keys": ["W"], "command": "set_motion", "args": {
 		"motion": "move",
@@ -465,6 +498,19 @@
 	{ "keys": ["L"], "command": "set_motion", "args": {
 		"motion": "move_caret_to_screen_bottom",
 		"motion_args": {"repeat": 1}},
+		"context": [{"key": "setting.command_mode"}]
+	},
+
+ 	{ "keys": ["z", "."], "command": "set_motion", "args": {
+		"motion": "scroll_current_line_to_screen_center",
+ 		"motion_args": {"repeat": 1}},
+ 		"context": [{"key": "setting.command_mode"}]
+ 	},
+
+	{ "keys": ["z", "enter"], "command": "set_motion", "args": {
+		"motion": "scroll_current_line_to_screen_top",
+		"motion_args": {"repeat": 1}
+		},
 		"context": [{"key": "setting.command_mode"}]
 	},
 

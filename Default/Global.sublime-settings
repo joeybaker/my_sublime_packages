@@ -1,5 +1,5 @@
 {
-	// The theme controls the look at Sublime Text's UI (buttons, tabs, scroll bars, etc)
+	// The theme controls the look of Sublime Text's UI (buttons, tabs, scroll bars, etc)
 	"theme": "Default.sublime-theme",
 
 	// Exiting the application with hot_exit enabled will cause it to close
@@ -28,6 +28,9 @@
 	// Set to 0 to disable smooth scrolling. Set to a value between 0 and 1 to
 	// scroll slower, or set to larger than 1 to scroll faster
 	"scroll_speed": 1.0,
+
+	// Controls side bar animation when expanding or collapsing folders
+	"tree_animation_enabled": true,
 
 	"show_tab_close_buttons": true,
 
