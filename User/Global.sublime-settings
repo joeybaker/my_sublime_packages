@@ -19,17 +19,18 @@
 		".DS_Store",
 		"*.class",
 		"*.psd",
-		"*.db",
-		"wp-*.php"
+		"*.db"
+		, "wp-*.php"
+		, ".sublime*"
 	],
 	"folder_exclude_patterns":
 	[
 		".svn",
 		".git",
 		".hg",
-		"CVS",
-		"wp-includes",
-		"wp-admin"
+		"CVS"
+		, "wp-includes"
+		, "wp-admin"
 	],
 	"ignored_packages":
 	[

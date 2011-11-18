@@ -2,8 +2,8 @@
 # base_linter.py - base class for linters
 
 import os
+import os.path
 import re
-import tempfile
 import subprocess
 
 import sublime
@@ -13,6 +13,8 @@ INPUT_METHOD_STDIN = 1
 
 # If the linter uses an executable that does not take stdin but you wish to use
 # a temp file so that the current view can be linted interactively, use this input method.
+# If the current view has been saved, the tempfile will have the same name as the
+# view's file, which is necessary for some linters.
 INPUT_METHOD_TEMP_FILE = 2
 
 # If the linter uses an executable that does not take stdin and you wish to have
@@ -62,6 +64,11 @@ CONFIG = {
     'input_method': INPUT_METHOD_STDIN
 }
 
+TEMPFILES_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.tempfiles'))
+
+if not os.path.exists(TEMPFILES_DIR):
+    os.mkdir(TEMPFILES_DIR)
+
 
 class BaseLinter(object):
     '''A base class for linters. Your linter module needs to do the following:
@@ -85,6 +92,7 @@ class BaseLinter(object):
             self.test_existence_args = (self.test_existence_args,)
 
         self.input_method = config.get('input_method', INPUT_METHOD_STDIN)
+        self.filename = None
         self.lint_args = config.get('lint_args', ())
 
         if isinstance(self.lint_args, basestring):
@@ -131,24 +139,42 @@ class BaseLinter(object):
         if hasattr(self, 'get_lint_args'):
             return self.get_lint_args(view, code, filename) or ()
         else:
-            return [arg.format(filename=filename) for arg in self.lint_args]
+            lintArgs = self.lint_args or []
+            settings = view.settings().get('SublimeLinter', {}).get(self.language, {})
+
+            if settings:
+                args = settings.get('lint_args', [])
+                lintArgs.extend(args)
+
+                cwd = settings.get('working_directory')
+
+                if cwd and os.path.isabs(cwd) and os.path.isdir(cwd):
+                    os.chdir(cwd)
+
+            return [arg.format(filename=filename) for arg in lintArgs]
 
     def built_in_check(self, view, code, filename):
         return ''
 
     def executable_check(self, view, code, filename):
         args = [self.executable]
-        tmpfile = None
+        tempfilePath = None
 
         if self.input_method == INPUT_METHOD_STDIN:
             args.extend(self._get_lint_args(view, code, filename))
 
         elif self.input_method == INPUT_METHOD_TEMP_FILE:
-            with tempfile.NamedTemporaryFile(mode='r+', delete=False) as tmpfile:
-                tmpfile.write(code)
-                tmpfile.close()  # windows cannot reopen an open file
+            if filename:
+                filename = os.path.basename(filename)
+            else:
+                filename = 'view%d' % view.id()
 
-            args.extend(self._get_lint_args(view, code, tmpfile.name))
+            tempfilePath = os.path.join(TEMPFILES_DIR, filename)
+
+            with open(tempfilePath, 'w') as f:
+                f.write(code)
+
+            args.extend(self._get_lint_args(view, code, tempfilePath))
             code = ''
 
         elif self.input_method == INPUT_METHOD_FILE:
@@ -166,8 +192,8 @@ class BaseLinter(object):
                                        startupinfo=self.get_startupinfo())
             result = process.communicate(code)[0]
         finally:
-            if self.input_method == INPUT_METHOD_TEMP_FILE and tmpfile:
-                os.remove(tmpfile.name)
+            if tempfilePath:
+                os.remove(tempfilePath)
 
         return result.strip()
 
@@ -225,7 +251,9 @@ class BaseLinter(object):
         for start, end in results:
             self.underline_range(view, lineno, start + offset, underlines, end - start)
 
-    def run(self, view, code, filename='untitled'):
+    def run(self, view, code, filename=None):
+        self.filename = filename
+
         if self.executable is None:
             errors = self.built_in_check(view, code, filename)
         else:

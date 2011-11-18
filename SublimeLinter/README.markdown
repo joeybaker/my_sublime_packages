@@ -8,16 +8,17 @@ can be quickly located.
 
 SublimeLinter has built in linters for the following languages:
 
-* Javascript - lint via built in [jshint](http://jshint.org) run by JavaScriptCore on OS X or node.js on other platforms. You must install node.js, see [the node.js site](http://nodejs.com) for instructions.
+* Javascript - lint via built in [jshint](http://jshint.org)
 * Objective-J - lint via built-in [capp_lint](https://github.com/aparajita/capp_lint)
-* perl - syntax+deprecation checking via "perl -c"
-* php - syntax checking via "php -l"
 * python - native, moderately-complete lint
 * ruby - syntax checking via "ruby -wc"
+* php - syntax checking via "php -l"
+* java - lint via "javac -Xlint"
+* perl - syntax+deprecation checking via "perl -c"
 
 Installing
 ----------
-**With the Package Control plugin:** The easiest way to install SublimeLinter is through Package Control, which can be found at this site: [http://wbond.net/sublime\_packages/package\_control](http://wbond.net/sublime\_packages/package\_control)
+**With the Package Control plugin:** The easiest way to install SublimeLinter is through Package Control, which can be found at this site: [http://wbond.net/sublime_packages/package_control](http://wbond.net/sublime_packages/package_control)
 
 Once you install Package Control, restart ST2 and bring up the Command Palette (Command+Shift+p on OS X, Control+Shift+p on Linux/Windows). Select "Package Control: Install Package", wait while Package Control fetches the latest package list, then select SublimeLinter when the list appears. The advantage of using this method is that Package Control will automatically keep SublimeLinter up to date with the latest version.
 
@@ -70,9 +71,68 @@ By default the search will wrap. You can turn wrapping off with the user setting
 
     "sublimelinter_wrap_find": false
 
+### Linter-specific notes
+Following are notes specific to individual linters that you should be aware of:
+
+* **JavaScript** – This linter runs jshint.js using JavaScriptCore on OS X or node.js on other platforms. You must install node.js, see [the node.js site](http://nodejs.com) for instructions.
+* **java** – Because it uses `javac` to do linting, each time you run the linter the entire dependency graph of the current file will be checked. Depending on the number of classes you import, this can be **extremely** slow. Also note that you **must** provide the `-sourcepath`, `-classpath`, `-Xlint` and `{filename}` arguments to `javac` in your per-project settings. See "Per-project settings" below for more information.
+
 Configuring
 -----------
-There are a number of configuration options available to customize the behavior of SublimeLinter and its linters. For the latest information on what options are available, select the menu item Preferences->Package Settings->SublimeLinter->Settings - Default.
+There are a number of configuration options available to customize the behavior of SublimeLinter and its linters. For the latest information on what options are available, select the menu item `Preferences->Package Settings->SublimeLinter->Settings - Default`.
+
+### Per-project settings
+SublimeLinter supports per-project/per-language settings. This is useful if a linter requires path configuration on a per-project basis. To edit your project settings, select the menu item `Project->Edit Project`. If there is no "settings" object at the top level, add one and then add a "SublimeLinter" sub-object, like this:
+
+    {
+        "folders":
+        [
+            {
+                "path": "/Users/aparajita/Projects/foo/src"
+            }
+        ],
+        "settings":
+        {
+            "SublimeLinter":
+            {
+            }
+        }
+    }
+
+Within the "SublimeLinter" object, you can add a settings object for each language. The language name must match the language item in the linter's CONFIG object, which can be found in the linter's source file in the SublimeLinter/sublimelinter/modules folder. Each language can have two settings:
+
+* "working_directory" – If present and a valid absolute directory path, the working directory is set to this path before the linter executes. This is useful if you are providing linter arguments that contain paths and you want to use working directory-relative paths instead of absolute paths.
+* "lint_args" – If present, it must be a sequence of string arguments to pass to the linter. If your linter expects a filename as an argument, use the argument "{filename}" as a placeholder. Note that if you provide this item, you are responsible for passing **all** required arguments to the linter.
+
+For example, let's say we are editing a Java project and want to use the "java" linter, which requires a source path and class path. In addition, we want to ignore serialization errors. Our project settings might look like this:
+
+    {
+        "folders":
+        [
+            {
+                "path": "/Users/aparajita/Projects/foo/src"
+            }
+        ],
+        "settings":
+        {
+            "SublimeLinter":
+            {
+                "java":
+                {
+                    "working_directory": "/Users/aparajita/Projects/foo",
+
+                    "lint_args":
+                    [
+                        "-sourcepath", "src",
+                        "-classpath", "libs/log4j-1.2.9.jar:libs/commons-logging-1.1.jar",
+                        "-Xlint", "-Xlint:-serial",
+                        "{filename}"
+                    ]
+                }
+            }
+        }
+    }
+
 
 ### Customizing colors
 There are three types of "errors" flagged by sublime lint: illegal,
