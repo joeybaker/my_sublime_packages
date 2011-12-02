@@ -74,7 +74,13 @@ By default the search will wrap. You can turn wrapping off with the user setting
 ### Linter-specific notes
 Following are notes specific to individual linters that you should be aware of:
 
-* **JavaScript** – This linter runs jshint.js using JavaScriptCore on OS X or node.js on other platforms. You must install node.js, see [the node.js site](http://nodejs.com) for instructions.
+* **JavaScript** – This linter runs jshint.js using JavaScriptCore on OS X or node.js on other platforms. You must install node.js, see [the node.js site](http://nodejs.com) for instructions. Once node.js is installed, you may have to set the path to node in the "sublimelinter\_executable\_map" setting. See "Configuring" below for info on SublimeLinter settings. If SublimeLinter freezes when linting JavaScript, the fault may lie with the jshint linter, which does have freezing bugs. For example, as of commit 5bf9a51a89 to jshint, the following code will freeze:
+
+    switch (a)
+    {
+        case 7::  // double-colon causes a freeze
+    }
+
 * **java** – Because it uses `javac` to do linting, each time you run the linter the entire dependency graph of the current file will be checked. Depending on the number of classes you import, this can be **extremely** slow. Also note that you **must** provide the `-sourcepath`, `-classpath`, `-Xlint` and `{filename}` arguments to `javac` in your per-project settings. See "Per-project settings" below for more information.
 
 Configuring
