@@ -64,7 +64,7 @@ class Linter(BaseLinter):
 
         for region in regions_with_notes:
             row, col = view.rowcol(region.begin())
-            text.append("[%s:%s]" % (filename, row + 1))
+            text.append("[{0}:{1}]".format(filename, row + 1))
             text.append(view.substr(region))
 
         return '\n'.join(text)

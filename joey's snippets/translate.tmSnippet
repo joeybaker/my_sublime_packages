@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>&lt;?= t('${0:$SELECTION}') ?&gt;</string>
+	<key>name</key>
+	<string>translate</string>
+	<key>tabTrigger</key>
+	<string>t(</string>
+	<key>uuid</key>
+	<string>D95F8FF0-B1A5-4F38-A954-6370287B029F</string>
+</dict>
+</plist>

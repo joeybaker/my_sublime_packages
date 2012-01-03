@@ -1,5 +1,11 @@
 {
-	"auto_upgrade_last_run": 1322756725,
+	"auto_upgrade_last_run": 1325609179,
+	"installed_packages":
+	[
+		"Package Control",
+		"sublimelint",
+		"SublimeLinter"
+	],
 	"repositories":
 	[
 		"https://github.com/kemayo/sublime-text-2-git",

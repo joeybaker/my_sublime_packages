@@ -18,7 +18,6 @@ class Linter(BaseLinter):
     def __init__(self, config):
         super(Linter, self).__init__(config)
         self.use_jsc = False
-        self.jshint_options = None
 
     def get_executable(self, view):
         if os.path.exists(self.JSC_PATH):
@@ -33,14 +32,12 @@ class Linter(BaseLinter):
 
     def get_lint_args(self, view, code, filename):
         path = self.jshint_path()
-
-        if self.jshint_options is None:
-            self.jshint_options = json.dumps(view.settings().get("jshint_options") or {})
+        jshint_options = json.dumps(view.settings().get("jshint_options") or {})
 
         if self.use_jsc:
-            args = (os.path.join(path, 'jshint_jsc.js'), '--', str(code.count('\n')), self.jshint_options, path + os.path.sep)
+            args = (os.path.join(path, 'jshint_jsc.js'), '--', str(code.count('\n')), jshint_options, path + os.path.sep)
         else:
-            args = (os.path.join(path, 'jshint_node.js'), self.jshint_options)
+            args = (os.path.join(path, 'jshint_node.js'), jshint_options)
 
         return args
 

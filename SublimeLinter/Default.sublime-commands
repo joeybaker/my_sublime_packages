@@ -5,6 +5,11 @@
         "args": {"action": "lint"}
     },
     {
+        "caption": "SublimeLinter: Show Error List",
+        "command": "sublimelinter_show_errors",
+        "args": {"action": "lint", "show_popup": true}
+    },
+    {
         "caption": "SublimeLinter: Enable Background Linting",
         "command": "sublimelinter_lint",
         "args": {"action": "on"}

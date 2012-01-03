@@ -167,7 +167,7 @@ class BaseLinter(object):
             if filename:
                 filename = os.path.basename(filename)
             else:
-                filename = 'view%d' % view.id()
+                filename = 'view{0}'.format(view.id())
 
             tempfilePath = os.path.join(TEMPFILES_DIR, filename)
 

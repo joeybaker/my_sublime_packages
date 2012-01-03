@@ -5,6 +5,7 @@ import os
 import sys
 import subprocess
 import zipfile
+import urllib
 import urllib2
 import json
 import fnmatch
@@ -20,50 +21,6 @@ try:
     import ssl
 except (ImportError):
     pass
-
-class PanelPrinter():
-    instance = None
-
-    @classmethod
-    def get(cls):
-        if cls.instance == None:
-            cls.instance = PanelPrinter()
-        return cls.instance
-
-    def __init__(self):
-        self.name = 'package_control'
-        self.window = None
-        self.init()
-
-    def init(self):
-        if self.window == None and sublime.active_window() != None:
-            self.window = sublime.active_window()
-            self.panel  = self.window.get_output_panel(self.name)
-            if self.panel.size() == 0:
-                self.panel.settings().set("word_wrap", True)
-                self.write_callback('Package Control Messages\n' +
-                    '========================')
-
-    def show(self):
-        sublime.set_timeout(self.show_callback, 10)
-
-    def show_callback(self):
-        self.window.run_command("show_panel", {"panel": "output." + self.name})
-
-    def write(self, string):
-        callback = lambda: self.write_callback(string)
-        sublime.set_timeout(callback, 10)
-
-    def write_callback(self, string):
-        if self.window == None:
-            self.init()
-
-        self.panel.set_read_only(False)
-        edit = self.panel.begin_edit()
-
-        self.panel.insert(edit, self.panel.size(), string)
-        self.panel.end_edit(edit)
-        self.panel.set_read_only(True)
 
 
 class ThreadProgress():
@@ -105,33 +62,62 @@ class ChannelProvider():
         return True
 
     def fetch_channel(self):
+        if self.channel_info != None:
+            return
+
         channel_json = self.package_manager.download_url(self.channel,
             'Error downloading channel.')
         if channel_json == False:
             self.channel_info = False
             return
+
         try:
             channel_info = json.loads(channel_json)
         except (ValueError):
             sublime.error_message(__name__ + ': Error parsing JSON from ' +
                 ' channel ' + self.channel + '.')
-            self.channel_info = False
-            return
+            channel_info = False
+
         self.channel_info = channel_info
 
     def get_name_map(self):
-        if self.channel_info == None:
-            self.fetch_channel()
+        self.fetch_channel()
         if self.channel_info == False:
             return False
         return self.channel_info['package_name_map']
 
     def get_repositories(self):
-        if self.channel_info == None:
-            self.fetch_channel()
+        self.fetch_channel()
         if self.channel_info == False:
             return False
         return self.channel_info['repositories']
+
+    def get_packages(self, repo):
+        self.fetch_channel()
+        if self.channel_info == False:
+            return False
+        if self.channel_info.get('packages', False) == False:
+            return False
+        if self.channel_info['packages'].get(repo, False) == False:
+            return False
+        output = {}
+        for package in self.channel_info['packages'][repo]:
+            copy = package.copy()
+
+            platforms = copy['platforms'].keys()
+            if sublime.platform() in platforms:
+                copy['downloads'] = copy['platforms'][sublime.platform()]
+            elif '*' in platforms:
+                copy['downloads'] = copy['platforms']['*']
+            else:
+                continue
+            del copy['platforms']
+
+            copy['url'] = copy['homepage']
+            del copy['homepage']
+
+            output[copy['name']] = copy
+        return output
 
 
 _channel_providers = [ChannelProvider]
@@ -170,6 +156,7 @@ class PackageProvider():
                     'description': package.get('description'),
                     'url': package.get('homepage', repo),
                     'author': package.get('author'),
+                    'last_modified': package.get('last_modified'),
                     'downloads': downloads
                 }
 
@@ -180,16 +167,25 @@ class PackageProvider():
 
 class GitHubPackageProvider():
     def match_url(self, url):
-        return re.search('^https?://github.com/[^/]+/[^/]+/?$', url) != None
+        return re.search('^https?://github.com/[^/]+/[^/]+/?$', url) != None \
+            or re.search('^https?://github.com/[^/]+/[^/]+/tree/[^/]+/?$',
+            url) != None
 
     def get_packages(self, repo, package_manager):
-        api_url = re.sub('^https?://github.com/',
-            'https://api.github.com/repos/', repo)
-        api_url = api_url.rstrip('/')
+        branch = 'master'
+        branch_match = re.search(
+            '^https?://github.com/[^/]+/[^/]+/tree/([^/]+)/?$', repo)
+        if branch_match != None:
+            branch = branch_match.group(1)
+
+        api_url = re.sub('^https?://github.com/([^/]+)/([^/]+)($|/.*$)',
+            'https://api.github.com/repos/\\1/\\2', repo)
+
         repo_json = package_manager.download_url(api_url,
             'Error downloading repository.')
         if repo_json == False:
             return False
+
         try:
             repo_info = json.loads(repo_json)
         except (ValueError):
@@ -197,7 +193,26 @@ class GitHubPackageProvider():
                 ' repository ' + api_url + '.')
             return False
 
-        commit_date = repo_info['pushed_at']
+        commit_api_url = api_url + '/commits?' + \
+            urllib.urlencode({'sha': branch, 'per_page': 1})
+
+        commit_json = package_manager.download_url(commit_api_url,
+            'Error downloading repository.')
+        if commit_json == False:
+            return False
+
+        try:
+            commit_info = json.loads(commit_json)
+        except (ValueError):
+            sublime.error_message(__name__ + ': Error parsing JSON from ' +
+                ' repository ' + commit_api_url + '.')
+            return False
+
+        download_url = 'https://nodeload.github.com/' + \
+            repo_info['owner']['login'] + '/' + \
+            repo_info['name'] + '/zipball/' + urllib.quote(branch)
+
+        commit_date = commit_info[0]['commit']['committer']['date']
         timestamp = datetime.datetime.strptime(commit_date[0:19],
             '%Y-%m-%dT%H:%M:%S')
         utc_timestamp = timestamp.strftime(
@@ -206,17 +221,17 @@ class GitHubPackageProvider():
         homepage = repo_info['homepage']
         if not homepage:
             homepage = repo_info['html_url']
+
         package = {
             'name': repo_info['name'],
             'description': repo_info['description'],
             'url': homepage,
             'author': repo_info['owner']['login'],
+            'last_modified': timestamp.strftime('%Y-%m-%d %H:%M:%S'),
             'downloads': [
                 {
                     'version': utc_timestamp,
-                    'url': 'https://nodeload.github.com/' + \
-                            repo_info['owner']['login'] + '/' + \
-                            repo_info['name'] + '/zipball/master'
+                    'url': download_url
                 }
             ]
         }
@@ -228,13 +243,16 @@ class GitHubUserProvider():
         return re.search('^https?://github.com/[^/]+/?$', url) != None
 
     def get_packages(self, url, package_manager):
-        api_url = re.sub('^https?://github.com/',
-            'https://api.github.com/users/', url)
-        api_url = api_url.rstrip('/') + '/repos'
+        user_match = re.search('^https?://github.com/([^/]+)/?$', url)
+        user = user_match.group(1)
+
+        api_url = 'https://api.github.com/users/%s/repos?per_page=100' % user
+
         repo_json = package_manager.download_url(api_url,
             'Error downloading repository.')
         if repo_json == False:
             return False
+
         try:
             repo_info = json.loads(repo_json)
         except (ValueError):
@@ -244,7 +262,22 @@ class GitHubUserProvider():
 
         packages = {}
         for package_info in repo_info:
-            commit_date = package_info['pushed_at']
+            commit_api_url = ('https://api.github.com/repos/%s/%s/commits' + \
+                '?sha=master&per_page=1') % (user, package_info['name'])
+
+            commit_json = package_manager.download_url(commit_api_url,
+                'Error downloading repository.')
+            if commit_json == False:
+                return False
+
+            try:
+                commit_info = json.loads(commit_json)
+            except (ValueError):
+                sublime.error_message(__name__ + ': Error parsing JSON from ' +
+                    ' repository ' + commit_api_url + '.')
+                return False
+
+            commit_date = commit_info[0]['commit']['committer']['date']
             timestamp = datetime.datetime.strptime(commit_date[0:19],
                 '%Y-%m-%dT%H:%M:%S')
             utc_timestamp = timestamp.strftime(
@@ -253,11 +286,13 @@ class GitHubUserProvider():
             homepage = package_info['homepage']
             if not homepage:
                 homepage = package_info['html_url']
+
             package = {
                 'name': package_info['name'],
                 'description': package_info['description'],
                 'url': homepage,
                 'author': package_info['owner']['login'],
+                'last_modified': timestamp.strftime('%Y-%m-%d %H:%M:%S'),
                 'downloads': [
                     {
                         'version': utc_timestamp,
@@ -315,6 +350,7 @@ class BitBucketPackageProvider():
             'description': repo_info['description'],
             'url': homepage,
             'author': repo_info['owner'],
+            'last_modified': timestamp.strftime('%Y-%m-%d %H:%M:%S'),
             'downloads': [
                 {
                     'version': utc_timestamp,
@@ -376,16 +412,20 @@ class UrlLib2Downloader():
         self.settings = settings
 
     def download(self, url, error_message, timeout, tries):
-        if self.settings.get('http_proxy') or self.settings.get('https_proxy'):
+        http_proxy = self.settings.get('http_proxy')
+        https_proxy = self.settings.get('https_proxy')
+        if http_proxy or https_proxy:
             proxies = {}
-            if self.settings.get('http_proxy'):
-                proxies['http'] = self.settings.get('http_proxy')
-                if not self.settings.get('https_proxy'):
-                    proxies['https'] = self.settings.get('http_proxy')
-            if self.settings.get('https_proxy'):
-                proxies['https'] = self.settings.get('https_proxy')
+            if http_proxy:
+                proxies['http'] = http_proxy
+                if not https_proxy:
+                    proxies['https'] = http_proxy
+            if https_proxy:
+                proxies['https'] = https_proxy
             proxy_handler = urllib2.ProxyHandler(proxies)
-            urllib2.install_opener(urllib2.build_opener(proxy_handler))
+        else:
+            proxy_handler = urllib2.ProxyHandler()
+        urllib2.install_opener(urllib2.build_opener(proxy_handler))
 
         while tries > 0:
             tries -= 1
@@ -401,9 +441,8 @@ class UrlLib2Downloader():
                     print (__name__ + ': Downloading %s was rate limited, ' +
                         'trying again') % url
                     continue
-                sublime.error_message(__name__ + ': ' + error_message +
-                    ' HTTP error ' + str(e.code) + ' downloading ' +
-                    url + '.')
+                print '%s: %s HTTP error %s downloading %s.' % (__name__,
+                    error_message, str(e.code), url)
             except (urllib2.URLError) as (e):
                 # Bitbucket and Github timeout a decent amount
                 if str(e.reason) == 'The read operation timed out' or \
@@ -411,9 +450,8 @@ class UrlLib2Downloader():
                     print (__name__ + ': Downloading %s timed out, trying ' +
                         'again') % url
                     continue
-                sublime.error_message(__name__ + ': ' + error_message +
-                    ' URL error ' + str(e.reason) + ' downloading ' +
-                    url + '.')
+                print '%s: %s URL error %s downloading %s.' % (__name__,
+                    error_message, str(e.reason), url)
             break
         return False
 
@@ -478,9 +516,8 @@ class WgetDownloader(CliDownloader):
                         error_line)
 
                 error_string = re.sub('\\.?\s*\n\s*$', '', error_string)
-                sublime.error_message(__name__ + ': ' + error_message +
-                    ' ' + error_string + ' downloading ' +
-                    url + '.')
+                print '%s: %s %s downloading %s.' % (__name__, error_message,
+                    error_string, url)
             self.clean_tmp_file()
             break
         return False
@@ -527,9 +564,8 @@ class CurlDownloader(CliDownloader):
                 else:
                     error_string = e.output
 
-                sublime.error_message(__name__ + ': ' + error_message +
-                    ' ' + error_string + ' downloading ' +
-                    url + '.')
+                print '%s: %s %s downloading %s.' % (__name__, error_message,
+                    error_string, url)
             break
         return False
 
@@ -718,7 +754,6 @@ class HgUpgrader(VcsUpgrader):
 
 class PackageManager():
     def __init__(self):
-        self.printer = PanelPrinter.get()
         # Here we manually copy the settings since sublime doesn't like
         # code accessing settings from threads
         self.settings = {}
@@ -729,13 +764,21 @@ class PackageManager():
                 'files_to_ignore_binary', 'files_to_keep', 'dirs_to_keep',
                 'git_binary', 'git_update_command', 'hg_binary',
                 'hg_update_command', 'http_proxy', 'https_proxy',
-                'auto_upgrade_ignore', 'auto_upgrade_frequency']:
+                'auto_upgrade_ignore', 'auto_upgrade_frequency',
+                'submit_usage', 'submit_url']:
             if settings.get(setting) == None:
                 continue
             self.settings[setting] = settings.get(setting)
+        self.settings['platform'] = sublime.platform()
+        self.settings['version'] = sublime.version()
 
     def compare_versions(self, version1, version2):
         def normalize(v):
+            # We prepend 0 to all date-based version numbers so that developers
+            # may switch to explicit versioning from GitHub/BitBucket
+            # versioning based on commit dates
+            if re.match('\d{4}\.\d{2}\.\d{2}\.\d{2}\.\d{2}\.\d{2}', v):
+                v = '0.' + v
             return [int(x) for x in re.sub(r'(\.0+)*$','', v).split(".")]
         return cmp(normalize(version1), normalize(version2))
 
@@ -799,6 +842,16 @@ class PackageManager():
                         300),
                     'data': channel_repositories
                 }
+
+                for repo in channel_repositories:
+                    if provider.get_packages(repo) == False:
+                        continue
+                    packages_cache_key = repo + '.packages'
+                    _channel_repository_cache[packages_cache_key] = {
+                        'time': time.time() + self.settings.get('cache_length',
+                            300),
+                        'data': provider.get_packages(repo)
+                    }
                 # Have the local name map override the one from the channel
                 name_map = provider.get_name_map()
                 name_map.update(self.settings['package_name_map'])
@@ -883,12 +936,12 @@ class PackageManager():
                 ignored_packages.append(package)
         packages = list(set(package_names) - set(ignored_packages) -
             set(self.list_default_packages()))
-        packages.sort()
+        packages = sorted(packages, key=lambda s: s.lower())
         return packages
 
     def list_all_packages(self):
         packages = os.listdir(sublime.packages_path())
-        packages.sort()
+        packages = sorted(packages, key=lambda s: s.lower())
         return packages
 
     def list_default_packages(self):
@@ -897,7 +950,7 @@ class PackageManager():
         files = list(set(files) - set(os.listdir(
             sublime.installed_packages_path())))
         packages = [file.replace('.sublime-package', '') for file in files]
-        packages.sort()
+        packages = sorted(packages, key=lambda s: s.lower())
         return packages
 
     def get_package_dir(self, package):
@@ -1110,6 +1163,37 @@ class PackageManager():
             }
             json.dump(metadata, f)
 
+        # Submit install and upgrade info
+        if is_upgrade:
+            params = {
+                'package': package_name,
+                'operation': 'upgrade',
+                'version': packages[package_name]['downloads'][0]['version'],
+                'old_version': old_version
+            }
+        else:
+            params = {
+                'package': package_name,
+                'operation': 'install',
+                'version': packages[package_name]['downloads'][0]['version']
+            }
+        self.record_usage(params)
+
+        # Record the install in the settings file so that you can move
+        # settings across computers and have the same packages installed
+        def save_package():
+            settings = sublime.load_settings(__name__ + '.sublime-settings')
+            installed_packages = settings.get('installed_packages', [])
+            if not installed_packages:
+                installed_packages = []
+            installed_packages.append(package_name)
+            installed_packages = list(set(installed_packages))
+            installed_packages = sorted(installed_packages,
+                key=lambda s: s.lower())
+            settings.set('installed_packages', installed_packages)
+            sublime.save_settings(__name__ + '.sublime-settings')
+        sublime.set_timeout(save_package, 1)
+
         # Here we delete the package file from the installed packages directory
         # since we don't want to accidentally overwrite user changes
         os.remove(package_path)
@@ -1123,42 +1207,73 @@ class PackageManager():
 
     def print_messages(self, package, package_dir, is_upgrade, old_version):
         messages_file = os.path.join(package_dir, 'messages.json')
-        if os.path.exists(messages_file):
-            messages_fp = open(messages_file, 'r')
-            message_info = json.load(messages_fp)
-            messages_fp.close()
+        if not os.path.exists(messages_file):
+            return
 
-            shown = False
-            if not is_upgrade and message_info.get('install'):
-                install_messages = os.path.join(package_dir,
-                    message_info.get('install'))
-                message = '\n\n' + package + ':\n  '
-                with open(install_messages, 'r') as f:
+        messages_fp = open(messages_file, 'r')
+        message_info = json.load(messages_fp)
+        messages_fp.close()
+
+        output = ''
+        if not is_upgrade and message_info.get('install'):
+            install_messages = os.path.join(package_dir,
+                message_info.get('install'))
+            message = '\n\n%s:\n%s\n\n  ' % (package,
+                        ('-' * len(package)))
+            with open(install_messages, 'r') as f:
+                message += f.read().replace('\n', '\n  ')
+            output += message + '\n'
+
+        elif is_upgrade and old_version:
+            upgrade_messages = list(set(message_info.keys()) -
+                set(['install']))
+            upgrade_messages = sorted(upgrade_messages,
+                cmp=self.compare_versions, reverse=True)
+            for version in upgrade_messages:
+                if self.compare_versions(old_version, version) >= 0:
+                    break
+                if not output:
+                    message = '\n\n%s:\n%s\n' % (package,
+                        ('-' * len(package)))
+                    output += message
+                upgrade_messages = os.path.join(package_dir,
+                    message_info.get(version))
+                message = '\n  '
+                with open(upgrade_messages, 'r') as f:
                     message += f.read().replace('\n', '\n  ')
-                self.printer.write(message)
-                shown = True
+                output += message + '\n'
 
-            elif is_upgrade and old_version:
-                upgrade_messages = list(set(message_info.keys()) -
-                    set(['install']))
-                upgrade_messages = sorted(upgrade_messages,
-                    cmp=self.compare_versions, reverse=True)
-                for version in upgrade_messages:
-                    if self.compare_versions(old_version, version) >= 0:
-                        break
-                    if not shown:
-                        message = '\n\n' + package + ':'
-                        self.printer.write(message)
-                    upgrade_messages = os.path.join(package_dir,
-                        message_info.get(version))
-                    message = '\n  '
-                    with open(upgrade_messages, 'r') as f:
-                        message += f.read().replace('\n', '\n  ')
-                    self.printer.write(message)
-                    shown = True
+        if not output:
+            return
 
-            if shown:
-                self.printer.show()
+        def print_to_panel():
+            window = sublime.active_window()
+
+            views = window.views()
+            view = None
+            for _view in views:
+                if _view.name() == 'Package Control Messages':
+                    view = _view
+                    break
+
+            if not view:
+                view = window.new_file()
+                view.set_name('Package Control Messages')
+                view.set_scratch(True)
+
+            def write(string):
+                edit = view.begin_edit()
+                view.insert(edit, view.size(), string)
+                view.end_edit(edit)
+
+            if not view.size():
+                view.settings().set("word_wrap", True)
+                write('Package Control Messages\n' +
+                    '========================')
+
+            write(output)
+        sublime.set_timeout(print_to_panel, 1)
+
 
     def remove_package(self, package_name):
         installed_packages = self.list_packages()
@@ -1181,6 +1296,8 @@ class PackageManager():
         pristine_package_path = os.path.join(os.path.dirname(
             sublime.packages_path()), 'Pristine Packages', package_filename)
         package_dir = self.get_package_dir(package_name)
+
+        version = self.get_metadata(package_name).get('version')
 
         try:
             if os.path.exists(package_path):
@@ -1226,10 +1343,45 @@ class PackageManager():
                     'w').close()
                 can_delete_dir = False
 
+        params = {
+            'package': package_name,
+            'operation': 'remove',
+            'version': version
+        }
+        self.record_usage(params)
+
+        # Remove the package from the installed packages list
+        def clear_package():
+            settings = sublime.load_settings(__name__ + '.sublime-settings')
+            installed_packages = settings.get('installed_packages', [])
+            if not installed_packages:
+                installed_packages = []
+            installed_packages.remove(package_name)
+            settings.set('installed_packages', installed_packages)
+            sublime.save_settings(__name__ + '.sublime-settings')
+        sublime.set_timeout(clear_package, 1)
+
         if can_delete_dir:
             os.rmdir(package_dir)
 
         return True
+
+    def record_usage(self, params):
+        if not self.settings.get('submit_usage'):
+            return
+        params['package_control_version'] = \
+            self.get_metadata('Package Control').get('version')
+        params['sublime_platform'] = self.settings.get('platform')
+        params['sublime_version'] = self.settings.get('version')
+        url = self.settings.get('submit_url') + '?' + urllib.urlencode(params)
+        result = self.download_url(url, 'Error submitting usage information.')
+        try:
+            result = json.loads(result)
+            if result['result'] != 'success':
+                raise ValueError()
+        except (ValueError):
+            print '%s: Error submitting usage information for %s' % \
+                (__name__, params['package'])
 
 
 class PackageCreator():
@@ -1297,7 +1449,7 @@ class PackageInstaller():
         installed_packages = self.manager.list_packages()
 
         package_list = []
-        for package in sorted(packages.iterkeys()):
+        for package in sorted(packages.iterkeys(), key=lambda s: s.lower()):
             if ignore_packages and package in ignore_packages:
                 continue
             package_entry = [package]
@@ -1430,37 +1582,8 @@ class InstallPackageThread(threading.Thread, PackageInstaller):
 
 class DiscoverPackagesCommand(sublime_plugin.WindowCommand):
     def run(self):
-        thread = DiscoverPackagesThread(self.window)
-        thread.start()
-        ThreadProgress(thread, 'Loading repositories', '')
-
-
-class DiscoverPackagesThread(threading.Thread, PackageInstaller):
-    def __init__(self, window):
-        self.window = window
-        self.completion_type = 'installed'
-        threading.Thread.__init__(self)
-        PackageInstaller.__init__(self)
-
-    def run(self):
-        self.package_list = self.make_package_list(override_action='visit')
-        def show_quick_panel():
-            if not self.package_list:
-                sublime.error_message(__name__ + ': There are no packages ' +
-                    'available for discovery.')
-                return
-            self.window.show_quick_panel(self.package_list, self.on_done)
-        sublime.set_timeout(show_quick_panel, 10)
-
-    def on_done(self, picked):
-        if picked == -1:
-            return
-        package_name = self.package_list[picked][0]
-        packages = self.manager.list_available_packages()
-        def open_url():
-            sublime.active_window().run_command('open_url',
-                {"url": packages.get(package_name).get('url')})
-        sublime.set_timeout(open_url, 10)
+        self.window.run_command('open_url',
+            {'url': 'http://wbond.net/sublime_packages/community'})
 
 
 class UpgradePackageCommand(sublime_plugin.WindowCommand):
@@ -1531,7 +1654,7 @@ class ExistingPackagesCommand():
             action += ' '
 
         package_list = []
-        for package in sorted(packages):
+        for package in sorted(packages, key=lambda s: s.lower()):
             package_entry = [package]
             metadata = self.manager.get_metadata(package)
             package_dir = os.path.join(sublime.packages_path(), package)
@@ -1747,10 +1870,12 @@ class EnablePackageCommand(sublime_plugin.WindowCommand):
 
 
 class AutomaticUpgrader(threading.Thread):
-    def __init__(self):
+    def __init__(self, found_packages):
         self.installer = PackageInstaller()
 
         settings = sublime.load_settings(__name__ + '.sublime-settings')
+        self.installed_packages = settings.get('installed_packages', [])
+
         self.auto_upgrade = settings.get('auto_upgrade')
         self.auto_upgrade_ignore = settings.get('auto_upgrade_ignore')
 
@@ -1763,6 +1888,10 @@ class AutomaticUpgrader(threading.Thread):
             else:
                 self.next_run = time.time()
 
+        # Detect if a package is missing that should be installed
+        self.missing_packages = list(set(self.installed_packages) -
+            set(found_packages))
+
         if self.auto_upgrade and self.next_run <= time.time():
             settings.set('auto_upgrade_last_run', int(time.time()))
             sublime.save_settings(__name__ + '.sublime-settings')
@@ -1770,6 +1899,14 @@ class AutomaticUpgrader(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
+        if self.missing_packages:
+            print '%s: Installing %s missing packages' % \
+                (__name__, len(self.missing_packages))
+            for package in self.missing_packages:
+                self.installer.manager.install_package(package)
+                print '%s: Installed missing package %s' % \
+                    (__name__, package)
+
         if self.next_run > time.time():
             last_run = datetime.datetime.fromtimestamp(self.last_run)
             next_run = datetime.datetime.fromtimestamp(self.next_run)
@@ -1800,17 +1937,51 @@ class AutomaticUpgrader(threading.Thread):
 
 class PackageCleanup(threading.Thread):
     def __init__(self):
+        self.manager = PackageManager()
+        self.settings = sublime.load_settings(__name__ + '.sublime-settings')
+        self.installed_packages = self.settings.get('installed_packages', [])
+        if not self.installed_packages:
+            self.installed_packages = []
+        self.original_installed_packages = list(self.installed_packages)
         threading.Thread.__init__(self)
 
     def run(self):
-        for path in os.listdir(sublime.packages_path()):
-            package_dir = os.path.join(sublime.packages_path(), path)
+        found_packages = []
+        for package_name in os.listdir(sublime.packages_path()):
+            package_dir = os.path.join(sublime.packages_path(), package_name)
             if os.path.exists(os.path.join(package_dir,
                     'package-control.cleanup')):
                 shutil.rmtree(package_dir)
                 print __name__ + ': Removed old directory for package %s' % \
-                    path
-        sublime.set_timeout(lambda: AutomaticUpgrader().start(), 10)
+                    package_name
+
+            if os.path.exists(package_dir):
+                found_packages.append(package_name)
+
+            # This adds previously installed packages from old versions of PC
+            metadata_path = os.path.join(package_dir, 'package-metadata.json')
+            if os.path.exists(metadata_path) and \
+                    package_name not in self.installed_packages:
+                self.installed_packages.append(package_name)
+                params = {
+                    'package': package_name,
+                    'operation': 'install',
+                    'version': \
+                        self.manager.get_metadata(package_name).get('version')
+                }
+                self.manager.record_usage(params)
+
+        def save_packages():
+            installed_packages = list(set(self.installed_packages))
+            self.installed_packages = sorted(installed_packages,
+                key=lambda s: s.lower())
+            if self.installed_packages != self.original_installed_packages:
+                self.settings.set('installed_packages',
+                    self.installed_packages)
+                sublime.save_settings(__name__ + '.sublime-settings')
+            sublime.set_timeout(
+                lambda: AutomaticUpgrader(found_packages).start(), 10)
+        sublime.set_timeout(save_packages, 10)
 
 
 PackageCleanup().start()
