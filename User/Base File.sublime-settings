@@ -1,4 +1,5 @@
 {
+	"auto_complete_commit_on_tab": true,
 	"auto_match_enabled": true,
 	"color_scheme": "Packages/Color Scheme - User/Joey's Clouds Midnight.tmTheme",
 	"default_line_ending": "unix",

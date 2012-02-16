@@ -7,7 +7,8 @@
 	$0
 </string>
 	<key>keyEquivalent</key>
-	<string></string>
+	<string>
+</string>
 	<key>name</key>
 	<string>Special: Return Inside Empty Open/Close Tags</string>
 	<key>scope</key>

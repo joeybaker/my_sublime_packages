@@ -49,7 +49,8 @@ print suffix
 	<key>input</key>
 	<string>selection</string>
 	<key>keyEquivalent</key>
-	<string>$</string>
+	<string>$
+</string>
 	<key>name</key>
 	<string>Insert Open/Close Tag (With Current Word)</string>
 	<key>output</key>

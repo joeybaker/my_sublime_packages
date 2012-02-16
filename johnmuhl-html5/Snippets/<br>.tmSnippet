@@ -5,7 +5,8 @@
 	<key>content</key>
 	<string>&lt;br${TM_POLYGLOT}&gt;</string>
 	<key>keyEquivalent</key>
-	<string>^</string>
+	<string>^
+</string>
 	<key>name</key>
 	<string>&lt;br&gt;</string>
 	<key>scope</key>

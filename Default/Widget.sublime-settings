@@ -7,5 +7,7 @@
 	"word_wrap": false,
 	"auto_match_enabled": false,
 	"scroll_past_end": false,
-	"draw_indent_guides": false
+	"draw_indent_guides": false,
+	"draw_centered": false,
+	"auto_complete": false
 }
