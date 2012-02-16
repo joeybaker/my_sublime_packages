@@ -1,0 +1,5 @@
+<snippet>
+	<content><![CDATA[<rp>$1</rp>$0]]></content>
+	<tabTrigger>rp</tabTrigger>
+	<description>&lt;rp&gt;</description>
+</snippet>

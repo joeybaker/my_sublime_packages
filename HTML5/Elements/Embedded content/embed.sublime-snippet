@@ -1,0 +1,5 @@
+<snippet>
+	<content><![CDATA[<embed src="$1" type="$2">$0</embed>]]></content>
+	<tabTrigger>embed</tabTrigger>
+	<description>&lt;embed&gt;</description>
+</snippet>

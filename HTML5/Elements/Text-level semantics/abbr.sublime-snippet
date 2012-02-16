@@ -1,0 +1,5 @@
+<snippet>
+	<content><![CDATA[<abbr${1: title="$2"}>$3</abbr>$0]]></content>
+	<tabTrigger>abbr</tabTrigger>
+	<description>&lt;abbr&gt;</description>
+</snippet>

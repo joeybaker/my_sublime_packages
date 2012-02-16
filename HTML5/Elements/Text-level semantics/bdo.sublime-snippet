@@ -1,0 +1,5 @@
+<snippet>
+	<content><![CDATA[<bdo dir="${1:ltr rtl}">$2</bdo>$0]]></content>
+	<tabTrigger>bdo</tabTrigger>
+	<description>&lt;bdo&gt;</description>
+</snippet>

@@ -1,0 +1,5 @@
+<snippet>
+	<content><![CDATA[<del>$1</del>%0]]></content>
+	<tabTrigger>del</tabTrigger>
+	<description>&lt;del&gt;</description>
+</snippet>

@@ -1,0 +1,5 @@
+<snippet>
+	<content><![CDATA[<col${1: span="$2"}>$0]]></content>
+	<tabTrigger>col</tabTrigger>
+	<description>&lt;col&gt;</description>
+</snippet>

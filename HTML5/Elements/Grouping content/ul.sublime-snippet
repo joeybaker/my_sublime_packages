@@ -1,0 +1,9 @@
+<snippet>
+	<content><![CDATA[
+<ul${2:${3: id="$4"}${5: class="$6"}}>
+	<li>${7:<a href="$8" title="$11">$11</a>}$12</li>
+	li$0
+</ul><!-- /$4 -->]]></content>
+	<tabTrigger>ul</tabTrigger>
+	<description>&lt;ul&gt;</description>
+</snippet>

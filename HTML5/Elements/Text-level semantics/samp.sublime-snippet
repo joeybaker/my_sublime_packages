@@ -1,0 +1,5 @@
+<snippet>
+	<content><![CDATA[<samp>$1</samp>$0]]></content>
+	<tabTrigger>samp</tabTrigger>
+	<description>&lt;samp&gt;</description>
+</snippet>
