@@ -1,0 +1,16 @@
+[
+    {
+        "caption": "Markdown Preview: current file in browser",
+        "command": "markdown_preview",
+        "args": {
+            "target": "browser"
+        }
+    },
+    {
+        "caption": "Markdown Preview: current file in Sublime Text",
+        "command": "markdown_preview",
+        "args": {
+            "target": "sublime"
+        }
+    }
+]
