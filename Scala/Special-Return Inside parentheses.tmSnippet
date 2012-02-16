@@ -7,8 +7,7 @@
 	$0
 </string>
 	<key>keyEquivalent</key>
-	<string>
-</string>
+	<string></string>
 	<key>name</key>
 	<string>Special: Return Inside parentheses</string>
 	<key>scope</key>

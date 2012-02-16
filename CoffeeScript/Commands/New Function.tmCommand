@@ -14,8 +14,7 @@ SNIPPET</string>
 	<key>input</key>
 	<string>selection</string>
 	<key>keyEquivalent</key>
-	<string>$
-</string>
+	<string>$</string>
 	<key>name</key>
 	<string>New Function</string>
 	<key>output</key>

@@ -1,21 +1,19 @@
 {
-	"auto_upgrade_last_run": 1329411392,
+	"auto_upgrade_last_run": 1329415533,
 	"installed_packages":
 	[
 		"Alignment",
+		"ApacheConf.tmLanguage",
 		"CoffeeScript",
 		"ColorPicker",
 		"FileDiffs",
+		"Git",
+		"HTML5",
+		"jQuery Snippets pack",
 		"LESS",
-		"MoveText",
-		"Nettuts+ Fetch",
+		"Markdown Preview",
 		"Package Control",
-		"sublimelint",
-		"SublimeLinter"
-	],
-	"repositories":
-	[
-		"https://github.com/kemayo/sublime-text-2-git",
-		"https://github.com/Kronuz/SublimeCodeIntel"
+		"SideBarGit",
+		"sublimelint"
 	]
 }

@@ -34,7 +34,6 @@
 	],
 	"ignored_packages":
 	[
-		"Vintage",
-		"SublimeLinter"
+		"Vintage"
 	]
 }
