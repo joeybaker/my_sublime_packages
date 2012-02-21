@@ -1,17 +1,19 @@
 {
-	"auto_upgrade_last_run": 1329415533,
+	"auto_upgrade_last_run": 1329863015,
 	"installed_packages":
 	[
 		"Alignment",
 		"ApacheConf.tmLanguage",
 		"CoffeeScript",
 		"ColorPicker",
+		"Default File Type",
 		"FileDiffs",
 		"Git",
 		"HTML5",
 		"jQuery Snippets pack",
 		"LESS",
 		"Markdown Preview",
+		"Nettuts+ Fetch",
 		"Package Control",
 		"SideBarGit",
 		"sublimelint"
