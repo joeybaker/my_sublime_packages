@@ -6,9 +6,11 @@
         "children":
         [
             { "command": "new_file", "caption": "New File", "mnemonic": "N" },
-            { "command": "prompt_open_file", "caption": "Open File…", "mnemonic": "O" },
-            { "command": "prompt_open_folder", "caption": "Open Folder…" },
-            { "command": "clone_file", "mnemonic": "e" },
+
+            { "command": "prompt_open_file", "caption": "Open File…", "mnemonic": "O", "platform": "!OSX" },
+            { "command": "prompt_open_folder", "caption": "Open Folder…", "platform": "!OSX" },
+            { "command": "prompt_open", "caption": "Open…", "platform": "OSX" },
+
             {
                 "caption": "Open Recent",
                 "mnemonic": "R",
@@ -77,7 +79,48 @@
                     { "caption": "Hexadecimal", "command": "reopen", "args": {"encoding": "Hexadecimal" } }
                 ]
             },
+            { "command": "clone_file", "caption": "New View into File", "mnemonic": "e" },
             { "command": "save", "caption": "Save", "mnemonic": "S" },
+            {
+                "caption": "Save with Encoding",
+                "children":
+                [
+                    { "caption": "UTF-8", "command": "save", "args": {"encoding": "utf-8" } },
+                    { "caption": "UTF-16 LE", "command": "save", "args": {"encoding": "utf-16 le" } },
+                    { "caption": "UTF-16 BE", "command": "save", "args": {"encoding": "utf-16 be" } },
+                    { "caption": "-" },
+                    { "caption": "Western (Windows 1252)", "command": "save", "args": {"encoding": "Western (Windows 1252)" } },
+                    { "caption": "Western (ISO 8859-1)", "command": "save", "args": {"encoding": "Western (ISO 8859-1)" } },
+                    { "caption": "Western (ISO 8859-3)", "command": "save", "args": {"encoding": "Western (ISO 8859-3)" } },
+                    { "caption": "Western (ISO 8859-15)", "command": "save", "args": {"encoding": "Western (ISO 8859-15)" } },
+                    { "caption": "Western (Mac Roman)", "command": "save", "args": {"encoding": "Western (Mac Roman)" } },
+                    { "caption": "DOS (CP 437)", "command": "save", "args": {"encoding": "DOS (CP 437)" } },
+                    { "caption": "Arabic (Windows 1256)", "command": "save", "args": {"encoding": "Arabic (Windows 1256)" } },
+                    { "caption": "Arabic (ISO 8859-6)", "command": "save", "args": {"encoding": "Arabic (ISO 8859-6)" } },
+                    { "caption": "Baltic (Windows 1257)", "command": "save", "args": {"encoding": "Baltic (Windows 1257)" } },
+                    { "caption": "Baltic (ISO 8859-4)", "command": "save", "args": {"encoding": "Baltic (ISO 8859-4)" } },
+                    { "caption": "Celtic (ISO 8859-14)", "command": "save", "args": {"encoding": "Celtic (ISO 8859-14)" } },
+                    { "caption": "Central European (Windows 1250)", "command": "save", "args": {"encoding": "Central European (Windows 1250)" } },
+                    { "caption": "Central European (ISO 8859-2)", "command": "save", "args": {"encoding": "Central European (ISO 8859-2)" } },
+                    { "caption": "Cyrillic (Windows 1251)", "command": "save", "args": {"encoding": "Cyrillic (Windows 1251)" } },
+                    { "caption": "Cyrillic (Windows 866)", "command": "save", "args": {"encoding": "Cyrillic (Windows 866)" } },
+                    { "caption": "Cyrillic (ISO 8859-5)", "command": "save", "args": {"encoding": "Cyrillic (ISO 8859-5)" } },
+                    { "caption": "Cyrillic (KOI8-R)", "command": "save", "args": {"encoding": "Cyrillic (KOI8-R)" } },
+                    { "caption": "Cyrillic (KOI8-U)", "command": "save", "args": {"encoding": "Cyrillic (KOI8-U)" } },
+                    { "caption": "Estonian (ISO 8859-13)", "command": "save", "args": {"encoding": "Estonian (ISO 8859-13)" } },
+                    { "caption": "Greek (Windows 1253)", "command": "save", "args": {"encoding": "Greek (Windows 1253)" } },
+                    { "caption": "Greek (ISO 8859-7)", "command": "save", "args": {"encoding": "Greek (ISO 8859-7)" } },
+                    { "caption": "Hebrew (Windows 1255)", "command": "save", "args": {"encoding": "Hebrew (Windows 1255)" } },
+                    { "caption": "Hebrew (ISO 8859-8)", "command": "save", "args": {"encoding": "Hebrew (ISO 8859-8)" } },
+                    { "caption": "Nordic (ISO 8859-10)", "command": "save", "args": {"encoding": "Nordic (ISO 8859-10)" } },
+                    { "caption": "Romanian (ISO 8859-16)", "command": "save", "args": {"encoding": "Romanian (ISO 8859-16)" } },
+                    { "caption": "Turkish (Windows 1254)", "command": "save", "args": {"encoding": "Turkish (Windows 1254)" } },
+                    { "caption": "Turkish (ISO 8859-9)", "command": "save", "args": {"encoding": "Turkish (ISO 8859-9)" } },
+                    { "caption": "Vietnamese (Windows 1258)", "command": "save", "args": {"encoding": "Vietnamese (Windows 1258)" } },
+                    { "caption": "-" },
+                    { "caption": "Hexadecimal", "command": "save", "args": {"encoding": "Hexadecimal" } }
+                ]
+            },
             { "command": "prompt_save_as", "caption": "Save As…", "mnemonic": "A" },
             { "command": "save_all", "caption": "Save All", "mnemonic": "l" },
             { "caption": "-", "id": "window" },
@@ -120,7 +163,7 @@
                 [
                     { "command": "indent" },
                     { "command": "unindent" },
-                    { "command": "reindent", "args": {"single_line": false} },
+                    { "command": "reindent", "args": {"single_line": true} },
                     { "command": "swap_line_up" },
                     { "command": "swap_line_down" },
                     { "command": "duplicate_line" },
@@ -692,10 +735,10 @@
         [
             { "command": "open_dir", "args": {"dir": "$packages"}, "caption": "Browse Packages…", "mnemonic": "B" },
             { "caption": "-" },
-            { "command": "open_file", "args": {"file": "${packages}/Default/Base File.sublime-settings"}, "caption": "File Settings – Default" },
-            { "command": "open_file", "args": {"file": "${packages}/User/Base File.sublime-settings"}, "caption": "File Settings – User" },
+            { "command": "open_file", "args": {"file": "${packages}/Default/Preferences.sublime-settings"}, "caption": "Settings – Default" },
+            { "command": "open_file", "args": {"file": "${packages}/User/Preferences.sublime-settings"}, "caption": "Settings – User" },
             {
-                "caption": "File Settings – More",
+                "caption": "Settings – More",
                 "children":
                 [
                     { "command": "open_file_settings", "caption": "Syntax Specific – User" },
@@ -703,54 +746,17 @@
                 ]
             },
             { "caption": "-" },
-            { "command": "open_file", "args": {"file": "${packages}/Default/Global.sublime-settings"}, "caption": "Global Settings – Default" },
-            { "command": "open_file", "args": {"file": "${packages}/User/Global.sublime-settings"}, "caption": "Global Settings – User" },
-            { "caption": "-" },
             {
                 "command": "open_file", "args":
                 {
-                    "file": "${packages}/Default/Default (Windows).sublime-keymap",
-                    "platform": "Windows"
+                    "file": "${packages}/Default/Default ($platform).sublime-keymap"
                 },
                 "caption": "Key Bindings – Default"
             },
             {
                 "command": "open_file", "args":
                 {
-                    "file": "${packages}/Default/Default (OSX).sublime-keymap",
-                    "platform": "OSX"
-                },
-                "caption": "Key Bindings – Default"
-            },
-            {
-                "command": "open_file", "args":
-                {
-                    "file": "${packages}/Default/Default (Linux).sublime-keymap",
-                    "platform": "Linux"
-                },
-                "caption": "Key Bindings – Default"
-            },
-            {
-                "command": "open_file", "args":
-                {
-                    "file": "${packages}/User/Default (Windows).sublime-keymap",
-                    "platform": "Windows"
-                },
-                "caption": "Key Bindings – User"
-            },
-            {
-                "command": "open_file", "args":
-                {
-                    "file": "${packages}/User/Default (OSX).sublime-keymap",
-                    "platform": "OSX"
-                },
-                "caption": "Key Bindings – User"
-            },
-            {
-                "command": "open_file", "args":
-                {
-                    "file": "${packages}/User/Default (Linux).sublime-keymap",
-                    "platform": "Linux"
+                    "file": "${packages}/User/Default ($platform).sublime-keymap"
                 },
                 "caption": "Key Bindings – User"
             },

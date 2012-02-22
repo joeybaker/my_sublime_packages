@@ -21,6 +21,15 @@
         "command": "swap_case"
     },
 
+    { "command": "toggle_comment", "args": {"block": false}, "caption": "Toggle Comment" },
+    { "command": "toggle_comment", "args": {"block": true}, "caption": "Toggle Block Comment" },
+
+    { "command": "toggle_bookmark", "caption": "Bookmarks: Toggle" },
+    { "command": "next_bookmark", "caption": "Bookmarks: Select Next" },
+    { "command": "prev_bookmark", "caption": "Bookmarks: Select Previous" },
+    { "command": "clear_bookmarks", "caption": "Bookmarks: Clear All" },
+    { "command": "select_all_bookmarks", "caption": "Bookmarks: Select All" },
+
     { "caption": "Indentation: Convert to Tabs", "command": "unexpand_tabs", "args": {"set_translate_tabs": true} },
     { "caption": "Indentation: Convert to Spaces", "command": "expand_tabs", "args": {"set_translate_tabs": true} },
     { "caption": "Indentation: Reindent Lines", "command": "reindent", "args": {"single_line": false} },
@@ -36,10 +45,8 @@
     { "caption": "Project: Close", "command": "close_project" },
     { "caption": "Project: Add Folder", "command": "prompt_add_folder" },
 
-    { "caption": "Preferences: File Settings - Default", "command": "open_file", "args": {"file": "${packages}/Default/Base File.sublime-settings"} },
-    { "caption": "Preferences: File Settings - User", "command": "open_file", "args": {"file": "${packages}/User/Base File.sublime-settings"} },
-    { "caption": "Preferences: Global Settings - Default", "command": "open_file", "args": {"file": "${packages}/Default/Global.sublime-settings"} },
-    { "caption": "Preferences: Global Settings - User", "command": "open_file", "args": {"file": "${packages}/User/Global.sublime-settings"} },
+    { "caption": "Preferences: Settings - Default", "command": "open_file", "args": {"file": "${packages}/Default/Preferences.sublime-settings"} },
+    { "caption": "Preferences: Settings - User", "command": "open_file", "args": {"file": "${packages}/User/Preferences.sublime-settings"} },
     { "caption": "Preferences: Browse Packages", "command": "open_dir", "args": {"dir": "$packages"} },
 
     {
@@ -93,7 +100,7 @@
 
     { "caption": "File: Save All", "command": "save_all" },
     { "caption": "File: Revert", "command": "revert" },
-    { "caption": "File: Clone", "command": "clone_file" },
+    { "caption": "File: New View into File", "command": "clone_file" },
     { "caption": "File: Close All", "command": "close_all" },
 
     { "caption": "HTML: Wrap Selection With Tag", "command": "insert_snippet", "args": { "name": "Packages/XML/long-tag.sublime-snippet" } },

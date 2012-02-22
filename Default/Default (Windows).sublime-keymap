@@ -232,7 +232,10 @@
 	{ "keys": ["ctrl+shift+down"], "command": "swap_line_down" },
 
 	{ "keys": ["ctrl+backspace"], "command": "delete_word", "args": { "forward": false } },
+	{ "keys": ["ctrl+shift+backspace"], "command": "run_macro_file", "args": {"file": "Packages/Default/Delete to Hard BOL.sublime-macro"} },
+
 	{ "keys": ["ctrl+delete"], "command": "delete_word", "args": { "forward": true } },
+	{ "keys": ["ctrl+shift+delete"], "command": "run_macro_file", "args": {"file": "Packages/Default/Delete to Hard EOL.sublime-macro"} },
 
 	{ "keys": ["ctrl+/"], "command": "toggle_comment", "args": { "block": false } },
 	{ "keys": ["ctrl+shift+/"], "command": "toggle_comment", "args": { "block": true } },
@@ -416,7 +419,7 @@
 		]
 	},
 
-	{ "keys": ["enter"], "command": "insert_snippet", "args": {"contents": "\n\t$0\n"}, "context":
+	{ "keys": ["enter"], "command": "run_macro_file", "args": {"file": "Packages/Default/Add Line in Braces.sublime-macro"}, "context":
 		[
 			{ "key": "setting.auto_indent", "operator": "equal", "operand": true },
 			{ "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
@@ -424,7 +427,7 @@
 			{ "key": "following_text", "operator": "regex_contains", "operand": "^\\}", "match_all": true }
 		]
 	},
-	{ "keys": ["shift+enter"], "command": "insert_snippet", "args": {"contents": "\n\t$0\n"}, "context":
+	{ "keys": ["shift+enter"], "command": "run_macro_file", "args": {"file": "Packages/Default/Add Line in Braces.sublime-macro"}, "context":
 		[
 			{ "key": "setting.auto_indent", "operator": "equal", "operand": true },
 			{ "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
@@ -432,6 +435,7 @@
 			{ "key": "following_text", "operator": "regex_contains", "operand": "^\\}", "match_all": true }
 		]
 	},
+
 	{
 		"keys": ["alt+shift+1"],
 		"command": "set_layout",

@@ -3,5 +3,6 @@
 	"font_size": 12,
 	"scroll_past_end": false,
 	"find_selected_text": false,
-	"move_to_limit_on_up_down": true
+	"move_to_limit_on_up_down": true,
+    "close_windows_when_empty": true
 }
