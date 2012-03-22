@@ -49,7 +49,7 @@
 		"*.psd",
 		"*.db",
 		"wp-*.php",
-		".sublime*"
+		"*.sublime*"
 	],
 	"find_selected_text": true,
 	"fold_buttons": true,
@@ -96,7 +96,7 @@
 	"shift_tab_unindent": true,
 	"spell_check": false,
 	"tab_completion": true,
-	"tab_size": 4,
+	"tab_size": 2,
 	"translate_tabs_to_spaces": true,
 	"trim_automatic_white_space": true,
 	"trim_trailing_white_space_on_save": false,

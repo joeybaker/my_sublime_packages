@@ -6,6 +6,7 @@
 
 	{ "caption": "Edit",              "id": "side-bar-edit",             "command": "side_bar_edit",             "args": {"paths": []} },
 	{ "caption": "Open / Run",              "id": "side-bar-open",             "command": "side_bar_open",             "args": {"paths": []} },
+	{ "caption": "Open In Browser",              "id": "side-bar-open-in-browser",             "command": "side_bar_open_in_browser",             "args": {"paths": []} },
 	{ "caption": "Open With",        "id": "side-bar-files-open-with",
 
 		"children":
@@ -61,6 +62,9 @@
 
 			{ "caption": "Name Encoded",                  "id": "side-bar-clip-copy-name-encoded",             "command": "side_bar_copy_name_encoded",                 "args": {"paths": []} },
 			{ "caption": "-", 								            "id": "side-bar-clip-copy-name-encoded-separator"},
+
+			{ "caption": "URL",                 					"id": "side-bar-clip-copy-url",             "command": "side_bar_copy_url",                 "args": {"paths": []} },
+			{ "caption": "-", 								            "id": "side-bar-clip-copy-url-separator"},
 
 			{ "caption": "Tag a",              		        "id": "side-bar-clip-copy-tag-a",                 	 "command": "side_bar_copy_tag_ahref",                  "args": {"paths": []} },
 			{ "caption": "Tag img",                       "id": "side-bar-clip-copy-tag-img",               	 "command": "side_bar_copy_tag_img",                    "args": {"paths": []} },

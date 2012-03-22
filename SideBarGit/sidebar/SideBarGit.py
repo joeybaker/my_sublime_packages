@@ -4,7 +4,9 @@ import os
 import subprocess
 
 from SideBarItem import SideBarItem
-from Utils import Object
+
+class Object():
+	pass
 
 class SideBarGit:
 
@@ -15,7 +17,7 @@ class SideBarGit:
 					object,
 					modal = False,
 					background = False,
-					
+
 					refresh_funct_view = False,
 					refresh_funct_command = False,
 					refresh_funct_item = False,
@@ -239,9 +241,13 @@ class SideBarGit:
 		return True
 
 	def confirm(self, message, function, arg1):
-		import functools
-		sublime.active_window().run_command('hide_panel');
-		sublime.active_window().show_input_panel("Confirmation Required:", message.decode('utf-8'), functools.partial(function, arg1, True), None, None)
+		if int(sublime.version()) >= 2186:
+			if sublime.ok_cancel_dialog(u'Side Bar Git : '+message):
+				function(arg1, True)
+		else:
+			import functools
+			sublime.active_window().run_command('hide_panel');
+			sublime.active_window().show_input_panel("Confirmation Required:", message.decode('utf-8'), functools.partial(function, arg1, True), None, None)
 
 	def prompt(self, message, default, function, arg1):
 		import functools

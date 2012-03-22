@@ -191,7 +191,7 @@
 				</dict>
 			</dict>
 			<key>match</key>
-			<string>(#).*$\n?</string>
+			<string>(#)(?!\{).*$\n?</string>
 			<key>name</key>
 			<string>comment.line.number-sign.coffee</string>
 		</dict>
@@ -387,7 +387,7 @@
 				</dict>
 			</dict>
 			<key>match</key>
-			<string>(class\b)\s+([a-zA-Z\$_][\w\.]+)?(?:\s+(extends)\s+([a-zA-Z\$\._][\w\.]*))?</string>
+			<string>(class\b)\s+(@?[a-zA-Z\$_][\w\.]*)?(?:\s+(extends)\s+(@?[a-zA-Z\$\._][\w\.]*))?</string>
 			<key>name</key>
 			<string>meta.class.coffee</string>
 		</dict>

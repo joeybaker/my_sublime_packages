@@ -3,27 +3,56 @@ import sublime_plugin, sublime
 import os
 import re
 
-from SideBarSelection import SideBarSelection
-from SideBarGit import SideBarGit
-from Utils import Object, uniqueList
+from sidebar.SideBarSelection import SideBarSelection
+from sidebar.SideBarGit import SideBarGit
+
+try:
+	from BufferScroll import BufferScrollAPI
+except:
+	BufferScrollAPI = False
+
+class Object():
+	pass
 
 #run last command again on a focused tab when pressing F5
 
-class SideBarGitRefreshTabContentsByRunningCommandAgain(sublime_plugin.TextCommand):
-	def run(self, edit):
-		if self.view.settings().has('SideBarGitIsASideBarGitTab'):
+class SideBarGitRefreshTabContentsByRunningCommandAgain(sublime_plugin.WindowCommand):
+	def run(self):
+		window = sublime.active_window()
+		if not window:
+			return
+		view 	 =  window.active_view()
+		if view is None:
+			return
+		if view.settings().has('SideBarGitIsASideBarGitTab'):
 			SideBarGit().run(
 												[],
-												self.view.settings().get('SideBarGitModal'),
-												self.view.settings().get('SideBarGitBackground'),
-												self.view,
-												self.view.settings().get('SideBarGitCommand'),
-												self.view.settings().get('SideBarGitItem'),
-												self.view.settings().get('SideBarGitToStatusBar'),
-												self.view.settings().get('SideBarGitTitle'),
-												self.view.settings().get('SideBarGitNoResults'),
-												self.view.settings().get('SideBarGitSyntaxFile')
+												view.settings().get('SideBarGitModal'),
+												view.settings().get('SideBarGitBackground'),
+												view,
+												view.settings().get('SideBarGitCommand'),
+												view.settings().get('SideBarGitItem'),
+												view.settings().get('SideBarGitToStatusBar'),
+												view.settings().get('SideBarGitTitle'),
+												view.settings().get('SideBarGitNoResults'),
+												view.settings().get('SideBarGitSyntaxFile')
 												)
+		elif view.file_name():
+			if BufferScrollAPI:
+				BufferScrollAPI.save(view, 'sidebar-git');
+			view.run_command("revert")
+			if BufferScrollAPI:
+				BufferScrollAPI.restore(view, 'sidebar-git');
+
+	def is_enabled(self):
+		window = sublime.active_window()
+		if not window:
+			return False
+		view 	 =  window.active_view()
+		if view is None:
+			return False
+		if view.settings().has('SideBarGitIsASideBarGitTab') or view.file_name():
+			return True
 
 #Following code for selected files or folders
 
@@ -33,6 +62,20 @@ class SideBarGitDiffAllChangesSinceLastCommitCommand(sublime_plugin.WindowComman
 			object = Object()
 			object.item = item
 			object.command = ['git', 'diff', 'HEAD', '--no-color', '--', item.forCwdSystemName()]
+			object.title = 'Diff: '+item.name()+'.diff'
+			object.no_results = 'No differences to show'
+			object.syntax_file = 'Packages/Diff/Diff.tmLanguage'
+			object.word_wrap = False
+			SideBarGit().run(object)
+	def is_enabled(self, paths = []):
+		return SideBarSelection(paths).len() > 0
+
+class SideBarGitDiffAllChangesSinceLastCommitIgnoreWhiteSpaceCommand(sublime_plugin.WindowCommand):
+	def run(self, paths = []):
+		for item in SideBarSelection(paths).getSelectedItems():
+			object = Object()
+			object.item = item
+			object.command = ['git', 'diff', 'HEAD', '--no-color', '-w', '--', item.forCwdSystemName()]
 			object.title = 'Diff: '+item.name()+'.diff'
 			object.no_results = 'No differences to show'
 			object.syntax_file = 'Packages/Diff/Diff.tmLanguage'
@@ -441,7 +484,7 @@ class SideBarGitIgnoreAddCommand(sublime_plugin.WindowCommand):
 				ignore_entry = '/'+ignore_entry
 			content = item.contentUTF8().strip()+'\n'+ignore_entry
 			content = content.replace('\r\n', '\n')
-			content = "\n".join(uniqueList(content.split('\n')))
+			content = "\n".join(list(set(content.split('\n'))))
 
 			item.write(content.strip())
 			SideBarGit().status('Ignored file "'+ignore_entry+'" on '+item.path())
@@ -560,6 +603,18 @@ class SideBarGitPushAndPushTagsCommand(sublime_plugin.WindowCommand):
 			object = Object()
 			object.item = item.repository
 			object.command = ['git','push','&&','git','push','--tags']
+			object.to_status_bar = True
+			SideBarGit().run(object, True)
+
+	def is_enabled(self, paths = []):
+		return SideBarSelection(paths).len() > 0
+
+class SideBarGitPushAllBranchesCommand(sublime_plugin.WindowCommand):
+	def run(self, paths = []):
+		for item in SideBarGit().getSelectedRepos(SideBarSelection(paths).getSelectedItems()):
+			object = Object()
+			object.item = item.repository
+			object.command = ['git','push','origin','*:*']
 			object.to_status_bar = True
 			SideBarGit().run(object, True)
 
@@ -756,7 +811,7 @@ class SideBarGitAddCommitPushCommand(sublime_plugin.WindowCommand):
 				object.item = repo.repository
 				object.command = ['git','push']
 				SideBarGit().run(object, True)
-	
+
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
 
@@ -843,7 +898,7 @@ class SideBarGitRemoteAddCommand(sublime_plugin.WindowCommand):
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
- 
+
 class SideBarGitBranchNewFromCurrentCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = [], input = False, content = ''):
 		if input == False:
@@ -860,7 +915,7 @@ class SideBarGitBranchNewFromCurrentCommand(sublime_plugin.WindowCommand):
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
- 
+
 class SideBarGitBranchNewFromMasterCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = [], input = False, content = ''):
 		if input == False:
@@ -873,7 +928,7 @@ class SideBarGitBranchNewFromMasterCommand(sublime_plugin.WindowCommand):
 				object.item = repo.repository
 				object.command = ['git', 'checkout', 'master']
 				SideBarGit().run(object)
-				
+
 				object = Object()
 				object.item = repo.repository
 				object.command = ['git', 'checkout', '-b', content]
@@ -909,7 +964,7 @@ class SideBarGitBranchNewFromCleanMasterCommand(sublime_plugin.WindowCommand):
 			import sys
 			content = content.encode(sys.getfilesystemencoding())
 			for repo in SideBarGit().getSelectedRepos(SideBarSelection(paths).getSelectedItems()):
-				
+
 				object = Object()
 				object.item = repo.repository
 				object.command = ['git', 'checkout', 'master']
@@ -923,7 +978,7 @@ class SideBarGitBranchNewFromCleanMasterCommand(sublime_plugin.WindowCommand):
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
- 
+
 class SideBarGitBranchSwitchToMasterCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
 			for repo in SideBarGit().getSelectedRepos(SideBarSelection(paths).getSelectedItems()):
@@ -935,7 +990,7 @@ class SideBarGitBranchSwitchToMasterCommand(sublime_plugin.WindowCommand):
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
- 
+
 class SideBarGitBranchSwitchToCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
 		for repo in SideBarGit().getSelectedRepos(SideBarSelection(paths).getSelectedItems()):
@@ -961,7 +1016,7 @@ class SideBarGitBranchSwitchToCommand(sublime_plugin.WindowCommand):
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
- 
+
 class SideBarGitBranchDeleteCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
 		for repo in SideBarGit().getSelectedRepos(SideBarSelection(paths).getSelectedItems()):
@@ -987,7 +1042,7 @@ class SideBarGitBranchDeleteCommand(sublime_plugin.WindowCommand):
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
- 
+
 class SideBarGitBranchDeleteForceCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
 		for repo in SideBarGit().getSelectedRepos(SideBarSelection(paths).getSelectedItems()):
@@ -1013,7 +1068,7 @@ class SideBarGitBranchDeleteForceCommand(sublime_plugin.WindowCommand):
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
- 
+
 class SideBarGitMergeToCurrentFromCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
 		for repo in SideBarGit().getSelectedRepos(SideBarSelection(paths).getSelectedItems()):
@@ -1039,7 +1094,7 @@ class SideBarGitMergeToCurrentFromCommand(sublime_plugin.WindowCommand):
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
- 
+
 class SideBarGitRebaseCurrentIntoMasterCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
 		for repo in SideBarGit().getSelectedRepos(SideBarSelection(paths).getSelectedItems()):
@@ -1050,7 +1105,7 @@ class SideBarGitRebaseCurrentIntoMasterCommand(sublime_plugin.WindowCommand):
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
- 
+
  #  }
  #  this.tagAdd = function(event)
  #  {

@@ -23,6 +23,7 @@
 				"children":
 				[
 					{ "caption": "all changes since the last commit", 	  												"command": "side_bar_git_diff_all_changes_since_last_commit", 												"args": {"paths": []} },
+					{ "caption": "all changes since the last commit ( ignore whitespace )", 	  	"command": "side_bar_git_diff_all_changes_since_last_commit_ignore_white_space", 												"args": {"paths": []} },
 					{ "caption": "-"},
 					{ "caption": "changes that have not been staged", 	  												"command": "side_bar_git_diff_changes_not_staged", 												"args": {"paths": []} },
 					{ "caption": "changes that are staged but not committed", 	  												"command": "side_bar_git_diff_changes_staged_not_commited", 												"args": {"paths": []} },
@@ -89,8 +90,8 @@
 			},
 			{ "caption": "-"},
 
-			{ 
-				"caption": "Branch", 	  
+			{
+				"caption": "Branch",
 				"children":
 				[
 					{ "caption": "new from current and switch to…", 	  		"command": "side_bar_git_branch_new_from_current", 												"args": {"paths": []} },
@@ -118,6 +119,7 @@
 				"children":
 				[
 					{ "caption": "Push", 	  												"command": "side_bar_git_push", 												"args": {"paths": []} },
+					{ "caption": "Push All Branches", 	  												"command": "side_bar_git_push_all_branches", 												"args": {"paths": []} },
 					{ "caption": "Push, Push Tags", 	  												"command": "side_bar_git_push_and_push_tags", 												"args": {"paths": []} },
 					{ "caption": "Push Tags", 	  												"command": "side_bar_git_push_tags", 												"args": {"paths": []} },
 					{ "caption": "Push with options…", 	  												"command": "side_bar_git_push_with_options", 												"args": {"paths": []} },
