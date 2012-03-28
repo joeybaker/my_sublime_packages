@@ -19,7 +19,7 @@
 
     // Valid options are "bold", "italic", "no_antialias", "gray_antialias",
     // and "subpixel_antialias".
-    "font_options": [],
+    "font_options": ["subpixel_antialias"],
 
     // Characters that are considered to separate words
     "word_separators": "./\\()\"'-:,.;<>~!@#$%^&*|+=[]{}`~?",

@@ -482,6 +482,14 @@ def shrink_inclusive(r):
 def shrink_exclusive(r):
     return sublime.Region(r.b, r.b, r.xpos())
 
+def shrink_to_first_char(r):
+    if r.b < r.a:
+        # If the Region is reversed, the first char is the character *before*
+        # the first bound.
+        return sublime.Region(r.a - 1)
+    else:
+        return sublime.Region(r.a)
+
 # This is the core: it takes a motion command, action command, and repeat
 # counts, and runs them all.
 #
@@ -604,7 +612,9 @@ class ViEval(sublime_plugin.TextCommand):
                     # cursor should be left on an empty line. Leave the trailing
                     # newline out of the selection to allow for this.
                     transform_selection_regions(self.view,
-                        lambda r: sublime.Region(r.begin(), r.end() - 1))
+                        lambda r: (sublime.Region(r.begin(), r.end() - 1)
+                                   if not r.empty() and self.view.substr(r.end() - 1) == "\n"
+                                   else r))
                     reindent = True
 
             if action_command:
@@ -721,9 +731,10 @@ class Sequence(sublime_plugin.TextCommand):
 
 class ViDelete(sublime_plugin.TextCommand):
     def run(self, edit, register = '"'):
-        set_register(self.view, register, forward=False)
-        set_register(self.view, '1', forward=False)
-        self.view.run_command('left_delete')
+        if self.view.has_non_empty_selection_region():
+            set_register(self.view, register, forward=False)
+            set_register(self.view, '1', forward=False)
+            self.view.run_command('left_delete')
 
 class ViLeftDelete(sublime_plugin.TextCommand):
     def run(self, edit, register = '"'):
@@ -743,7 +754,7 @@ class ViCopy(sublime_plugin.TextCommand):
     def run(self, edit, register = '"'):
         set_register(self.view, register, forward=True)
         set_register(self.view, '0', forward=True)
-        transform_selection_regions(self.view, lambda r: sublime.Region(r.a))
+        transform_selection_regions(self.view, shrink_to_first_char)
 
 class ViPasteRight(sublime_plugin.TextCommand):
     # Ensure the register is picked up from g_input_state, and that it'll be
@@ -856,8 +867,7 @@ class PasteFromRegisterCommand(sublime_plugin.TextCommand):
             sublime.status_message("Undefined register" + register)
             return
 
-        if self.view.has_non_empty_selection_region():
-            self.view.run_command('vi_delete')
+        self.view.run_command('vi_delete')
 
         regions = [r for r in self.view.sel()]
         new_sel = []
@@ -939,12 +949,12 @@ class ScrollCursorLineToBottom(sublime_plugin.TextCommand):
 class ViIndent(sublime_plugin.TextCommand):
     def run(self, edit):
         self.view.run_command('indent')
-        transform_selection_regions(self.view, lambda r: sublime.Region(r.a))
+        transform_selection_regions(self.view, shrink_to_first_char)
 
 class ViUnindent(sublime_plugin.TextCommand):
     def run(self, edit):
         self.view.run_command('unindent')
-        transform_selection_regions(self.view, lambda r: sublime.Region(r.a))
+        transform_selection_regions(self.view, shrink_to_first_char)
 
 class ViSetBookmark(sublime_plugin.TextCommand):
     def run(self, edit, character):

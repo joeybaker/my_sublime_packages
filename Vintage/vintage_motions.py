@@ -1,10 +1,14 @@
+import re
 import sublime, sublime_plugin
 from vintage import transform_selection
 from vintage import transform_selection_regions
 
-class ViDontMove(sublime_plugin.TextCommand):
-    def run(self, edit):
-        pass
+class ViSpanCountLines(sublime_plugin.TextCommand):
+    def run(self, edit, repeat = 1):
+        for i in xrange(repeat - 1):
+            self.view.run_command('move', {'by': 'lines',
+                                           'extend': True,
+                                           'forward': True})
 
 class ViMoveByCharactersInLine(sublime_plugin.TextCommand):
     def run(self, edit, forward = True, extend = False, visual = False):
@@ -123,13 +127,16 @@ class ViMoveToBrackets(sublime_plugin.TextCommand):
     def run(self, edit, repeat=1):
         repeat = int(repeat)
         if repeat == 1:
-            bracket_chars = ")]}"
-            def adj(pt):
-                if (self.view.substr(pt) in bracket_chars):
-                    return pt + 1
+            re_brackets = re.compile(r"([(\[{])|([)}\])])")
+            def move_to_next_bracket(pt):
+                line = self.view.line(pt)
+                remaining_line = self.view.substr(sublime.Region(pt, line.b))
+                match = re_brackets.search(remaining_line)
+                if match:
+                    return pt + match.start() + (1 if match.group(2) else 0)
                 else:
                     return pt
-            transform_selection(self.view, adj)
+            transform_selection(self.view, move_to_next_bracket, extend=True)
             self.view.run_command("move_to", {"to": "brackets", "extend": True, "force_outer": True})
         else:
             self.move_by_percent(repeat)

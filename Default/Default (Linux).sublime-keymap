@@ -31,9 +31,9 @@
 	{ "keys": ["ctrl+u"], "command": "soft_undo" },
 	{ "keys": ["ctrl+shift+u"], "command": "soft_redo" },
 
-	{ "keys": ["shift+delete"], "command": "cut" },
-	{ "keys": ["ctrl+insert"], "command": "copy" },
-	{ "keys": ["shift+insert"], "command": "paste" },
+	{ "keys": ["shift+insert"], "command": "paste", "args": {"clipboard": "selection"} },
+	{ "keys": ["shift+delete"], "command": "right_delete" },
+
 	{ "keys": ["ctrl+x"], "command": "cut" },
 	{ "keys": ["ctrl+c"], "command": "copy" },
 	{ "keys": ["ctrl+v"], "command": "paste" },
@@ -101,7 +101,8 @@
 			{ "key": "has_prev_field", "operator": "equal", "operand": true }
 		]
 	},
-	{ "keys": ["escape"], "command": "hide_panel", "context":
+	{ "keys": ["escape"], "command": "hide_panel", "args": {"cancel": true},
+		"context":
 		[
 			{ "key": "panel_visible", "operator": "equal", "operand": true }
 		]
@@ -248,8 +249,8 @@
 
 	{ "keys": ["ctrl+`"], "command": "show_panel", "args": {"panel": "console", "toggle": true} },
 
-	{ "keys": ["ctrl+space"], "command": "auto_complete" },
-	{ "keys": ["ctrl+space"], "command": "replace_completion_with_auto_complete", "context":
+	{ "keys": ["alt+/"], "command": "auto_complete" },
+	{ "keys": ["alt+/"], "command": "replace_completion_with_auto_complete", "context":
 		[
 			{ "key": "last_command", "operator": "equal", "operand": "insert_best_completion" },
 			{ "key": "auto_complete_visible", "operator": "equal", "operand": false },

@@ -58,13 +58,20 @@
 		]
 	},
 
-	{ "keys" : ["z", "z"], "command" : "center_on_cursor", "context": [{"key": "setting.command_mode"}] },
-	{ "keys" : ["z", "t"], "command" : "scroll_cursor_line_to_top", "context": [{"key": "setting.command_mode"}] },
-	{ "keys" : ["z", "b"], "command" : "scroll_cursor_line_to_bottom", "context": [{"key": "setting.command_mode"}] },
+	{ "keys": ["z", "z"], "command" : "center_on_cursor", "context": [{"key": "setting.command_mode"}] },
+	{ "keys": ["z", "t"], "command" : "scroll_cursor_line_to_top", "context": [{"key": "setting.command_mode"}] },
+	{ "keys": ["z", "b"], "command" : "scroll_cursor_line_to_bottom", "context": [{"key": "setting.command_mode"}] },
 
 	{ "keys": ["Z", "Z"], "command" : "vi_save_and_exit", "context": [{"key": "setting.command_mode"}] },
 
-	{ "keys": ["i"], "command": "enter_insert_mode", "context": [{"key": "setting.command_mode"}] },
+	{ "keys": ["i"], "command": "enter_insert_mode",
+	  "context":
+	  [
+			{"key": "setting.command_mode"},
+			{"key": "selection_empty"}
+	  ]
+	},
+
 	{ "keys": ["I"], "command": "enter_insert_mode", "args":
 		{"insert_command": "vi_move_to_first_non_white_space_character"},
 		"context": [{"key": "setting.command_mode"}]
@@ -72,8 +79,13 @@
 
 	{ "keys": ["a"], "command": "enter_insert_mode", "args":
 		{"insert_command": "move", "insert_args": {"by": "characters", "forward": true} },
-		"context": [{"key": "setting.command_mode"}]
+		"context":
+		[
+			{"key": "setting.command_mode"},
+			{"key": "selection_empty"}
+		]
 	},
+
 	{ "keys": ["A"], "command": "enter_insert_mode", "args":
 		{"insert_command": "move_to", "insert_args": {"to": "hardeol"} },
 		"context": [{"key": "setting.command_mode"}]
@@ -678,8 +690,9 @@
 	// Motions to allow double press to mean entire line
 
 	{ "keys": ["c"], "command": "set_motion", "args": {
-		"motion": "vi_dont_move",
-		"linewise": true},
+		"motion": "vi_span_count_lines",
+		"linewise": true,
+		"motion_args": {"repeat": 1}},
 		"context":
 		[
 			{"key": "setting.command_mode"},
@@ -778,8 +791,9 @@
 	{ "keys": ["S"], "command": "set_action_motion", "args": {
 		"action": "enter_insert_mode",
 		"action_args": {"insert_command": "vi_delete"},
-		"motion": "vi_dont_move",
-		"motion_linewise": true},
+		"motion": "vi_span_count_lines",
+		"motion_linewise": true,
+		"motion_args": {"repeat": 1}},
 		"context": [{"key": "setting.command_mode"}]
 	},
 
@@ -918,6 +932,10 @@
 	{ "keys": ["a", "B"], "command": "set_motion", "args": {
 		"motion": "vi_expand_to_brackets",
 		"motion_args": {"character": "{", "outer": true}},
+		"context": [{"key": "setting.command_mode"}, {"key": "vi_can_enter_text_object"}]
+	},
+	{ "keys": ["a", "p"], "command": "set_motion", "args": {
+		"motion": "expand_selection_to_paragraph"},
 		"context": [{"key": "setting.command_mode"}, {"key": "vi_can_enter_text_object"}]
 	},
 

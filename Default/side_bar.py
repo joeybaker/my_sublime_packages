@@ -33,11 +33,13 @@ class NewFolderCommand(sublime_plugin.WindowCommand):
 
 class DeleteFolderCommand(sublime_plugin.WindowCommand):
     def run(self, dirs):
-        try:
-            for d in dirs:
-                send2trash.send2trash(d)
-        except:
-            sublime.status_message("Unable to delete folder")
+
+        if sublime.ok_cancel_dialog("Delete Folder?", "Delete"):
+            try:
+                for d in dirs:
+                    send2trash.send2trash(d)
+            except:
+                sublime.status_message("Unable to delete folder")
 
     def is_visible(self, dirs):
         return len(dirs) > 0

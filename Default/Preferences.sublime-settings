@@ -15,7 +15,7 @@
     "font_size": 10,
 
     // Valid options are "no_bold", "no_italic", "no_antialias", "gray_antialias",
-    // "subpixel_antialias" and "no_round" (OS X only)
+    // "subpixel_antialias", "no_round" (OS X only) and "directwrite" (Windows only)
     "font_options": [],
 
     // Characters that are considered to separate words
@@ -234,6 +234,10 @@
     // you'll need to place this line in your user settings to override it.
     "find_selected_text": true,
 
+    // When drag_text is enabled, clicking on selected text will begin a
+    // drag-drop operation
+    "drag_text": true,
+
     //
     // User Interface Settings
     //
@@ -247,6 +251,9 @@
 
     // Controls side bar animation when expanding or collapsing folders
     "tree_animation_enabled": true,
+
+    // Makes tabs with modified files more visible
+    "highlight_modified_tabs": false,
 
     "show_tab_close_buttons": true,
 

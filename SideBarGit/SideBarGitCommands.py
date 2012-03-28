@@ -54,6 +54,20 @@ class SideBarGitRefreshTabContentsByRunningCommandAgain(sublime_plugin.WindowCom
 		if view.settings().has('SideBarGitIsASideBarGitTab') or view.file_name():
 			return True
 
+
+def closed_affected_items(items):
+	closed_items = []
+	for item in items:
+		if not item.isDirectory():
+			closed_items += item.close_associated_buffers()
+	return closed_items
+
+def reopen_affected_items(closed_items):
+	for item in closed_items:
+		file_name, window, view_index = item
+		if window and os.path.exists(file_name):
+			view = window.open_file(file_name)
+			window.set_view_index(view, view_index[0], view_index[1])
 #Following code for selected files or folders
 
 class SideBarGitDiffAllChangesSinceLastCommitCommand(sublime_plugin.WindowCommand):
@@ -309,7 +323,9 @@ class SideBarGitRevertTrackedCommand(sublime_plugin.WindowCommand):
 		if confirm == False:
 			SideBarGit().confirm('Discard changes to tracked on selected items? ', self.run, paths)
 		else:
-			for item in SideBarSelection(paths).getSelectedItems():
+			items = SideBarSelection(paths).getSelectedItems()
+			closed_items = closed_affected_items(items)
+			for item in items:
 				object = Object()
 				object.item = item
 				object.command = ['git', 'checkout', 'HEAD', '--', item.forCwdSystemName()]
@@ -317,6 +333,8 @@ class SideBarGitRevertTrackedCommand(sublime_plugin.WindowCommand):
 					failed = True
 			if not failed:
 				SideBarGit().status('Discarded changes to tracked on selected items')
+			reopen_affected_items(closed_items)
+
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
 
@@ -711,6 +729,7 @@ class SideBarGitCommitCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = [], input = False, content = ''):
 		if input == False:
 			SideBarGit().prompt('Enter a commit message: ', '', self.run, paths)
+			sublime.active_window().run_command('toggle_setting', {"setting": "spell_check"})
 		elif content != '':
 			import sys
 			content = (content[0].upper() + content[1:]).encode(sys.getfilesystemencoding())
@@ -731,6 +750,7 @@ class SideBarGitCommitAllCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = [], input = False, content = ''):
 		if input == False:
 			SideBarGit().prompt('Enter a commit message: ', '', self.run, paths)
+			sublime.active_window().run_command('toggle_setting', {"setting": "spell_check"})
 		elif content != '':
 			import sys
 			content = (content[0].upper() + content[1:]).encode(sys.getfilesystemencoding())
@@ -763,6 +783,7 @@ class SideBarGitAddCommitCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = [], input = False, content = ''):
 		if input == False:
 			SideBarGit().prompt('Enter a commit message: ', '', self.run, paths)
+			sublime.active_window().run_command('toggle_setting', {"setting": "spell_check"})
 		elif content != '':
 			import sys
 			content = (content[0].upper() + content[1:]).encode(sys.getfilesystemencoding())
@@ -789,6 +810,7 @@ class SideBarGitAddCommitPushCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = [], input = False, content = ''):
 		if input == False:
 			SideBarGit().prompt('Enter a commit message: ', '', self.run, paths)
+			sublime.active_window().run_command('toggle_setting', {"setting": "spell_check"})
 		elif content != '':
 			import sys
 			content = (content[0].upper() + content[1:]).encode(sys.getfilesystemencoding())

@@ -2,6 +2,8 @@
 import sublime, sublime_plugin
 import os
 
+import threading, time
+
 from sidebar.SideBarItem import SideBarItem
 from sidebar.SideBarSelection import SideBarSelection
 from sidebar.SideBarProject import SideBarProject
@@ -160,7 +162,7 @@ class SideBarFilesOpenWithCommand(sublime_plugin.WindowCommand):
 		application_dir, application_name = os.path.split(application)
 		application_dir  = application_dir.encode(sys.getfilesystemencoding())
 		application_name = application_name.encode(sys.getfilesystemencoding())
-		application	 		 = application.encode(sys.getfilesystemencoding())
+		application      = application.encode(sys.getfilesystemencoding())
 
 		if extensions == '*':
 			extensions = '.*'
@@ -171,7 +173,7 @@ class SideBarFilesOpenWithCommand(sublime_plugin.WindowCommand):
 
 		import subprocess
 		for item in items:
-			if sublime.platform()	== 'osx':
+			if sublime.platform() == 'osx':
 				subprocess.Popen(['open', '-a', application, item.nameSystem()], cwd=item.dirnameSystem())
 			elif sublime.platform() == 'windows':
 				subprocess.Popen([application_name, item.pathSystem()], cwd=application_dir, shell=True)
@@ -271,66 +273,125 @@ class SideBarFindInFilesWithExtensionCommand(sublime_plugin.WindowCommand):
 		else:
 			return u'In Files With Extension…'
 
+
+sidebar_instant_search = 0
+
 class SideBarFindFilesPathContainingCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
-		import functools
-		if paths == []:
+		global sidebar_instant_search
+		if paths == [] and SideBarProject().getDirectories():
 			paths = SideBarProject().getDirectories()
-		self.window.run_command('hide_panel');
-		self.window.show_input_panel("Search files on which the path contains:", '', functools.partial(self.on_done, paths), None, None)
-
-	def on_done(self, paths, searchTerm):
-		self.searchTerm = searchTerm.strip()
-		self.total = 0
-		content = u''
-		for item in SideBarSelection(paths).getSelectedDirectoriesOrDirnames():
-			self.files = []
-			self.num_files = 0
-			self.find(item.path())
-			content += '\nSearching '+str(self.num_files)+' files for "'+self.searchTerm+'" in \n"'+item.path()+'"\n\n'
-			content += ('\n'.join(self.files))+'\n\n'
-			length = len(self.files)
-			if length > 1:
-				content += str(length)+' matches\n'
-			elif length > 0:
-				content += '1 match\n'
-			else:
-				content += 'No match\n'
-			self.total = self.total + length
-		if self.total > 0:
-			view = sublime.active_window().new_file()
-			view.settings().set('word_wrap', False)
-			view.set_name('Find Results')
-			view.set_syntax_file('Packages/SideBarEnhancements/SideBar Results.hidden-tmLanguage')
-			view.set_scratch(True)
-			edit = view.begin_edit()
-			view.replace(edit, sublime.Region(0, view.size()), content.lstrip());
-			view.sel().clear()
-			view.sel().add(sublime.Region(0))
-			view.end_edit(edit)
 		else:
-			sublime.status_message('No files containing "'+self.searchTerm+'"')
-
-	def find(self, path):
-		if os.path.isfile(path) or os.path.islink(path):
-			self.num_files = self.num_files+1
-			if self.match(path):
-				self.files.append(path)
-		else:
-			for content in os.listdir(path):
-				file = os.path.join(path, content)
-				if os.path.isfile(file) or os.path.islink(file):
-					self.num_files = self.num_files+1
-					if self.match(file):
-						self.files.append(file)
-				else:
-					self.find(file)
-
-	def match(self, path):
-		return False if path.lower().find(self.searchTerm.lower()) == -1 else True
+			paths = [item.path() for item in SideBarSelection(paths).getSelectedDirectoriesOrDirnames()]
+		if paths == []:
+			return
+		view = self.window.new_file()
+		view.settings().set('word_wrap', False)
+		view.set_name('Instant File Search')
+		view.set_syntax_file('Packages/SideBarEnhancements/SideBar Results.hidden-tmLanguage')
+		view.set_scratch(True)
+		edit = view.begin_edit()
+		view.settings().set('sidebar_instant_search_paths', paths)
+		view.replace(edit, sublime.Region(0, view.size()), "Type to search: ")
+		view.end_edit(edit)
+		view.sel().clear()
+		view.sel().add(sublime.Region(16))
+		sidebar_instant_search += 1
 
 	def is_enabled(self, paths=[]):
-		return SideBarSelection(paths).len() > 0
+		return True
+
+class SideBarFindResultsViewListener(sublime_plugin.EventListener):
+
+	def on_modified(self, view):
+		global sidebar_instant_search
+		if sidebar_instant_search > 0 and view.settings().has('sidebar_instant_search_paths'):
+			row, col = view.rowcol(view.sel()[0].begin())
+			if row != 0 or not view.sel()[0].empty():
+				return
+			paths = view.settings().get('sidebar_instant_search_paths')
+			searchTerm = view.substr(view.line(0)).replace("Type to search:", "").strip()
+			start_time = time.time()
+			view.settings().set('sidebar_search_paths_start_time', start_time)
+			if searchTerm:
+				sublime.set_timeout(lambda:SideBarFindFilesPathContainingSearchThread(paths, searchTerm, view, start_time).start(), 300)
+
+	def on_close(self, view):
+		if view.settings().has('sidebar_instant_search_paths'):
+			global sidebar_instant_search
+			sidebar_instant_search -= 1
+
+class SideBarFindFilesPathContainingSearchThread(threading.Thread):
+		def __init__(self, paths, searchTerm, view, start_time):
+			if view.settings().get('sidebar_search_paths_start_time') != start_time:
+				self.should_run = False
+			else:
+				self.should_run = True
+			self.view = view
+			self.searchTerm = searchTerm
+			self.paths = paths
+			self.start_time = start_time
+			threading.Thread.__init__(self)
+
+		def run(self):
+			if not self.should_run:
+				return
+			# print 'run forrest run'
+			self.total = 0
+			self.highlight_from = 0
+			self.match_result = u''
+			self.match_result += 'Type to search: '+self.searchTerm+'\n'
+			for item in SideBarSelection(self.paths).getSelectedDirectoriesOrDirnames():
+				self.files = []
+				self.num_files = 0
+				self.find(item.path())
+				self.match_result += '\n'
+				length = len(self.files)
+				if length > 1:
+					self.match_result += str(length)+' matches'
+				elif length > 0:
+					self.match_result += '1 match'
+				else:
+					self.match_result += 'No match'
+				self.match_result += ' in '+str(self.num_files)+' files for term "'+self.searchTerm+'" under \n"'+item.path()+'"\n\n'
+				if self.highlight_from == 0:
+					self.highlight_from = len(self.match_result)
+				self.match_result += ('\n'.join(self.files))
+				self.total = self.total + length
+			self.match_result += '\n'
+			sublime.set_timeout(lambda:self.on_done(), 0)
+
+		def on_done(self):
+			if self.start_time == self.view.settings().get('sidebar_search_paths_start_time'):
+				view = self.view;
+				edit = view.begin_edit()
+				sel = sublime.Region(view.sel()[0].begin(), view.sel()[0].end())
+				view.replace(edit, sublime.Region(0, view.size()), self.match_result);
+				view.end_edit(edit)
+				view.erase_regions("sidebar_search_instant_highlight")
+				if self.total < 30000 and len(self.searchTerm) > 1:
+					regions = [item for item in view.find_all(self.searchTerm, sublime.LITERAL|sublime.IGNORECASE) if item.begin() >= self.highlight_from]
+					view.add_regions("sidebar_search_instant_highlight", regions, 'string', sublime.DRAW_EMPTY|sublime.DRAW_OUTLINED|sublime.DRAW_EMPTY_AS_OVERWRITE)
+				view.sel().clear()
+				view.sel().add(sel)
+
+		def find(self, path):
+			if os.path.isfile(path) or os.path.islink(path):
+				self.num_files = self.num_files+1
+				if self.match(path):
+					self.files.append(path)
+			elif os.path.isdir(path):
+				for content in os.listdir(path):
+					file = os.path.join(path, content)
+					if os.path.isfile(file) or os.path.islink(file):
+						self.num_files = self.num_files+1
+						if self.match(file):
+							self.files.append(file)
+					else:
+						self.find(file)
+
+		def match(self, path):
+			return False if path.lower().find(self.searchTerm.lower()) == -1 else True
 
 class SideBarCutCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
@@ -349,6 +410,7 @@ class SideBarCutCommand(sublime_plugin.WindowCommand):
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0 and SideBarSelection(paths).hasProjectDirectories() == False
+
 
 class SideBarCopyCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
@@ -541,7 +603,7 @@ class SideBarCopyPathRelativeFromProjectCommand(sublime_plugin.WindowCommand):
 				sublime.status_message("Item copied")
 
 	def is_enabled(self, paths = []):
-		return SideBarSelection(paths).len() > 0
+		return SideBarSelection(paths).len() > 0 and SideBarSelection(paths).hasItemsUnderProject()
 
 class SideBarCopyPathRelativeFromProjectEncodedCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
@@ -557,7 +619,7 @@ class SideBarCopyPathRelativeFromProjectEncodedCommand(sublime_plugin.WindowComm
 				sublime.status_message("Item copied")
 
 	def is_enabled(self, paths = []):
-		return SideBarSelection(paths).len() > 0
+		return SideBarSelection(paths).len() > 0 and SideBarSelection(paths).hasItemsUnderProject()
 
 class SideBarCopyPathRelativeFromViewCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
@@ -605,7 +667,7 @@ class SideBarCopyPathAbsoluteFromProjectCommand(sublime_plugin.WindowCommand):
 				sublime.status_message("Item copied")
 
 	def is_enabled(self, paths = []):
-		return SideBarSelection(paths).len() > 0
+		return SideBarSelection(paths).len() > 0 and SideBarSelection(paths).hasItemsUnderProject()
 
 class SideBarCopyPathAbsoluteFromProjectEncodedCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
@@ -621,7 +683,7 @@ class SideBarCopyPathAbsoluteFromProjectEncodedCommand(sublime_plugin.WindowComm
 				sublime.status_message("Item copied")
 
 	def is_enabled(self, paths = []):
-		return SideBarSelection(paths).len() > 0
+		return SideBarSelection(paths).len() > 0 and SideBarSelection(paths).hasItemsUnderProject()
 
 class SideBarCopyTagAhrefCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
@@ -637,7 +699,7 @@ class SideBarCopyTagAhrefCommand(sublime_plugin.WindowCommand):
 				sublime.status_message("Item copied")
 
 	def is_enabled(self, paths = []):
-		return SideBarSelection(paths).len() > 0
+		return SideBarSelection(paths).len() > 0 and SideBarSelection(paths).hasItemsUnderProject()
 
 class SideBarCopyTagImgCommand(sublime_plugin.WindowCommand):
 
@@ -719,7 +781,7 @@ class SideBarCopyTagImgCommand(sublime_plugin.WindowCommand):
 		return content_type, width, height
 
 	def is_enabled(self, paths = []):
-		return SideBarSelection(paths).hasImages()
+		return SideBarSelection(paths).hasImages() and SideBarSelection(paths).hasItemsUnderProject()
 
 
 
@@ -737,7 +799,7 @@ class SideBarCopyTagStyleCommand(sublime_plugin.WindowCommand):
 				sublime.status_message("Item copied")
 
 	def is_enabled(self, paths = []):
-		return SideBarSelection(paths).hasFilesWithExtension('css')
+		return SideBarSelection(paths).hasFilesWithExtension('css') and SideBarSelection(paths).hasItemsUnderProject()
 
 class SideBarCopyTagScriptCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
@@ -753,7 +815,7 @@ class SideBarCopyTagScriptCommand(sublime_plugin.WindowCommand):
 				sublime.status_message("Item copied")
 
 	def is_enabled(self, paths = []):
-		return SideBarSelection(paths).hasFilesWithExtension('js')
+		return SideBarSelection(paths).hasFilesWithExtension('js') and SideBarSelection(paths).hasItemsUnderProject()
 
 class SideBarCopyProjectDirectoriesCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
@@ -909,7 +971,7 @@ class SideBarDeleteCommand(sublime_plugin.WindowCommand):
 				import send2trash
 				for item in SideBarSelection(paths).getSelectedItemsWithoutChildItems():
 					if s.get('close_affected_buffers_when_deleting_even_if_dirty', False):
-						self.close_affected_buffers(item.path())
+						item.close_associated_buffers()
 					send2trash.send2trash(item.path())
 				SideBarProject().refresh();
 			except:
@@ -941,7 +1003,8 @@ class SideBarDeleteCommand(sublime_plugin.WindowCommand):
 
 	def on_done(self, old, new):
 		if s.get('close_affected_buffers_when_deleting_even_if_dirty', False):
-			self.close_affected_buffers(new)
+			item = SideBarItem(new, os.path.isdir(new))
+			item.close_associated_buffers()
 		self.remove(new)
 		SideBarProject().refresh();
 
@@ -970,44 +1033,6 @@ class SideBarDeleteCommand(sublime_plugin.WindowCommand):
 				os.rmdir(path)
 			except:
 				print "Unable to remove folder:\n\n"+path
-
-	def close_affected_buffers(self, path):
-		for window in sublime.windows():
-			active_view = window.active_view()
-			views = []
-			for view in window.views():
-				if view.file_name():
-					views.append(view)
-			views.reverse();
-			for view in views:
-				if path == view.file_name():
-					if len(window.views()) == 1:
-						window.new_file()
-					window.focus_view(view)
-					window.run_command('revert')
-					window.run_command('close')
-				elif view.file_name().find(path+'\\') == 0:
-					if len(window.views()) == 1:
-						window.new_file()
-					window.focus_view(view)
-					window.run_command('revert')
-					window.run_command('close')
-				elif view.file_name().find(path+'/') == 0:
-					if len(window.views()) == 1:
-						window.new_file()
-					window.focus_view(view)
-					window.run_command('revert')
-					window.run_command('close')
-
-			# try to repaint
-			try:
-				window.focus_view(active_view)
-				window.focus_view(window.active_view())
-			except:
-				try:
-					window.focus_view(window.active_view())
-				except:
-					pass
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0 and SideBarSelection(paths).hasProjectDirectories() == False
