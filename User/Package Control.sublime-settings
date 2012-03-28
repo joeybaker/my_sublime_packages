@@ -1,11 +1,12 @@
 {
-	"auto_upgrade_last_run": 1332948965,
+	"auto_upgrade_last_run": 1332954127,
 	"installed_packages":
 	[
 		"AdvancedNewFile",
 		"Alignment",
 		"ApacheConf.tmLanguage",
 		"AutoFileName",
+		"Backbone.js",
 		"CoffeeScript",
 		"ColorPicker",
 		"Default File Type",
@@ -21,6 +22,7 @@
 		"Package Control",
 		"SideBarEnhancements",
 		"SideBarGit",
-		"sublimelint"
+		"Sublime-JSHint",
+		"SublimeLinter"
 	]
 }

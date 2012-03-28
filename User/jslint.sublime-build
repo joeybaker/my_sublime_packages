@@ -1,5 +1,0 @@
-{
-   "cmd": ["jsl", "-process", "$file", "-conf", "$packages/User/jsl.conf"]
-   , "selector": "source.js"
-   , "file_regex": "(.*?)\\(([0-9]+?)\\)"
-}
