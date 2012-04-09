@@ -8,6 +8,8 @@ from sidebar.SideBarItem import SideBarItem
 from sidebar.SideBarSelection import SideBarSelection
 from sidebar.SideBarProject import SideBarProject
 
+from send2trash import send2trash
+
 def disable_default():
 	default = sublime.packages_path()+'/Default/Side Bar.sublime-menu'
 	desired = sublime.packages_path()+'/SideBarEnhancements/disable_default/Side Bar.sublime-menu.txt'
@@ -499,8 +501,8 @@ class SideBarPasteCommand(sublime_plugin.WindowCommand):
 	def confirm(self, paths, in_parent, data):
 		import functools
 		window = sublime.active_window()
-		window.show_input_panel("BUG!", '', '', None, None)
-		window.run_command('hide_panel');
+		# window.show_input_panel("BUG!", '', '', None, None)
+		# window.run_command('hide_panel');
 
 		yes = []
 		yes.append('Yes, Replace the following items:');
@@ -904,6 +906,9 @@ class SideBarDuplicateCommand(sublime_plugin.WindowCommand):
 			sublime.error_message("Unable to copy:\n\n"+old+"\n\nto\n\n"+new)
 			self.run([old], new)
 			return
+		item = SideBarItem(new, os.path.isdir(new))
+		if item.isFile():
+			item.edit();
 		SideBarProject().refresh();
 
 	def is_enabled(self, paths = []):
@@ -960,30 +965,39 @@ class SideBarMoveCommand(sublime_plugin.WindowCommand):
 
 class SideBarDeleteCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = [], confirmed = 'False'):
+		print '--------------'
+		print 'deleting paths'
+		print paths
+		print 'confirmed'
+		print confirmed
 		if confirmed == 'False' and s.get('confirm_before_deleting', True):
+			print 'confirmed == False and confirm_before_deleting == True'
 			self.confirm([item.path() for item in SideBarSelection(paths).getSelectedItems()], [item.pathWithoutProject() for item in SideBarSelection(paths).getSelectedItems()])
 		else:
-			import sys
+			print 'trying send to trash'
 			try:
-				path = os.path.join(sublime.packages_path(), 'SideBarEnhancements')
-				if path not in sys.path:
-					sys.path.append(path)
-				import send2trash
 				for item in SideBarSelection(paths).getSelectedItemsWithoutChildItems():
 					if s.get('close_affected_buffers_when_deleting_even_if_dirty', False):
 						item.close_associated_buffers()
-					send2trash.send2trash(item.path())
+						print 'closed associated buffers'
+					print 'send2trash'
+					send2trash(item.path())
 				SideBarProject().refresh();
+				print 'file deleted'
+				print 'file exists?'+str(os.path.exists(item.path()))
 			except:
+				print 'something failed'
+				print 'trying Permanent deletion'
 				import functools
 				self.window.run_command('hide_panel');
 				self.window.show_input_panel("Permanently Delete:", SideBarSelection(paths).getSelectedItems()[0].path(), functools.partial(self.on_done, SideBarSelection(paths).getSelectedItems()[0].path()), None, None)
 
 	def confirm(self, paths, display_paths):
+		print 'confirm'
 		import functools
 		window = sublime.active_window()
-		window.show_input_panel("BUG!", '', '', None, None)
-		window.run_command('hide_panel');
+		# window.show_input_panel("BUG!", '', '', None, None)
+		# window.run_command('hide_panel');
 
 		yes = []
 		yes.append('Yes, delete the selected items.');
@@ -993,22 +1007,27 @@ class SideBarDeleteCommand(sublime_plugin.WindowCommand):
 		no = []
 		no.append('No');
 		no.append('Cancel the operation.');
-
+		print 'showing quick panel'
 		window.show_quick_panel([yes, no], functools.partial(self.on_confirm, paths))
 
 	def on_confirm(self, paths, result):
 		if result != -1:
 			if result == 0:
+				print 'confirmation accepted'
 				self.run(paths, 'True')
 
 	def on_done(self, old, new):
+		print 'on done'
 		if s.get('close_affected_buffers_when_deleting_even_if_dirty', False):
 			item = SideBarItem(new, os.path.isdir(new))
 			item.close_associated_buffers()
+		print 'closed associated buffers'
 		self.remove(new)
 		SideBarProject().refresh();
 
 	def remove(self, path):
+		print 'remove'
+		print path
 		if os.path.isfile(path) or os.path.islink(path):
 			self.remove_safe_file(path)
 		else:
@@ -1026,6 +1045,9 @@ class SideBarDeleteCommand(sublime_plugin.WindowCommand):
 				os.remove(path)
 			except:
 				print "Unable to remove file:\n\n"+path
+		else:
+			print 'path is none'
+			print path
 
 	def remove_safe_dir(self, path):
 		if not SideBarSelection().isNone(path):
@@ -1078,24 +1100,28 @@ class SideBarOpenInBrowserCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = [], type = False):
 		import webbrowser
 		project = SideBarProject()
-		if type == False or type == 'testing':
-			url = project.getPreference('url')
-		elif type == 'production':
-			url = project.getPreference('url_production')
-		else:
-			url = project.getPreference('url')
-		if url:
-			if url[-1:] != '/':
-				url = url+'/'
-			for item in SideBarSelection(paths).getSelectedItems():
-				if item.isUnderCurrentProject():
-					webbrowser.open_new_tab(url + item.pathRelativeFromProjectEncoded())
-				else:
+		if project.hasOpenedProject():
+			if type == False or type == 'testing':
+				url = project.getPreference('url')
+			elif type == 'production':
+				url = project.getPreference('url_production')
+			else:
+				url = project.getPreference('url')
+			if url:
+				if url[-1:] != '/':
+					url = url+'/'
+				for item in SideBarSelection(paths).getSelectedItems():
+					if item.isUnderCurrentProject():
+						webbrowser.open_new_tab(url + item.pathRelativeFromProjectEncoded())
+					else:
+						webbrowser.open_new_tab(item.uri())
+			else:
+				for item in SideBarSelection(paths).getSelectedItems():
 					webbrowser.open_new_tab(item.uri())
+				sublime.status_message('Preference "url" was not found in project file.\n"'+project.getProjectFile()+'", opening local file')
 		else:
 			for item in SideBarSelection(paths).getSelectedItems():
 				webbrowser.open_new_tab(item.uri())
-			sublime.status_message('Preference "url" was not found in project file.\n"'+project.getProjectFile()+'", opening local file')
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
