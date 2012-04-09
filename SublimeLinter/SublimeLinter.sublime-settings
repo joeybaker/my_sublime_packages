@@ -76,12 +76,18 @@
     // By deault, eval is allowed.
     "jshint_options":
     {
-        "evil": true,
-        "regexdash": true,
-        "browser": true,
-        "wsh": true,
-        "trailing": true,
-        "sub": true
+        // "evil": true // allow eval
+         "regexdash": true
+        , "browser": true
+        // , "wsh": true // windows script host
+        , "trailing": true
+        , "sub": true
+        , "asi": true // no semicolons are ok
+        , "couch": true
+        , "jquery": true
+        , "node": true
+        , "laxcomma": true // preceding commas
+        , "laxbreak": true // weird whitespace is okay
     },
 
     // A list of command line options to send to gjslint. --nobeep is always sent.
