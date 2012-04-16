@@ -257,6 +257,9 @@
 
     "show_tab_close_buttons": true,
 
+    // Show folders in the side bar in bold
+    "bold_folder_labels": false,
+
     // OS X 10.7 only: Set to true to disable Lion style full screen support.
     // Sublime Text must be restarted for this to take effect.
     "use_simple_full_screen": false,
@@ -290,6 +293,11 @@
     // there's a folder open within the window. This is always enabled on OS X,
     // changing it here won't modify the behavior.
     "close_windows_when_empty": false,
+
+    // Show the full path to files in the title bar.
+    // On OS X, this value is overridden in the platform specific settings, so
+    // you'll need to place this line in your user settings to override it.
+    "show_full_path": true,
 
     // folder_exclude_patterns and file_exclude_patterns control which files
     // are listed in folders on the side bar. These can also be set on a per-

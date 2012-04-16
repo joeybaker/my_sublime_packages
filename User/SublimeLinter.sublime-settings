@@ -1,0 +1,17 @@
+{
+  "jshint_options":
+  {
+        // "evil": true // allow eval
+         "regexdash": true
+        , "browser": true
+        // , "wsh": true // windows script host
+        , "trailing": true
+        , "sub": true
+        , "asi": true // no semicolons are ok
+        , "couch": true
+        , "jquery": true
+        , "node": true
+        , "laxcomma": true // preceding commas
+        , "laxbreak": true // weird whitespace is okay
+  }
+}

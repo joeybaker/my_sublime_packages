@@ -8,7 +8,8 @@ can be quickly located.
 
 SublimeLinter has built in linters for the following languages:
 
-* Javascript - lint via built in `jshint <http://jshint.org>`_ or the `closure linter (gjslint) <https://developers.google.com/closure/utilities/docs/linter_howto>`_ (if installed)
+* Javascript - lint via built in `jshint <http://jshint.org>`_, `jslint <http://jslint.com>`_, or the `closure linter (gjslint) <https://developers.google.com/closure/utilities/docs/linter_howto>`_ (if installed)
+* CSS - lint via built-in `csslint <http://csslint.net>`_
 * Objective-J - lint via built-in `capp_lint <https://github.com/aparajita/capp_lint>`_
 * python - native, moderately-complete lint
 * ruby - syntax checking via "ruby -wc"
@@ -89,15 +90,28 @@ By default the search will wrap. You can turn wrapping off with the user setting
 
     "sublimelinter_wrap_find": false
 
+SublimeLinter Settings
+~~~~~~~~~~~~~~~~~~~~~~
+Do NOT edit the default SublimeLinter settings. Your changes will be lost
+when SublimeLinter is updated. ALWAYS edit the user SublimeLinter settings
+by selecting "Preferences->Package Settings->SublimeLinter->Settings - User".
+Note that individual settings you include in your user settings will **completely**
+replace the corresponding default setting, so you must provide that setting in its entirety.
+
 Linter-specific notes
 ~~~~~~~~~~~~~~~~~~~~~
 Following are notes specific to individual linters that you should be aware of:
 
-* **JavaScript** - If the "javascript_linter" setting is "jshint", this linter runs `jshint <http://jshint.org>`_ using JavaScriptCore on Mac OS X or node.js on other platforms, which can be downloaded from `the node.js site <http://nodejs.org/#download>`. After installation, if node cannot be found by SublimeLinter, you may have to set the path to node in the "sublimelinter\_executable\_map" setting. See "Configuring" below for info on SublimeLinter settings.
+* **JavaScript** - If the "javascript_linter" setting is "jshint" or "jslint", this linter runs `jshint <http://jshint.org>`_ (or `jslint <http://jslint.com>`_ respectively) using node.js, which can be downloaded from `the node.js site <http://nodejs.org/#download>`. After installation, if node cannot be found by SublimeLinter, you may have to set the path to node in the "sublimelinter\_executable\_map" setting. See "Configuring" below for info on SublimeLinter settings. If node.js is not installed on Mac OS X, JavaScriptCore will be used.
 
   If the "javascript_linter" setting is "gjslint", this linter runs the `closure linter (gjslint) <https://developers.google.com/closure/utilities/docs/linter_howto>`_. After installation, if gjslint cannot be found by SublimeLinter, you may have to set the path to gjslint in the "sublimelinter\_executable\_map" setting.
 
-  You may want to modify the options passed to jshint or gjslint. This can be done globally or on a per-project basis by using the **jshint_options** or **gjslint_options** setting. Refer to the jshint.org site or run ``gjslint --help`` for more information on the configuration options available.
+  You may want to modify the options passed to jshint, jslint, or gjslint. This can be done by using the **jshint_options**, **jslint_options**, or **gjslint_options** setting. Refer to the jshint.org site, the jslint.com site, or run ``gjslint --help`` for more information on the configuration options available.
+
+* **CSS** - This linter runs `csslint <http://csslint.net>`_. This linter requires a Javascript engine (like Node.js) to be installed (see notes above for the JavaScript linters: "jshint" or "jslint").
+
+  By default all CSSLint settings are turned on. You may customize CSSLint behavior with the "csslint_options" setting. Please select "Preferences->Package Settings->SublimeLinter->Settings - Default" for more information on turning off or adjusting severity of tests. For more information about options available to CSSLint, see https://github.com/stubbornella/csslint/wiki/Rules.
+
 
 * **ruby** - If you are using rvm or rbenv, you will probably have to specify the full path to the ruby you are using in the ``sublimelinter_executable_map`` setting. See "Configuring" below for more info.
 
@@ -105,9 +119,9 @@ Following are notes specific to individual linters that you should be aware of:
 
 Configuring
 -----------
-There are a number of configuration options available to customize the behavior of SublimeLinter and its linters. For the latest information on what options are available, select the menu item ``Preferences->Package Settings->SublimeLinter->Settings - Default``. To change the options in your user settings, select the menu item ``Preferences->Package Settings->SublimeLinter->Settings - Default``.
+There are a number of configuration options available to customize the behavior of SublimeLinter and its linters. For the latest information on what options are available, select the menu item ``Preferences->Package Settings->SublimeLinter->Settings - Default``.
 
-**NOTE:** Any settings you specify in your user settings will **completely** replace the setting in the default file.
+Do NOT edit the default SublimeLinter settings. Your changes will be lost when SublimeLinter is updated. ALWAYS edit the user SublimeLinter settings by selecting ``Preferences->Package Settings->SublimeLinter->Settings - User``. Note that individual settings you include in your user settings will **completely** replace the corresponding default setting, so you must provide that setting in its entirety.
 
 Per-project settings
 ~~~~~~~~~~~~~~~~~~~~
@@ -328,5 +342,14 @@ If you wish to create a new linter to support a new language, SublimeLinter make
 * If your linter uses built in code, override ``built_in_check()`` and return the errors found.
 
 * Override ``parse_errors()`` and process the errors. If your linter overrides ``built_in_check()``, ``parse_errors()`` will receive the result of that method. If your linter uses an external executable, ``parse_errors()`` receives the raw output of the executable, stripped of leading and trailing whitespace.
+
+* If you linter is powered via Javascript (eg. Node.js), there are few steps that will simplify the integration.
+
+  Create a folder matching your linter name in the ``SublimeLinter/sublimelinter/modules/lib`` directory. This folder should include the linting library JS file (eg. jshint.js, csslint-node.js) and a **linter.js** file. The **linter.js** file should ``require()`` the actual linter library file and export a ``lint()`` function. The ``lint()`` function should return a list of errors back to the python language handler file (via the ``errors`` parameter to the ``parse_errors()`` method).
+
+  Although **linter.js** should follow the Node.js api, the linter may also be run via JavaScriptCore on OS X if Node.js is not installed. In the case where JavaScriptCore is used, require + export are shimmed to keep things consistent. However, it is important not to assume that a full Node.js api is available. If you must know what JS engine you are using, you may check for `USING_JSC` to be set as `true` when JavaScriptCore is used.
+
+  For examples of using the JS engines, see **csslint**, **jslint**, and **jshint** in ``SublimeLinter/sublimelinter/modules/libs`` and the respective python code of **css.py** and **javascript.py** in ``SublimeLinter/sublimelinter/modules``.
+
 
 If your linter has more complex requirements, see the comments for CONFIG in base\_linter.py, and use the existing linters as guides.

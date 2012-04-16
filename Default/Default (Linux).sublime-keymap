@@ -31,8 +31,16 @@
 	{ "keys": ["ctrl+u"], "command": "soft_undo" },
 	{ "keys": ["ctrl+shift+u"], "command": "soft_redo" },
 
-	{ "keys": ["shift+insert"], "command": "paste", "args": {"clipboard": "selection"} },
-	{ "keys": ["shift+delete"], "command": "right_delete" },
+	{ "keys": ["shift+delete"], "command": "cut" },
+	{ "keys": ["ctrl+insert"], "command": "copy" },
+	{ "keys": ["shift+insert"], "command": "paste" },
+
+	// These two key bindings should replace the above three if you'd prefer
+	// the traditional X11 behavior of shift+insert pasting from the primary
+	// selection. The above CUA keys are the default, to match most GTK
+	// applications.
+	//{ "keys": ["shift+insert"], "command": "paste", "args": {"clipboard": "selection"} },
+	//{ "keys": ["shift+delete"], "command": "right_delete" },
 
 	{ "keys": ["ctrl+x"], "command": "cut" },
 	{ "keys": ["ctrl+c"], "command": "copy" },

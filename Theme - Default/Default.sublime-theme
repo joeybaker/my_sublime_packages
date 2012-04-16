@@ -327,7 +327,8 @@
     },
     {
         "class": "sidebar_label",
-        "color": [0, 0, 0]
+        "color": [0, 0, 0],
+        "font.bold": false
         // , "shadow_color": [250, 250, 250], "shadow_offset": [0, 0]
     },
     {
@@ -336,6 +337,14 @@
         "color": [255, 255, 255]
         // , "shadow_color": [60, 60, 60], "shadow_offset": [0, 1]
     },
+
+    {
+        "class": "sidebar_label",
+        "parents": [{"class": "tree_row", "attributes": ["expandable"]}],
+        "settings": ["bold_folder_labels"],
+        "font.bold": true
+    },
+
     {
         "class": "minimap_control",
         "viewport_color": [68, 68, 68, 96]

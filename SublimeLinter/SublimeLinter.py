@@ -54,6 +54,8 @@ ALL_SETTINGS = [
     'sublimelinter_popup_errors_on_save',
     'javascript_linter',
     'jshint_options',
+    'jslint_options',
+    'csslint_options',
     'gjslint_options',
     'gjslint_ignore',
     'pep8_ignore',
