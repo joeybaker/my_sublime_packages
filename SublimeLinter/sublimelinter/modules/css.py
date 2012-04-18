@@ -21,7 +21,10 @@ class Linter(BaseLinter):
         return self.get_javascript_args(view, 'csslint', code)
 
     def parse_errors(self, view, errors, lines, errorUnderlines, violationUnderlines, warningUnderlines, errorMessages, violationMessages, warningMessages):
-        errors = json.loads(errors.strip() or '[]')
+        try:
+            errors = json.loads(errors.strip() or '[]')
+        except ValueError:
+            raise ValueError("Error from csslint: {0}".format(errors))
 
         for error in errors:
             lineno = error['line']

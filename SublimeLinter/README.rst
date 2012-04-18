@@ -8,14 +8,15 @@ can be quickly located.
 
 SublimeLinter has built in linters for the following languages:
 
-* Javascript - lint via built in `jshint <http://jshint.org>`_, `jslint <http://jslint.com>`_, or the `closure linter (gjslint) <https://developers.google.com/closure/utilities/docs/linter_howto>`_ (if installed)
+* CoffeeScript - lint via ``coffee.cmd -l``
 * CSS - lint via built-in `csslint <http://csslint.net>`_
+* java - lint via "javac -Xlint"
+* Javascript - lint via built in `jshint <http://jshint.org>`_, `jslint <http://jslint.com>`_, or the `closure linter (gjslint) <https://developers.google.com/closure/utilities/docs/linter_howto>`_ (if installed)
 * Objective-J - lint via built-in `capp_lint <https://github.com/aparajita/capp_lint>`_
+* perl - syntax+deprecation checking via "perl -c"
+* php - syntax checking via "php -l"
 * python - native, moderately-complete lint
 * ruby - syntax checking via "ruby -wc"
-* php - syntax checking via "php -l"
-* java - lint via "javac -Xlint"
-* perl - syntax+deprecation checking via "perl -c"
 
 
 Installing
@@ -90,13 +91,11 @@ By default the search will wrap. You can turn wrapping off with the user setting
 
     "sublimelinter_wrap_find": false
 
-SublimeLinter Settings
-~~~~~~~~~~~~~~~~~~~~~~
-Do NOT edit the default SublimeLinter settings. Your changes will be lost
-when SublimeLinter is updated. ALWAYS edit the user SublimeLinter settings
-by selecting "Preferences->Package Settings->SublimeLinter->Settings - User".
-Note that individual settings you include in your user settings will **completely**
-replace the corresponding default setting, so you must provide that setting in its entirety.
+Configuring
+-----------
+There are a number of configuration options available to customize the behavior of SublimeLinter and its linters. For the latest information on what options are available, select the menu item ``Preferences->Package Settings->SublimeLinter->Settings - Default``.
+
+Do NOT edit the default SublimeLinter settings. Your changes will be lost when SublimeLinter is updated. ALWAYS edit the user SublimeLinter settings by selecting ``Preferences->Package Settings->SublimeLinter->Settings - User``. Note that individual settings you include in your user settings will **completely** replace the corresponding default setting, so you must provide that setting in its entirety.
 
 Linter-specific notes
 ~~~~~~~~~~~~~~~~~~~~~
@@ -116,12 +115,6 @@ Following are notes specific to individual linters that you should be aware of:
 * **ruby** - If you are using rvm or rbenv, you will probably have to specify the full path to the ruby you are using in the ``sublimelinter_executable_map`` setting. See "Configuring" below for more info.
 
 * **java** - Because it uses ``javac`` to do linting, each time you run the linter the entire dependency graph of the current file will be checked. Depending on the number of classes you import, this can be **extremely** slow. Also note that you **must** provide the ``-sourcepath``, ``-classpath``, ``-Xlint`` and ``{filename}`` arguments to ``javac`` in your per-project settings. See "Per-project settings" below for more information.
-
-Configuring
------------
-There are a number of configuration options available to customize the behavior of SublimeLinter and its linters. For the latest information on what options are available, select the menu item ``Preferences->Package Settings->SublimeLinter->Settings - Default``.
-
-Do NOT edit the default SublimeLinter settings. Your changes will be lost when SublimeLinter is updated. ALWAYS edit the user SublimeLinter settings by selecting ``Preferences->Package Settings->SublimeLinter->Settings - User``. Note that individual settings you include in your user settings will **completely** replace the corresponding default setting, so you must provide that setting in its entirety.
 
 Per-project settings
 ~~~~~~~~~~~~~~~~~~~~

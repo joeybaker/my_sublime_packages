@@ -1,5 +1,5 @@
 {
-	"auto_upgrade_last_run": 1334593289,
+	"auto_upgrade_last_run": 1334768368,
 	"installed_packages":
 	[
 		"AdvancedNewFile",
@@ -22,7 +22,6 @@
 		"Package Control",
 		"SideBarEnhancements",
 		"SideBarGit",
-		"Sublime-JSHint",
 		"SublimeLinter"
 	]
 }

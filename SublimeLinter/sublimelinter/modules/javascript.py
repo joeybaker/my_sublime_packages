@@ -61,7 +61,10 @@ class Linter(BaseLinter):
                         self.add_message(int(line), lines, message, errorMessages)
 
         elif (self.linter in ('jshint', 'jslint')):
-            errors = json.loads(errors.strip() or '[]')
+            try:
+                errors = json.loads(errors.strip() or '[]')
+            except ValueError:
+                raise ValueError("Error from {0}: {1}".format(self.linter, errors))
 
             for error in errors:
                 lineno = error['line']
