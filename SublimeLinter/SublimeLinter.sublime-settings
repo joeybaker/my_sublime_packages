@@ -69,7 +69,7 @@
     "sublimelinter_popup_errors_on_save": false,
 
     // Javascript linter: "gjslint" to use the closure javascript linter (if available),
-    // or "jshint" to use the built in jshint linter.
+    // or either "jshint" or "jslint" to use a built in linter.
     "javascript_linter": "jshint",
 
     // jshint: options for linting JavaScript. See http://jshint.com/#docs for more info.
@@ -166,6 +166,12 @@
         set this option to false.
     */
     "pyflakes_ignore_import_*": true,
+
+    // Perl linter: "perl" to use the Perl language syntax check,
+    // or "perlcritic" to use Perl::Critic linting.
+    // Perl is now set to use "perlcritic" by default due to a vulnerability with blindly running `perl -c`
+    // on files with `BEGIN` or `CHECK` blocks (see issue #77: https://github.com/Kronuz/SublimeLinter/issues/77).
+    "perl_linter": "perlcritic",
 
     // Objective-J: if true, non-ascii characters are flagged as an error.
     "sublimelinter_objj_check_ascii": false,

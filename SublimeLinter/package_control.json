@@ -6,12 +6,12 @@
 			"description": "Inline lint highlighting for the Sublime Text 2 editor",
 			"author": "Kronuz, Aparajita Fishman, Jake Swartwood",
 			"homepage": "http://github.com/Kronuz/SublimeLinter",
-			"last_modified": "2012-04-16 15:49:15",
+			"last_modified": "2012-05-13 14:01:15",
 			"platforms": {
 				"*": [
 					{
-						"version": "1.6.1",
-						"url": "https://nodeload.github.com/Kronuz/SublimeLinter/zipball/v1.6.1"
+						"version": "1.6.3",
+						"url": "https://nodeload.github.com/Kronuz/SublimeLinter/zipball/v1.6.3"
 					}
 				]
 			}

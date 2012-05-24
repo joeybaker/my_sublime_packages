@@ -1,0 +1,7 @@
+{
+	"extensions":
+	[
+		"mustache",
+		"ejs"
+	]
+}

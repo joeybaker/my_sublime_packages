@@ -61,13 +61,14 @@
 		".hg",
 		"CVS",
 		"wp-includes",
-		"wp-admin"
+		"wp-admin",
+		".sass-cache"
 	],
 	"font_face": "Inconsolata",
 	"font_options":
 	[
 	],
-	"font_size": 12,
+	"font_size": 12.0,
 	"gutter": true,
 	"highlight_line": true,
 	"ignored_packages":

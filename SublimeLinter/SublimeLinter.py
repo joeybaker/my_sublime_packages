@@ -52,12 +52,13 @@ ALL_SETTINGS = [
     'sublimelinter_gutter_marks',
     'sublimelinter_wrap_find',
     'sublimelinter_popup_errors_on_save',
+    'perl_linter',
     'javascript_linter',
     'jshint_options',
     'jslint_options',
-    'csslint_options',
     'gjslint_options',
     'gjslint_ignore',
+    'csslint_options',
     'pep8_ignore',
     'pyflakes_ignore',
     'pyflakes_ignore_import_*',
@@ -251,7 +252,7 @@ def erase_lint_marks(view):
 
 def get_lint_regions(view, reverse=False, coalesce=False):
     vid = view.id()
-    underlines = UNDERLINES[vid][:]
+    underlines = UNDERLINES.get(vid, [])[:]
 
     if (coalesce):
         # Each of these regions is one character, so transform it into the character points
@@ -722,6 +723,12 @@ class FindLintErrorCommand(sublime_plugin.TextCommand):
         return select_linter(self.view) is not None
 
     def find_lint_error(self, forward):
+        linter = select_linter(self.view, ignore_disabled=True)
+
+        if not linter:
+            return
+
+        self.view.run_command('lint', linter.language)
         regions = get_lint_regions(self.view, reverse=not forward, coalesce=True)
 
         if len(regions) == 0:
@@ -908,7 +915,7 @@ class SublimelinterDisableCommand(SublimelinterCommand):
         if enabled:
             view = self.window.active_view()
 
-            if view and not view.settings().get('sublimelinter') == True:
+            if view and view.settings().get('sublimelinter') == False:
                 return False
 
         return enabled

@@ -39,11 +39,21 @@
 				"command": "side_bar_files_open_with",
 				"args": {
 									"paths": [],
-									"application": "/Applications/Google\ Chrome.app",
+									"application": "/Applications/Google\\Chrome.app",
 									"extensions":".*" //any file with extension
 								}
 			},
+			{
+				"caption": "Induction",
+				"id": "side-bar-files-open-with-induction",
 
+				"command": "side_bar_files_open_with",
+				"args": {
+									"paths": [],
+									"application": "/Applications/Induction.app",
+									"extensions":".sqlite3" //any file with extension
+								}
+			},
 			{"caption":"-"}
 		]
 	}
