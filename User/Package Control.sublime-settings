@@ -1,11 +1,10 @@
 {
-	"auto_upgrade_last_run": 1337801947,
+	"auto_upgrade_last_run": 1340762889,
 	"installed_packages":
 	[
 		"AdvancedNewFile",
 		"Alignment",
 		"ApacheConf.tmLanguage",
-		"AutoFileName",
 		"Backbone.js",
 		"CoffeeScript",
 		"ColorPicker",
@@ -13,10 +12,12 @@
 		"FileDiffs",
 		"Git",
 		"HTML5",
+		"INI",
 		"jQuery",
 		"jQuery Snippets pack",
 		"LESS",
 		"Markdown Preview",
+		"nginx",
 		"Nodejs",
 		"Package Control",
 		"Pretty JSON",

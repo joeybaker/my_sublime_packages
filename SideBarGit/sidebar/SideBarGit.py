@@ -50,14 +50,17 @@ class SideBarGit:
 
 		failed = False
 
-		import sys
-		if sys.platform == 'win32':
+		if sublime.platform() == 'windows':
 			object.command = map(self.escapeCMDWindows, object.command)
+
+		# if sublime.platform() is not 'windows' and object.command[0] == 'git' and os.path.exists('/usr/local/git/bin'):
+		# 	object.command[0] = '/usr/local/git/bin'
 
 		cwd = object.item.forCwdSystemPath()
 
 		try:
-			if sys.platform == 'win32':
+			if sublime.platform() == 'windows':
+
 				process = subprocess.Popen(
 																	#" ".join(object.command),
 																	object.command,
@@ -273,8 +276,9 @@ class SideBarGit:
 	def quickPanel(self, function, extra, data):
 		import functools
 		window = sublime.active_window()
-		window.show_input_panel("BUG!", '', '', None, None)
-		window.run_command('hide_panel');
+		# window.show_input_panel("BUG!", '', '', None, None)
+		# window.run_command('hide_panel');
+		data = [item[:70] for item in data]
 		window.show_quick_panel(data, functools.partial(self.quickPanelDone, function, extra, data))
 
 	def quickPanelDone(self, function, extra, data, result):

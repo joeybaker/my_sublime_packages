@@ -5,4 +5,5 @@
 </footer>$0]]></content>
 	<tabTrigger>footer</tabTrigger>
 	<description>&lt;footer&gt;</description>
+	<scope>text.html</scope>
 </snippet>

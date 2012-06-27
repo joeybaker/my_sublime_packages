@@ -3,4 +3,5 @@
 input$0]]></content>
 	<tabTrigger>label</tabTrigger>
 	<description>&lt;label&gt;</description>
+	<scope>text.html</scope>
 </snippet>

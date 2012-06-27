@@ -2,4 +2,5 @@
 	<content><![CDATA[<b>$1</b> $0]]></content>
 	<tabTrigger>b</tabTrigger>
 	<description>&lt;b&gt;</description>
+	<scope>text.html</scope>
 </snippet>

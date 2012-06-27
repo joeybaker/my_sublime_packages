@@ -6,4 +6,5 @@
 </figure>$0]]></content>
 	<tabTrigger>figure</tabTrigger>
 	<description>&lt;figure&gt;</description>
+	<scope>text.html</scope>
 </snippet>

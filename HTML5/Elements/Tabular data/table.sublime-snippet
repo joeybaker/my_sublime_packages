@@ -1,6 +1,5 @@
 <snippet>
-	<content><![CDATA[
-<table>${1:
+	<content><![CDATA[<table>${1:
 	<caption>${2:table title and/or explanatory text}</caption>}
 	${3:<thead>
 		<tr>
@@ -15,4 +14,5 @@
 </table>$0]]></content>
 	<tabTrigger>table</tabTrigger>
 	<description>&lt;table&gt;</description>
+	<scope>text.html</scope>
 </snippet>

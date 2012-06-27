@@ -12,4 +12,5 @@
 </video>$0]]></content>
 	<tabTrigger>video</tabTrigger>
 	<description>&lt;video&gt; with legacy object</description>
+	<scope>text.html</scope>
 </snippet>

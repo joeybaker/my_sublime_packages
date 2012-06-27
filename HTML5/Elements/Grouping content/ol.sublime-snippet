@@ -1,9 +1,8 @@
 <snippet>
-	<content><![CDATA[
-<ol${2:${3: id="$4"}${5: class="$6"}}>
-	<li>${7:<a href="$8" title="$11">$11</a>}$12</li>
-	li$0
-</ol><!-- /$4 -->]]></content>
+	<content><![CDATA[<ol$1>
+	<li>$2</li>$3
+</ol>$0]]></content>
 	<tabTrigger>ol</tabTrigger>
 	<description>&lt;ol&gt;</description>
+	<scope>text.html</scope>
 </snippet>

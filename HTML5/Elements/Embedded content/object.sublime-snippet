@@ -7,4 +7,5 @@
 </object>$0]]></content>
 	<tabTrigger>object</tabTrigger>
 	<description>&lt;object&gt;</description>
+	<scope>text.html</scope>
 </snippet>

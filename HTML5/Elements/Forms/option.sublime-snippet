@@ -3,4 +3,5 @@
 option$0]]></content>
 	<tabTrigger>option</tabTrigger>
 	<description>&lt;option&gt;</description>
+	<scope>text.html</scope>
 </snippet>

@@ -1,6 +1,5 @@
 <snippet>
-	<content><![CDATA[
-<html>
+	<content><![CDATA[<html>
 	head$1
 	body$2
 </html>$0]]></content>

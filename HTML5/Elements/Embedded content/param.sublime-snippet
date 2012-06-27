@@ -2,4 +2,5 @@
 	<content><![CDATA[<param name="$1" value="$2">$0]]></content>
 	<tabTrigger>param</tabTrigger>
 	<description>&lt;param&gt;</description>
+	<scope>text.html</scope>
 </snippet>

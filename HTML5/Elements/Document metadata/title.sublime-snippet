@@ -3,4 +3,5 @@
 <title>$1</title>$0]]></content>
 	<tabTrigger>title</tabTrigger>
 	<description>&lt;title&gt;</description>
+	<scope>text.html</scope>
 </snippet>

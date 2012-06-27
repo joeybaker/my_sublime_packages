@@ -5,4 +5,5 @@
 </header><!-- /$3 -->$0]]></content>
 	<tabTrigger>header</tabTrigger>
 	<description>&lt;header&gt;</description>
+	<scope>text.html</scope>
 </snippet>

@@ -4,4 +4,5 @@
 </fieldset>$0]]></content>
 	<tabTrigger>fieldset</tabTrigger>
 	<description>&lt;fieldset&gt;</description>
+	<scope>text.html</scope>
 </snippet>

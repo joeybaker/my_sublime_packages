@@ -11,4 +11,5 @@
 </audio>$0]]></content>
 	<tabTrigger>audio</tabTrigger>
 	<description>&lt;audio&gt; with legacy object</description>
+	<scope>text.html</scope>
 </snippet>

@@ -2,4 +2,5 @@
 	<content><![CDATA[&amp; $0]]></content>
 	<tabTrigger>&</tabTrigger>
 	<description>&amp;</description>
+	<scope>text.html</scope>
 </snippet>

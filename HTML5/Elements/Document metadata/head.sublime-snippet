@@ -5,4 +5,5 @@
 </head>$0]]></content>
 	<tabTrigger>head</tabTrigger>
 	<description>&lt;head&gt;</description>
+	<scope>text.html</scope>
 </snippet>

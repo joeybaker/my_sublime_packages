@@ -86,6 +86,7 @@
           , "couch": true
           , "jquery": true
           , "node": true
+          , "strict": false
           , "laxcomma": true // preceding commas
           , "laxbreak": true // weird whitespace is okay
     },

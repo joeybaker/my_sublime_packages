@@ -1,8 +1,8 @@
 <snippet>
-	<content><![CDATA[
-<section${1:${2: id="$3"}${4: class="$5"}}>
-	$6
-</section><!-- /$3 -->$0]]></content>
+	<content><![CDATA[<section$1>
+	$2
+</section>$0]]></content>
 	<tabTrigger>section</tabTrigger>
 	<description>&lt;section&gt;</description>
+	<scope>text.html</scope>
 </snippet>

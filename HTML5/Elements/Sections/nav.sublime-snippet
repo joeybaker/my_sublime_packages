@@ -5,4 +5,5 @@
 </nav>$0]]></content>
 	<tabTrigger>nav</tabTrigger>
 	<description>&lt;nav&gt;</description>
+	<scope>text.html</scope>
 </snippet>
