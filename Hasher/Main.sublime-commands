@@ -1,0 +1,47 @@
+[
+    {
+        "caption": "Hasher: MD5",
+        "command": "md5",
+        "args": {}
+    },
+    {
+        "caption": "Hasher: SHA1",
+        "command": "sha1",
+        "args": {}
+    },
+    {
+        "caption": "Hasher: Base64 Encode",
+        "command": "base64_encode",
+        "args": {}
+    },
+    {
+        "caption": "Hasher: Base64 Decode",
+        "command": "base64_decode",
+        "args": {}
+    },
+    {
+        "caption": "Hasher: URI Component Encode",
+        "command": "uri_component_encode",
+        "args": {}
+    },
+    {
+        "caption": "Hasher: URI Component Decode",
+        "command": "uri_component_decode",
+        "args": {}
+    },
+    {
+        "caption": "Hasher: Entity Encode",
+        "command": "entity_encode",
+        "args": {}
+    },
+    {
+        "caption": "Hasher: Entity Decode",
+        "command": "entity_decode",
+        "args": {}
+    },
+    {
+        "caption": "Hasher: Insert UNIX Timestamp",
+        "command": "current_unix_timestamp",
+        "args": {}
+    }
+]
