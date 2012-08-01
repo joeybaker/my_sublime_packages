@@ -1,5 +1,5 @@
 {
-	"auto_upgrade_last_run": 1340762889,
+	"auto_upgrade_last_run": 1343747658,
 	"installed_packages":
 	[
 		"AdvancedNewFile",
@@ -9,12 +9,15 @@
 		"CoffeeScript",
 		"ColorPicker",
 		"Default File Type",
+		"DetectSyntax",
 		"FileDiffs",
 		"Git",
+		"Hasher",
 		"HTML5",
 		"INI",
 		"jQuery",
 		"jQuery Snippets pack",
+		"JsFormat",
 		"LESS",
 		"Markdown Preview",
 		"nginx",

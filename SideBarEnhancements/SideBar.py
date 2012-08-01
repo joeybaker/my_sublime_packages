@@ -95,6 +95,9 @@ class SideBarEditCommand(sublime_plugin.WindowCommand):
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).hasFiles()
 
+	def is_visible(self, paths =[]):
+		return not s.get('disabled_menuitem_edit')
+
 class SideBarOpenCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
 		for item in SideBarSelection(paths).getSelectedFiles():
@@ -102,6 +105,9 @@ class SideBarOpenCommand(sublime_plugin.WindowCommand):
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).hasFiles()
+
+	def is_visible(self, paths =[]):
+		return not s.get('disabled_menuitem_open_run')
 
 class SideBarFilesOpenWithEditApplicationsCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
@@ -238,12 +244,29 @@ class SideBarFindInParentCommand(sublime_plugin.WindowCommand):
 class SideBarFindInProjectFoldersCommand(sublime_plugin.WindowCommand):
 	def run(self):
 		self.window.run_command('hide_panel');
-		if int(sublime.version()) >= 2136:
+		if int(sublime.version()) >= 2137:
+			self.window.run_command("show_panel", {"panel": "find_in_files", "where":"<project>"})
+		elif int(sublime.version()) >= 2136:
 			self.window.run_command("show_panel", {"panel": "find_in_files", "where":"<open folders>"})
 		elif int(sublime.version()) >= 2134:
 			self.window.run_command("show_panel", {"panel": "find_in_files", "where":""})
 		else:
 			self.window.run_command("show_panel", {"panel": "find_in_files", "location":"<open folders>"})
+
+class SideBarFindInProjectCommand(sublime_plugin.WindowCommand):
+	def run(self, paths = []):
+		self.window.run_command('hide_panel');
+		if int(sublime.version()) >= 2137:
+			self.window.run_command("show_panel", {"panel": "find_in_files", "where":"<project>"})
+		elif int(sublime.version()) >= 2136:
+			self.window.run_command("show_panel", {"panel": "find_in_files", "where":"<open folders>"})
+		elif int(sublime.version()) >= 2134:
+			self.window.run_command("show_panel", {"panel": "find_in_files", "where":""})
+		else:
+			self.window.run_command("show_panel", {"panel": "find_in_files", "location":"<open folders>"})
+
+	def is_visible(self, paths = []):
+		return not s.get('disabled_menuitem_find_in_project')
 
 class SideBarFindInProjectFolderCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
@@ -533,6 +556,11 @@ class SideBarPasteCommand(sublime_plugin.WindowCommand):
 		s = sublime.load_settings("SideBarEnhancements/Clipboard.sublime-settings")
 		return s.get('cut', '') + s.get('copy', '') != '' and len(SideBarSelection(paths).getSelectedDirectoriesOrDirnames()) == 1
 
+	def is_visible(self, paths = [], in_parent = False):
+		if in_parent == 'True':
+			return not s.get('disabled_menuitem_paste_in_parent')
+		else:
+			return True
 
 class SideBarCopyNameCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
@@ -550,6 +578,9 @@ class SideBarCopyNameCommand(sublime_plugin.WindowCommand):
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
 
+	def is_visible(self, paths =[]):
+		return not s.get('disabled_menuitem_copy_name')
+
 class SideBarCopyNameEncodedCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
 		items = []
@@ -565,6 +596,7 @@ class SideBarCopyNameEncodedCommand(sublime_plugin.WindowCommand):
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
+
 
 class SideBarCopyPathCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
@@ -613,6 +645,8 @@ class SideBarCopyPathRelativeFromProjectCommand(sublime_plugin.WindowCommand):
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0 and SideBarSelection(paths).hasItemsUnderProject()
+
+
 
 class SideBarCopyPathRelativeFromProjectEncodedCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
@@ -693,6 +727,9 @@ class SideBarCopyPathAbsoluteFromProjectEncodedCommand(sublime_plugin.WindowComm
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0 and SideBarSelection(paths).hasItemsUnderProject()
+
+	def is_visible(self, paths =[]):
+		return not s.get('disabled_menuitem_copy_path')
 
 class SideBarCopyTagAhrefCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
@@ -791,8 +828,6 @@ class SideBarCopyTagImgCommand(sublime_plugin.WindowCommand):
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).hasImages() and SideBarSelection(paths).hasItemsUnderProject()
-
-
 
 class SideBarCopyTagStyleCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
@@ -974,7 +1009,11 @@ class SideBarDeleteCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = [], confirmed = 'False'):
 
 		if confirmed == 'False' and s.get('confirm_before_deleting', True):
-			self.confirm([item.path() for item in SideBarSelection(paths).getSelectedItems()], [item.pathWithoutProject() for item in SideBarSelection(paths).getSelectedItems()])
+			if sublime.platform() == 'osx':
+				if sublime.ok_cancel_dialog('delete the selected items?'):
+					self.run(paths, 'True')
+			else:
+				self.confirm([item.path() for item in SideBarSelection(paths).getSelectedItems()], [item.pathWithoutProject() for item in SideBarSelection(paths).getSelectedItems()])
 		else:
 			try:
 				for item in SideBarSelection(paths).getSelectedItemsWithoutChildItems():
@@ -984,14 +1023,15 @@ class SideBarDeleteCommand(sublime_plugin.WindowCommand):
 				SideBarProject().refresh();
 			except:
 				import functools
+				self.window.show_input_panel("BUG!", '', '', None, None)
 				self.window.run_command('hide_panel');
 				self.window.show_input_panel("Permanently Delete:", SideBarSelection(paths).getSelectedItems()[0].path(), functools.partial(self.on_done, SideBarSelection(paths).getSelectedItems()[0].path()), None, None)
 
 	def confirm(self, paths, display_paths):
 		import functools
 		window = sublime.active_window()
-		# window.show_input_panel("BUG!", '', '', None, None)
-		# window.run_command('hide_panel');
+		window.show_input_panel("BUG!", '', '', None, None)
+		window.run_command('hide_panel');
 
 		yes = []
 		yes.append('Yes, delete the selected items.');
@@ -1001,7 +1041,7 @@ class SideBarDeleteCommand(sublime_plugin.WindowCommand):
 		no = []
 		no.append('No');
 		no.append('Cancel the operation.');
-		window.show_quick_panel([yes, no], functools.partial(self.on_confirm, paths))
+		sublime.set_timeout(lambda:window.show_quick_panel([yes, no], functools.partial(self.on_confirm, paths)), 200);
 
 	def on_confirm(self, paths, result):
 		if result != -1:
@@ -1114,6 +1154,9 @@ class SideBarOpenInBrowserCommand(sublime_plugin.WindowCommand):
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
 
+	def is_visible(self, paths =[]):
+		return not s.get('disabled_menuitem_open_in_browser')
+
 class SideBarOpenInNewWindowCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
 		import subprocess
@@ -1139,3 +1182,13 @@ class SideBarOpenInNewWindowCommand(sublime_plugin.WindowCommand):
 					subprocess.Popen(['subl', '.'], cwd=item.pathSystem())
 				except:
 					subprocess.Popen(['sublime', '.'], cwd=item.pathSystem())
+
+	def is_visible(self, paths =[]):
+		return not s.get('disabled_menuitem_open_in_new_window')
+
+class SideBarProjectItemRemoveFolderCommand(sublime_plugin.WindowCommand):
+	def run(self, paths = []):
+		self.window.run_command('remove_folder', {"dirs":paths})
+
+	def is_enabled(self, paths =[]):
+		return SideBarSelection(paths).len() == 1 and SideBarSelection(paths).hasProjectDirectories() == True

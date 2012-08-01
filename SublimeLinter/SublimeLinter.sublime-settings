@@ -39,7 +39,8 @@
     */
     "sublimelinter_syntax_map":
     {
-        "Python Django": "python"
+        "Python Django": "python",
+        "Ruby on Rails": "ruby"
     },
 
     // An array of linter names to disable. Names should be lowercase.
@@ -73,10 +74,11 @@
     // or either "jshint" or "jslint" to use a built in linter.
     "javascript_linter": "jshint",
 
-    // jshint: options for linting JavaScript. See http://jshint.com/#docs for more info.
+    // jshint: options for linting JavaScript. See http://www.jshint.com/options/ for more info.
     // By deault, eval is allowed.
     "jshint_options":
     {
+        "indent": 1,
         "evil": true,
         "regexdash": true,
         "browser": true,
@@ -129,7 +131,9 @@
         "regex-selectors": "warning",
         "rules-count": "warning",
         "shorthand": "warning",
+        "star-property-hack": "warning",
         "text-indent": "warning",
+        "underscore-property-hack": "warning",
         "unique-headings": "warning",
         "universal-selector": "warning",
         "vendor-prefix": true,
