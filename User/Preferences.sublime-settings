@@ -73,8 +73,9 @@
 	"highlight_line": true,
 	"ignored_packages":
 	[
-		"Vintage"
+		// "Vintage"
 	],
+	"vintage_start_in_command_mode": true,
 	"indent_guide_options":
 	[
 		"draw_normal"
@@ -105,5 +106,6 @@
 	"use_tab_stops": true,
 	"word_separators": "./\\()\"'-:,.;<>~!@#$%^&*|+=[]{}`~?",
 	"word_wrap": true,
-	"wrap_width": 0
+	"wrap_width": 0,
+	"theme": "Soda Dark.sublime-theme"
 }

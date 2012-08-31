@@ -1,5 +1,5 @@
 {
-	"auto_upgrade_last_run": 1343747658,
+	"auto_upgrade_last_run": 1346442058,
 	"installed_packages":
 	[
 		"AdvancedNewFile",
@@ -27,7 +27,8 @@
 		"Sass",
 		"SideBarEnhancements",
 		"SideBarGit",
-		"SublimeLinter"
+		"SublimeLinter",
+		"Theme - Soda"
 	],
 	"repositories":
 	[

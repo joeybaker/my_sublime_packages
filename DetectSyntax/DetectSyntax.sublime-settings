@@ -84,7 +84,7 @@
 			//
 			//   {"function": {"name": "is_rails_file"}}
 			//
-			// will have the same affect as
+			// will have the same effect as
 			//
 			//   {"function": {"name": "is_rails_file", "source": "is_rails_file.py"}}
 			//
@@ -107,6 +107,7 @@
 				{"file_name": ".*\\.rake$"},
 				{"file_name": ".*\\.simplecov$"},
 				{"file_name": ".*\\.rb$"},
+				{"file_name": ".*\\.pp$"}, // Puppet
 				// a binary rule does the same thing as a first_line rule that uses a regexp to match a shebang, the
 				// difference being DetectSyntax will construct the regexp and the user doesn't have to. So
 				//
