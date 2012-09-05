@@ -1,5 +1,5 @@
 {
-	"auto_upgrade_last_run": 1346442058,
+	"auto_upgrade_last_run": 1346874289,
 	"installed_packages":
 	[
 		"AdvancedNewFile",
@@ -20,6 +20,7 @@
 		"JsFormat",
 		"LESS",
 		"Markdown Preview",
+		"MarkdownEditing",
 		"nginx",
 		"Nodejs",
 		"Package Control",
