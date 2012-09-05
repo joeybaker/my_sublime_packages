@@ -34,7 +34,7 @@
 	"reraise_exceptions": false,
 
 	// If you want to have a syntax applied when new files are created, set new_file_syntax to the name of the syntax to use.
-	// The format is exactly the same as "name" in the rules below. For example, if you want to have a new file use 
+	// The format is exactly the same as "name" in the rules below. For example, if you want to have a new file use
 	// JavaScript syntax, set new_file_syntax to 'JavaScript'.
 	"new_file_syntax": false,
 	"default_syntaxes": [
@@ -43,7 +43,7 @@
 			// false positive, meaning if it matches, you probably want the XML syntax
 			"name": "XML",
 			"rules": [
-				{"file_name": ".*\\.xml$"},
+				{"file_name": ".*\\.xml(\\.dist)?$"},
 				{"first_line": "^<\\?xml"}
 			]
 		},
@@ -107,7 +107,6 @@
 				{"file_name": ".*\\.rake$"},
 				{"file_name": ".*\\.simplecov$"},
 				{"file_name": ".*\\.rb$"},
-				{"file_name": ".*\\.pp$"}, // Puppet
 				// a binary rule does the same thing as a first_line rule that uses a regexp to match a shebang, the
 				// difference being DetectSyntax will construct the regexp and the user doesn't have to. So
 				//
@@ -123,7 +122,7 @@
 		{
 			"name": "PHP",
 			"rules": [
-				{"file_name": ".*\\.(php|inc)$"},
+				{"file_name": ".*\\.(php|inc|phtml)$"},
 				{"first_line": "^<\\?php"}
 			]
 		},
@@ -131,6 +130,30 @@
 			"name": "PHP/Smarty",
 			"rules": [
 				{"file_name": ".*\\.tpl$"}
+			]
+		},
+		{
+			"name": "YAML",
+			"rules": [
+				{"file_name": ".*\\.gemrc$"},
+				{"file_name": ".*\\.yml(\\.dist)?$"}
+			]
+		},
+		{
+			// This rule requires the INI plugin to be installed (via PackageControl or https://github.com/clintberry/sublime-text-2-ini)
+			"name": "INI",
+			"rules": [
+				{"file_name": ".*\\.(gitattributes|gitconfig|gitignore|npmrc)$"},
+				{"file_name": ".*\\.ini(\\.dist)?$"}
+			]
+		},
+		{
+			"name": "ShellScript/Shell-Unix-Generic",
+			"rules": [
+				{"file_name": "profile"},
+				{"file_name": ".*\\.bash.*$"},
+				{"file_name": ".*\\.(bash|sh)$"},
+				{"binary": "bash"}
 			]
 		},
 		{
