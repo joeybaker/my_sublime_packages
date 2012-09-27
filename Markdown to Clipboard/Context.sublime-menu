@@ -1,0 +1,7 @@
+[
+    {
+        "caption":"Copy Markdown as HTML",
+        "command": "m2c",
+        "mnemonic": "mc"
+    }
+]
