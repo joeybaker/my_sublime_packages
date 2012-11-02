@@ -100,12 +100,13 @@
 				{"file_name": ".*\\Capfile$"},
 				{"file_name": ".*\\Guardfile$"},
 				{"file_name": ".*\\[Rr]akefile$"},
-				{"file_name": ".*\\Vagrantfile$"},
+				{"file_name": ".*\\Vagrantfile(\\..*)?$"},
 				{"file_name": ".*\\Thorfile$"},
 				{"file_name": ".*\\.thor$"},
 				{"file_name": ".*\\config.ru$"},
 				{"file_name": ".*\\.rake$"},
 				{"file_name": ".*\\.simplecov$"},
+				{"file_name": ".*\\.jbuilder$"},
 				{"file_name": ".*\\.rb$"},
 				// a binary rule does the same thing as a first_line rule that uses a regexp to match a shebang, the
 				// difference being DetectSyntax will construct the regexp and the user doesn't have to. So
@@ -119,6 +120,18 @@
 				{"binary": "ruby"}
 			]
 		},
+		// {
+		// 	// This is an example of having to match all rules. In this example, the file needs to have a ruby
+		// 	// shebang *and* end in .ruby. If "match" == "all", DetectSyntax will set the named syntax only if all
+		// 	// rules match. If "match" is anything other than "all", the syntax will be set if any rule matches
+		// 	// (the normal behavior)
+		// 	"name": "Ruby",
+		// 	"match": "all",
+		// 	"rules": [
+		// 		{"binary": "ruby"},
+		// 		{"file_name": ".*\\.ruby$"}
+		// 	]
+		// },
 		{
 			"name": "PHP",
 			"rules": [

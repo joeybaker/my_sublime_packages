@@ -8,6 +8,7 @@
 	{ "caption": "Open / Run",              "id": "side-bar-open",             "command": "side_bar_open",             "args": {"paths": []} },
 	{ "caption": "Open In Browser",              "id": "side-bar-open-in-browser",             "command": "side_bar_open_in_browser",             "args": {"paths": []} },
 	{ "caption": "Open In New Window",              "id": "side-bar-open-in-new-window",             "command": "side_bar_open_in_new_window",             "args": {"paths": []} },
+	{ "caption": "Open With Finder",              "id": "side-bar-open-with-finde",             "command": "side_bar_open_with_finder",             "args": {"paths": []} },
 	{ "caption": "Open With",        "id": "side-bar-files-open-with",
 
 		"children":
@@ -99,6 +100,7 @@
 		"children":
 		[
 			{ "caption": "Edit Project", "id": "side-bar-project-open-file",      "command": "side_bar_project_open_file",           "args": {"paths": []} },
+			{ "caption": "Edit Projects Preview URLs", "id": "side-bar-project-preview-url",      "command": "side_bar_project_open_project_preview_urls_file",           "args": {"paths": []} },
 			{ "caption": "-",                					"id": "side-bar-project-open-file-separator" },
 			{ "caption": "Promote as Project Folder", "id": "side-bar-project-item-add",     "command": "side_bar_project_item_add",        "args": {"paths": []} },
 			{ "caption": "Exclude From Project",			"id": "side-bar-project-item-exclude",   "command": "side_bar_project_item_exclude",        "args": {"paths": []} },

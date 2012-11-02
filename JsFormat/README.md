@@ -1,7 +1,3 @@
-!!!!!!!!!!!!!!!!!
-
-**This is a clone of https://github.com/jdc0589/JsFormat. Submit issues/requests/etc... there**
-
 ## Summary
 JsFormat is a javascipt formatting plugin for Sublime Text 2.
 It uses the commandline/python-module javascript formatter from http://jsbeautifier.org/ to format the selected text, 
@@ -28,6 +24,8 @@ In addition, the following settings are available in JsFormat/JsFormat.sublime-s
 * "keep_array_indentation": false
 * "keep_function_indentation": false
 * "indent_with_tabs": false
+* "ensure_newline_at_eof_on_save": false
+* "space_before_line_starters": false
 
 ## Install
 #### [Package Control](https://github.com/wbond/sublime_package_control) (*Recommended*)
@@ -52,7 +50,12 @@ The default key binding is "ctrl+alt+f"
 ## Key Binding Conflicts
 
 Unfortunately there are other plugins that use "ctrl + alt + f", this is a hard problem to solve. If JsFormat works
-OK via the command palette but does nothing when you use the "ctrl + alt + f" shortcut, please change the shortcut in the appropriate *.sublime-keymap file, re-test, and let me know how it went (just submit a bug report). [This is the current bug report we are using to discuss this issue](https://github.com/jdc0589/JsFormat/issues/7)
+OK via the command palette but does nothing when you use the "ctrl + alt + f" shortcut, you have two options:
+
+1. Add ```{ "keys": ["ctrl+alt+f"], "command": "js_format"}``` to your user keybindings file. This will override anything specifid by a plugin.
+2. Find the offending plugin, and change the shortcut in its sublime-keymap file (will revert on updates)
+
+[This is the current bug report we are using to discuss this issue](https://github.com/jdc0589/JsFormat/issues/7); in addition I have made a [wiki page here](https://github.com/jdc0589/JsFormat/wiki/Plugins-With-Conflicting-Keybindings) to document offending plugins. If we find all the offending plugins, I will be more than happy to contribute to them to fix the problem.
 
 ## Command Palette
 

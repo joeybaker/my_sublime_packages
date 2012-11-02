@@ -60,6 +60,15 @@ Contributing
 
 History
 -------
+2012-10-25
+
+* Added ability to match all rules. [Thanks for the idea Kirk Strauser]
+
+2012-10-20
+
+* Added jbuilder to the Ruby rule. [Thanks Aaron Crespo]
+* Expanded Vagrantfile rule to catch extensions (like Vagrantfile.local).
+
 2012-09-01
 
 * Removed Puppet files from Ruby syntax. See https://github.com/phillipkoebbe/DetectSyntax/issues/11 for details.

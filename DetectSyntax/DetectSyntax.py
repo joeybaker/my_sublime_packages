@@ -109,6 +109,7 @@ class DetectSyntaxCommand(sublime_plugin.EventListener):
 
 	def syntax_matches(self, syntax):
 		rules = syntax.get("rules")
+		match_all = syntax.get("match") == 'all'
 
 		for rule in rules:
 			if 'function' in rule:
@@ -116,12 +117,24 @@ class DetectSyntaxCommand(sublime_plugin.EventListener):
 			else:
 				result = self.regexp_matches(rule)
 
-			# return on first match. don't return if it doesn't
-			# match or else the remaining rules won't be applied
-			if result:
+			if match_all:
+				# can return on the first failure since they all
+				# have to match
+				if not result:
+					return False
+			elif result:
+				# return on first match. don't return if it doesn't
+				# match or else the remaining rules won't be applied
 				return True
 
-		return False # there are no rules or none match
+		if match_all:
+			# if we need to match all and we got here, then all of the
+			# rules matched
+			return True
+		else:
+			# if we needed to match just one and got here, none of the
+			# rules matched
+			return False
 
 
 	def function_matches(self, rule):

@@ -10,6 +10,10 @@ from sidebar.SideBarProject import SideBarProject
 
 from send2trash import send2trash
 
+# needed for getting local app data path on windows
+if sublime.platform() == 'windows':
+	import _winreg
+
 def disable_default():
 	default = sublime.packages_path()+'/Default/Side Bar.sublime-menu'
 	desired = sublime.packages_path()+'/SideBarEnhancements/disable_default/Side Bar.sublime-menu.txt'
@@ -26,6 +30,10 @@ try:
 except:
 	pass
 
+def expand_vars(path):
+	for k, v in os.environ.iteritems():
+		path = path.replace('%'+k+'%', v).replace('%'+k.lower()+'%', v)
+	return path
 #NOTES
 # A "directory" for this plugin is a "directory"
 # A "directory" for a user is a "folder"
@@ -189,9 +197,7 @@ class SideBarFilesOpenWithCommand(sublime_plugin.WindowCommand):
 			if sublime.platform() == 'osx':
 				subprocess.Popen(['open', '-a', application, item.nameSystem()], cwd=item.dirnameSystem())
 			elif sublime.platform() == 'windows':
-				for k, v in os.environ.iteritems():
-					application_dir = application_dir.replace('%'+k+'%', v).replace('%'+k.lower()+'%', v)
-				subprocess.Popen([application_name, item.pathSystem()], cwd=application_dir, shell=True)
+				subprocess.Popen([application_name, item.pathSystem()], cwd=expand_vars(application_dir), shell=True)
 			else:
 				subprocess.Popen([application_name, item.nameSystem()], cwd=item.dirnameSystem())
 
@@ -1101,6 +1107,10 @@ class SideBarProjectOpenFileCommand(sublime_plugin.WindowCommand):
 		if project.hasOpenedProject():
 			SideBarItem(project.getProjectFile(), False).edit();
 
+class SideBarProjectOpenProjectPreviewUrlsFileCommand(sublime_plugin.WindowCommand):
+	def run(self, paths = []):
+		SideBarItem(sublime.packages_path()+'/../Settings/SideBarEnhancements.json', False).edit();
+
 class SideBarProjectItemAddCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):
 		project = SideBarProject()
@@ -1126,11 +1136,10 @@ class SideBarProjectItemExcludeCommand(sublime_plugin.WindowCommand):
 
 class SideBarOpenInBrowserCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = [], type = False):
-		import webbrowser
-		try:
-			browser = webbrowser.get(s.get("default_browser"))
-		except:
-			browser = webbrowser
+
+		browser = s.get("default_browser")
+		if browser == '':
+			browser = 'firefox'
 
 		if type == False or type == 'testing':
 			type = 'url_testing'
@@ -1141,9 +1150,169 @@ class SideBarOpenInBrowserCommand(sublime_plugin.WindowCommand):
 
 		for item in SideBarSelection(paths).getSelectedItems():
 			if item.projectURL(type):
-				browser.open_new_tab(item.projectURL(type) + item.pathRelativeFromProjectEncoded())
+				self.try_open(item.projectURL(type) + item.pathRelativeFromProjectEncoded(), browser)
 			else:
-				browser.open_new_tab(item.uri())
+				self.try_open(item.uri(), browser)
+
+	# def run(self, paths = [], type = False):
+	# 	import webbrowser
+	# 	try:
+	# 		browser = webbrowser.get(s.get("default_browser"))
+	# 	except:
+	# 		browser = webbrowser
+
+	# 	if type == False or type == 'testing':
+	# 		type = 'url_testing'
+	# 	elif type == 'production':
+	# 		type = 'url_production'
+	# 	else:
+	# 		type = 'url_testing'
+
+	# 	for item in SideBarSelection(paths).getSelectedItems():
+	# 		if item.projectURL(type):
+	# 			browser.open_new_tab(item.projectURL(type) + item.pathRelativeFromProjectEncoded())
+	# 		else:
+	# 			browser.open_new_tab(item.uri())
+
+	def try_open(self, url, browser):
+		import subprocess
+
+		browser = browser.lower().strip();
+		if browser == 'chrome':
+			if sublime.platform() == 'osx':
+				items = ['open']
+				commands = ['-a', 'Google Chrome', url]
+			elif sublime.platform() == 'windows':
+				# read local app data path from registry
+				aKey = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders")
+				reg_value, reg_type = _winreg.QueryValueEx (aKey, "Local AppData")
+
+				items = [
+					'%HOMEPATH%\AppData\Local\Google\Chrome\Application\chrome.exe'
+
+					,reg_value+'\\Chrome\\Application\\chrome.exe'
+					,'%HOMEPATH%\\Google\\Chrome\\Application\\chrome.exe'
+					,'%PROGRAMFILES%\\Google\\Chrome\\Application\\chrome.exe'
+					,'%PROGRAMFILES(X86)%\\Google\\Chrome\\Application\\chrome.exe'
+					,'chrome.exe'
+				]
+				commands = ['-new-tab', url]
+			else:
+				items = [
+					'/usr/bin/google-chrome'
+					,'chrome'
+				]
+				commands = ['-new-tab', url]
+
+		elif browser == 'chromium':
+			if sublime.platform() == 'osx':
+				items = ['open']
+				commands = ['-a', 'Chromium', url]
+			elif sublime.platform() == 'windows':
+				# read local app data path from registry
+				aKey = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders")
+				reg_value, reg_type = _winreg.QueryValueEx (aKey, "Local AppData")
+
+				items = [
+					'%HOMEPATH%\AppData\Local\Google\Chrome SxS\Application\chrome.exe'
+
+					, reg_value+'\\Chromium\\Application\\chrome.exe'
+					,'%HOMEPATH%\\Chromium\\Application\\chrome.exe'
+					,'%PROGRAMFILES%\\Chromium\\Application\\chrome.exe'
+					,'%PROGRAMFILES(X86)%\\Chromium\\Application\\chrome.exe'
+					,'%HOMEPATH%\\Local Settings\\Application Data\\Google\\Chrome\\Application\\chrome.exe'
+					,'chrome.exe'
+
+					, reg_value+'\\Chromium\\Application\\chromium.exe'
+					,'%HOMEPATH%\\Chromium\\Application\\chromium.exe'
+					,'%PROGRAMFILES%\\Chromium\\Application\\chromium.exe'
+					,'%PROGRAMFILES(X86)%\\Chromium\\Application\\chromium.exe'
+					,'%HOMEPATH%\\Local Settings\\Application Data\\Google\\Chrome\\Application\\chromium.exe'
+					,'chromium.exe'
+				]
+				commands = ['-new-tab', url]
+			else:
+				items = [
+					'/usr/bin/chromium'
+					,'chromium'
+				]
+				commands = ['-new-tab', url]
+		elif browser == 'firefox':
+			if sublime.platform() == 'osx':
+				items = ['open']
+				commands = ['-a', 'Firefox', url]
+			else:
+				items = [
+					'/usr/bin/firefox'
+
+					,'%PROGRAMFILES%\\Nightly\\firefox.exe'
+					,'%PROGRAMFILES(X86)%\\Nightly\\firefox.exe'
+
+					,'%PROGRAMFILES%\\Mozilla Firefox\\firefox.exe'
+					,'%PROGRAMFILES(X86)%\\Mozilla Firefox\\firefox.exe'
+
+					,'firefox'
+					,'firefox.exe'
+				]
+				commands = ['-new-tab', url]
+		elif browser == 'opera':
+			if sublime.platform() == 'osx':
+				items = ['open']
+				commands = ['-a', 'Opera', url]
+			else:
+				items = [
+					'/usr/bin/opera'
+					,'/usr/bin/opera-next'
+					,'/usr/bin/operamobile'
+
+					,'%PROGRAMFILES%\\Opera\\opera.exe'
+					,'%PROGRAMFILES(X86)%\\Opera\\opera.exe'
+
+					,'%PROGRAMFILES%\\Opera Next\\opera.exe'
+					,'%PROGRAMFILES(X86)%\\Opera Next\\opera.exe'
+
+					,'%PROGRAMFILES%\\Opera Mobile Emulator\\OperaMobileEmu.exe'
+					,'%PROGRAMFILES(X86)%\\Opera Mobile Emulator\\OperaMobileEmu.exe'
+
+					,'opera'
+					,'opera.exe'
+				]
+				commands = ['-newtab', url]
+		elif browser == 'safari':
+			if sublime.platform() == 'osx':
+				items = ['open']
+				commands = ['-a', 'Safari', url]
+			else:
+				items = [
+					'/usr/bin/safari'
+
+					,'%PROGRAMFILES%\\Safari\\Safari.exe'
+					,'%PROGRAMFILES(X86)%\\Safari\\Safari.exe'
+
+					,'Safari'
+					,'Safari.exe'
+				]
+				commands = ['-new-tab', '-url', url]
+		else:
+			sublime.error_message('Browser "'+browser+'" not found!\nUse any of the following: firefox, chrome, chromium, opera, safari')
+			return
+
+		for item in items:
+			try:
+				command2 = list(commands)
+				command2.insert(0, expand_vars(item))
+				subprocess.Popen(command2)
+				return
+			except:
+				try:
+					command2 = list(commands)
+					command2.insert(0, item)
+					subprocess.Popen(command2)
+					return
+				except:
+					pass
+
+		sublime.error_message('Browser "'+browser+'" not found!\nIs installed? Which location...?')
 
 	def is_enabled(self, paths = []):
 		return SideBarSelection(paths).len() > 0
@@ -1179,6 +1348,15 @@ class SideBarOpenInNewWindowCommand(sublime_plugin.WindowCommand):
 
 	def is_visible(self, paths =[]):
 		return not s.get('disabled_menuitem_open_in_new_window')
+
+class SideBarOpenWithFinderCommand(sublime_plugin.WindowCommand):
+	def run(self, paths = []):
+		import subprocess
+		for item in SideBarSelection(paths).getSelectedDirectoriesOrDirnames():
+			subprocess.Popen(['open', item.nameSystem()], cwd=item.dirnameSystem())
+
+	def is_visible(self, paths =[]):
+		return sublime.platform() == 'osx'
 
 class SideBarProjectItemRemoveFolderCommand(sublime_plugin.WindowCommand):
 	def run(self, paths = []):

@@ -5,6 +5,7 @@ import re
 import sublime
 import sublime_plugin
 import difflib
+import tempfile
 
 from fnmatch import fnmatch
 import codecs
@@ -16,7 +17,6 @@ SELECTIONS = u'Diff Selections'
 SAVED = u'Diff file with Saved'
 FILE = u'Diff file with File in Project…'
 TAB = u'Diff file with Open Tab…'
-
 
 FILE_DIFFS = [CLIPBOARD, SAVED, FILE, TAB]
 
@@ -92,36 +92,61 @@ class FileDiffCommand(sublime_plugin.TextCommand):
 
         diffs = list(difflib.unified_diff(from_content, to_content, from_file, to_file))
 
-        FileDiffCommand.diff_with_external(self, a, b, from_file, to_file)
-        return diffs
+        open_in_sublime = SETTINGS.get('open_in_sublime', True)
+        external_command = SETTINGS.get('cmd')
+        if not diffs:
+            sublime.status_message('No Difference')
+        else:
+            if external_command:
+                self.diff_with_external(a, b, from_file, to_file)
+
+            if open_in_sublime:
+                self.diff_in_sublime(diffs)
 
     def diff_with_external(self, a, b, from_file=None, to_file=None):
-        if os.path.exists(from_file) and os.path.exists(to_file):
-            command = SETTINGS.get('cmd')
-            if command is not None:
-                command = [c.replace(u'$file1', from_file) for c in command]
-                command = [c.replace(u'$file2', to_file) for c in command]
-                self.view.window().run_command("exec", {"cmd": command})
+        try:
+            if not os.path.exists(from_file):
+                tmp_file = tempfile.NamedTemporaryFile(delete=False)
+                from_file = tmp_file.name
+                tmp_file.close()
 
-    def show_diff(self, diffs):
-        if diffs:
-            scratch = self.view.window().new_file()
-            scratch.set_scratch(True)
-            scratch.set_syntax_file('Packages/Diff/Diff.tmLanguage')
-            scratch_edit = scratch.begin_edit('file_diffs')
-            scratch.insert(scratch_edit, 0, ''.join(diffs))
-            scratch.end_edit(scratch_edit)
-        else:
-            sublime.status_message('No Difference')
+                with codecs.open(from_file, encoding='utf-8', mode='w+') as tmp_file:
+                    tmp_file.write(a)
+
+            if not os.path.exists(to_file):
+                tmp_file = tempfile.NamedTemporaryFile(delete=False)
+                to_file = tmp_file.name
+                tmp_file.close()
+
+                with codecs.open(to_file, encoding='utf-8', mode='w+') as tmp_file:
+                    tmp_file.write(b)
+
+            if os.path.exists(from_file):
+                command = SETTINGS.get('cmd')
+                if command is not None:
+                    command = [c.replace(u'$file1', from_file) for c in command]
+                    command = [c.replace(u'$file2', to_file) for c in command]
+                    self.view.window().run_command("exec", {"cmd": command})
+        except Exception as e:
+            # some basic logging here, since we are cluttering the /tmp folder
+            print repr(e)
+            sublime.status_message(str(e))
+
+    def diff_in_sublime(self, diffs):
+        scratch = self.view.window().new_file()
+        scratch.set_scratch(True)
+        scratch.set_syntax_file('Packages/Diff/Diff.tmLanguage')
+        scratch_edit = scratch.begin_edit('file_diffs')
+        scratch.insert(scratch_edit, 0, ''.join(diffs))
+        scratch.end_edit(scratch_edit)
 
 
 class FileDiffClipboardCommand(FileDiffCommand):
     def run(self, edit, **kwargs):
         current = sublime.get_clipboard()
-        diffs = self.run_diff(self.diff_content(), current,
+        self.run_diff(self.diff_content(), current,
             from_file=self.view.file_name(),
             to_file='(clipboard)')
-        self.show_diff(diffs)
 
 
 class FileDiffSelectionsCommand(FileDiffCommand):
@@ -163,9 +188,9 @@ class FileDiffSelectionsCommand(FileDiffCommand):
         if indent:
             diff = u"\n".join(line[len(indent):] for line in diff.splitlines())
 
-        self.show_diff(self.run_diff(current, diff,
+        self.run_diff(current, diff,
             from_file='first selection',
-            to_file='second selection'))
+            to_file='second selection')
 
 
 class FileDiffSavedCommand(FileDiffCommand):
@@ -179,10 +204,9 @@ class FileDiffSavedCommand(FileDiffCommand):
         if not content:
             content = self.view.substr(sublime.Region(0, self.view.size()))
 
-        diffs = self.run_diff(self.view.file_name(), content,
+        self.run_diff(self.view.file_name(), content,
             from_file=self.view.file_name(),
             to_file=self.view.file_name() + u' (Unsaved)')
-        self.show_diff(diffs)
 
 
 class FileDiffFileCommand(FileDiffCommand):
@@ -207,9 +231,8 @@ class FileDiffFileCommand(FileDiffCommand):
 
         def on_done(index):
             if index > -1:
-                diffs = self.run_diff(self.diff_content(), files[index],
+                self.run_diff(self.diff_content(), files[index],
                     from_file=self.view.file_name())
-                self.show_diff(diffs)
         self.view.window().show_quick_panel(file_picker, on_done)
 
     def find_files(self, folders):
@@ -258,10 +281,9 @@ class FileDiffTabCommand(FileDiffCommand):
 
         def on_done(index):
             if index > -1:
-                diffs = self.run_diff(self.diff_content(), contents[index],
+                self.run_diff(self.diff_content(), contents[index],
                     from_file=self.view.file_name(),
                     to_file=files[index])
-                self.show_diff(diffs)
 
         if len(files) == 1:
             on_done(0)
