@@ -407,11 +407,13 @@
 			<key>name</key>
 			<string>diff.header</string>
 			<key>scope</key>
-			<string>meta.diff, meta.diff.header</string>
+			<string>meta.diff</string>
 			<key>settings</key>
 			<dict>
 				<key>foreground</key>
-				<string>#75715E</string>
+				<string>#333333</string>
+				<key>background</key>
+				<string>#aaaaaa</string>
 			</dict>
 		</dict>
 		<dict>
