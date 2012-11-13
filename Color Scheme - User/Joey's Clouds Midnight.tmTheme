@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>name</key>
-	<string>Clouds Midnight</string>
+	<string>Joey's Clouds Midnight</string>
 	<key>settings</key>
 	<array>
 		<dict>
@@ -30,10 +30,10 @@
 			<string>comment</string>
 			<key>settings</key>
 			<dict>
-				<key>fontStyle</key>
-				<string></string>
 				<key>foreground</key>
-				<string>#51564F</string>
+				<string>#f3eed1</string>
+				<key>background</key>
+				<string>#8a8b4c</string>
 			</dict>
 		</dict>
 		<dict>
@@ -43,10 +43,10 @@
 			<string>comment.block</string>
 			<key>settings</key>
 			<dict>
-				<key>background</key>
-				<string>#080808</string>
 				<key>foreground</key>
-				<string>#848484</string>
+				<string>#f3eed1</string>
+				<key>background</key>
+				<string>#8a8b4c</string>
 			</dict>
 		</dict>
 		<dict>
