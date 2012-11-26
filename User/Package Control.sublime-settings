@@ -1,5 +1,5 @@
 {
-	"auto_upgrade_last_run": 1352835794,
+	"auto_upgrade_last_run": null,
 	"installed_packages":
 	[
 		"AdvancedNewFile",
@@ -10,6 +10,7 @@
 		"ColorPicker",
 		"Default File Type",
 		"DetectSyntax",
+		"Dotfiles Syntax Highlighting",
 		"EditorConfig",
 		"FileDiffs",
 		"Git",
@@ -29,11 +30,14 @@
 		"Nodejs",
 		"Package Control",
 		"Pretty JSON",
+		"Revert All Files",
 		"Sass",
 		"SideBarEnhancements",
 		"SideBarGit",
+		"Slate",
 		"SublimeLinter",
-		"Theme - Soda"
+		"Theme - Soda",
+		"Tmux"
 	],
 	"repositories":
 	[
