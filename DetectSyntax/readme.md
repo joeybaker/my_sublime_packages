@@ -60,6 +60,10 @@ Contributing
 
 History
 -------
+2012-11-18
+
+* Added support for zsh config files. [Thanks Benjamin Smith]
+
 2012-10-25
 
 * Added ability to match all rules. [Thanks for the idea Kirk Strauser]

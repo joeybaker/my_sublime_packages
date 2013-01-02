@@ -74,10 +74,7 @@
 	"highlight_line": true,
 	"ignored_packages":
 	[
-		// "Vintage"
 	],
-	"vintage_start_in_command_mode": true,
-	"vintage_use_clipboard": true,
 	"indent_guide_options":
 	[
 		"draw_normal"

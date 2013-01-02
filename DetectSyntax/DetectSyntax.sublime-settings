@@ -165,6 +165,7 @@
 			"rules": [
 				{"file_name": "profile"},
 				{"file_name": ".*\\.bash.*$"},
+				{"file_name": ".*\\.z(shrc|shenv|profile|login|logout).*$"},
 				{"file_name": ".*\\.(bash|sh)$"},
 				{"binary": "bash"}
 			]
