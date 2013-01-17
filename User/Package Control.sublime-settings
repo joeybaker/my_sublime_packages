@@ -31,7 +31,6 @@
 		"Package Control",
 		"Pretty JSON",
 		"Revert All Files",
-		"Sass",
 		"SCSS",
 		"SideBarEnhancements",
 		"SideBarGit",
@@ -46,6 +45,5 @@
 		"htts://github.com/n00ge/sublime-text-haml-sass",
 		"https://github.com/n00ge/sublime-text-haml-sass.git",
 		"https://github.com/nathos/sass-textmate-bundle.git",
-		"https://github.com/n00ge/sublime-text-haml-sass"
 	]
 }
