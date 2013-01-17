@@ -31,8 +31,6 @@ The default directory is specified by the `default_root` setting. By default, it
 If you have issues with keymaps, consider running [FindKeyConflicts](https://github.com/skuroda/FindKeyConflicts), also available through the package manager.
 
 ### Windows
-There is a known conflict with the popular plugin [ZenCoding](https://github.com/sublimator/ZenCoding).
-
 `ctrl+alt+n`: General keymap to create new files.
 
 `ctrl+shift+alt+n`: In addition to creating the folders specified, new folders will also contain an `__init__.py` file.
@@ -73,8 +71,8 @@ A boolean value used to determine if the path of the file to be created should b
 
 This value is used to determine the default root when using AdvancedNewFile. It must be one of the following values:
 
-* `top_folder`- The default path will be the top level folder in the window. Note this is the Default value on a clean install.
-* `current_view` - The default path will be the directory of the current active view.
+* `project_folder`- The default path will be the folder specified by the 'default_folder_index' setting.
+* `current` - The default path will be the directory of the current active view.
 * `home` - The default path will be your home directory.
 * `path` - The default path will be defined by the setting `default_path`
 
@@ -82,7 +80,23 @@ If the current view's directory cannot be resolved, the top level folder in the 
 
 `default_path`:
 
-This path is used as the default if `path` has been specified for the setting `default_root`.
+This path is used as the default if `path` has been specified for the setting `default_root`. This path should be absolute. If a relative path is specified, it will be relative to the AdvancedNewFile package directory.
+
+`default_folder_index`:
+
+An integer value representing a folder index to be used when "folder" is specified for "default_root". If an index outside of the range of existing folders is used, it will default to 0 (the top level folder).
+
+`alias_root`:
+
+This entry defines the root that will be used when resolving aliases defined as relative paths. For more information about valid entries, see `default_root`. Note that for path, `alias_path` will be specified.
+
+`alias_path`:
+
+This path is used as the default if `path` has been specified for the setting `alias_root`.
+
+`alias_folder_index`:
+
+An integer value representing the folder index to use when "folder" is specified for "alias_root". If an index outside of the range of the existing folders is used, it will default to 0.
 
 `ignore_case`:
 
@@ -112,9 +126,9 @@ After typing in a partial path, simply press tab to autocomplete it. Continue to
 To begin at the home directory simply start with `~/` like you would in the shell.
 
 #### Aliases:
-You can create an alias to quickly navigate to a directory. Simply type in the alias followed by a colon. Then specify the path as you would normally. Note, in an event a specified alias conflicts with a [predefined alias](https://github.com/skuroda/Sublime-AdvancedNewFile#predefined-aliases), the predefined alias will take precedence.
+You can create an alias to quickly navigate to a directory. Simply type in the alias followed by a colon. Then specify the path as you would normally. Note, in an event a specified alias conflicts with a [predefined alias](https://github.com/skuroda/Sublime-AdvancedNewFile#predefined-aliases), the specified alias will take precedence.
 
-Alias paths may be relative or absolute. If relative, the current view will be used as the base location. If the current view does not exist on disk, the home directory will be used as the base. When specifying absolute paths, be sure to use the system specific style (e.g. Windows `C:\\Users\\username\\Desktop`, OS X and Linix `/home/username/desktop/`). In addition, you may specify an alias from the home directory by using `~/`.
+Alias paths may be relative or absolute. If a relative path is specified, the `alias_root` setting will be used as the base. When specifying absolute paths, be sure to use the system specific style (e.g. Windows `C:\\Users\\username\\Desktop`, OS X and Linix `/home/username/desktop/`). In addition, you may specify an alias from the home directory by using `~/`.
 
 If an invalid alias is specified, an error pop up will be displayed when trying to create the file.
 

@@ -11,19 +11,25 @@ SETTINGS = [
     "show_path",
     "default_root",
     "default_path",
+    "default_folder_index",
     "os_specific_alias",
-    "ignore_case"
+    "ignore_case",
+    "alias_root",
+    "alias_path",
+    "alias_folder_index"
 ]
 DEBUG = False
-PLATFORM = sublime.platform()
+PLATFORM = sublime.platform().lower()
 VIEW_NAME = "AdvancedNewFileCreation"
 WIN_ROOT_REGEX = r"[a-zA-Z]:(/|\\)"
 NIX_ROOT_REGEX = r"^/"
+HOME_REGEX = r"^~"
 
 
 class AdvancedNewFileCommand(sublime_plugin.WindowCommand):
     def run(self, is_python=False):
         self.root = None
+        self.alias_root = None
         self.top_level_split_char = ":"
         self.is_python = is_python
         self.view = self.window.active_view()
@@ -32,6 +38,8 @@ class AdvancedNewFileCommand(sublime_plugin.WindowCommand):
         settings = get_settings(self.view)
         self.aliases = self.get_aliases(settings)
         self.show_path = settings.get("show_path")
+        self.default_folder_index = settings.get("default_folder_index")
+        self.alias_folder_index = settings.get("alias_folder_index")
         default_root = self.get_default_root(settings.get("default_root"))
         if default_root == "path":
             self.root = os.path.expanduser(settings.get("default_path"))
@@ -50,6 +58,12 @@ class AdvancedNewFileCommand(sublime_plugin.WindowCommand):
             if tmp != "":
                 path = tmp
 
+        alias_root = self.get_default_root(settings.get("alias_root"), True)
+        if alias_root == "path":
+            self.alias_root = os.path.expanduser(settings.get("alias_path"))
+            alias_root = ""
+        self.alias_root, tmp = self.split_path(alias_root, True)
+
         # Get user input
         self.show_filename_input(path)
 
@@ -57,27 +71,40 @@ class AdvancedNewFileCommand(sublime_plugin.WindowCommand):
         aliases = settings.get("alias")
         all_os_aliases = settings.get("os_specific_alias")
         for key in all_os_aliases:
-            if PLATFORM.lower() in all_os_aliases.get(key):
-                aliases[key] = all_os_aliases.get(key).get(PLATFORM.lower())
+            if PLATFORM in all_os_aliases.get(key):
+                aliases[key] = all_os_aliases.get(key).get(PLATFORM)
 
         return aliases
 
-    def get_default_root(self, string):
+    def get_default_root(self, string, is_alias=False):
         root = ""
 
         if string == "home":
             root = "~/"
         elif string == "current":
             root = ":"
+        elif string == "project_folder":
+            if is_alias:
+                folder_index = self.alias_folder_index
+            else:
+                folder_index = self.default_folder_index
+            if len(self.window.folders()) <= folder_index:
+                if is_alias:
+                    self.alias_folder_index = 0
+                else:
+                    self.default_folder_index = 0
         elif string == "top_folder":
-            pass
+            if is_alias:
+                self.alias_folder_index = 0
+            else:
+                self.default_folder_index = 0
         elif string == "path":
             root = "path"
         else:
             print "Invalid specifier for \"default_root\""
         return root
 
-    def split_path(self, path=""):
+    def split_path(self, path="", is_alias=False):
         HOME_REGEX = r"^~[/\\]"
         root = None
         try:
@@ -98,17 +125,21 @@ class AdvancedNewFileCommand(sublime_plugin.WindowCommand):
                 path = path[2:]
             # Default
             elif root == None:
-                root = self.root or self.window.folders()[0]
+                if is_alias:
+                    root = self.alias_root
+                    folder_index = self.alias_folder_index
+                else:
+                    root = self.root
+                    folder_index = self.default_folder_index
+                root = root or self.window.folders()[folder_index]
         except IndexError:
             root = os.path.expanduser("~")
-
         if DEBUG:
             print "AdvancedNewFile[Debug]: root is " + root
             print "AdvancedNewFile[Debug]: path is " + path
         return root, path
 
     def translate_alias(self, target):
-        RELATIVE_REGEX = r"^\.{1,2}[/\\]"
         root = None
         # Special alias - current file
         if target == "" and self.view is not None:
@@ -126,20 +157,21 @@ class AdvancedNewFileCommand(sublime_plugin.WindowCommand):
             for alias in self.aliases.keys():
                 if alias == target:
                     alias_path = self.aliases.get(alias)
-                    if re.search(RELATIVE_REGEX, alias_path) is not None:
-                        if self.view.file_name() is not None:
-                            alias_root = os.path.dirname(self.view.file_name())
+                    if re.search(HOME_REGEX, alias_path) is None:
+                        if PLATFORM == "windows":
+                            if re.search(WIN_ROOT_REGEX, alias_path) is None:
+                                root = os.path.join(self.alias_root, alias_path)
+                                break
                         else:
-                            alias_root = os.path.expanduser("~")
-                        root = os.path.join(alias_root, alias_path)
-                    else:
-                        root = os.path.expanduser(alias_path)
+                            if re.search(NIX_ROOT_REGEX, alias_path) is None:
+                                root = os.path.join(self.alias_root, alias_path)
+                                break
+                    root = os.path.expanduser(alias_path)
                     break
         # If no alias resolved, return target.
         # Help identify invalid aliases
         if root is None:
             return target
-
         return os.path.abspath(root)
 
     def show_filename_input(self, initial=''):
@@ -321,6 +353,7 @@ class PathAutocomplete(sublime_plugin.EventListener):
         return False
 
     def on_query_completions(self, view, prefix, locations):
+        self.suggestion_entries = []
         pac = PathAutocomplete
         if pac.view_id == None or view.id() != pac.view_id:
             return []
@@ -394,6 +427,9 @@ class PathAutocomplete(sublime_plugin.EventListener):
         sugg_w_spaces = []
 
         for entry in iterable_var:
+            if entry in self.suggestion_entries:
+                continue
+            self.suggestion_entries.append(entry)
             compare_entry = entry
             compare_base = base
             if PathAutocomplete.ignore_case:
