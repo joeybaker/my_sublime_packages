@@ -45,8 +45,5 @@
 	],
 	"repositories":
 	[
-		"htts://github.com/n00ge/sublime-text-haml-sass",
-		"https://github.com/n00ge/sublime-text-haml-sass.git",
-		"https://github.com/nathos/sass-textmate-bundle.git",
 	]
 }
