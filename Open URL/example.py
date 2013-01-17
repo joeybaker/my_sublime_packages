@@ -1,0 +1,2 @@
+print('boogy woogy')
+input()
