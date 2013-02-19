@@ -3,6 +3,11 @@ import sublime_plugin
 import subprocess
 import os
 
+sublime_version = 2
+
+if not sublime.version() or int(sublime.version()) > 3000:
+    sublime_version = 3
+
 if sublime.platform() == 'windows':
     import ctypes
     from ctypes import c_int32, c_uint32, c_void_p, c_wchar_p, pointer, POINTER
@@ -220,7 +225,7 @@ class ColorPickCommand(sublime_plugin.TextCommand):
                 start_color = "#" + selected
                 start_color_osx = selected
                 start_color_win = self.__hexstr_to_bgr(selected)
-                
+
 
         if sublime.platform() == 'windows':
 
@@ -230,7 +235,7 @@ class ColorPickCommand(sublime_plugin.TextCommand):
             if len(custom_colors) < 16:
                 custom_colors = ['0']*16
                 s.set('custom_colors', custom_colors)
-                
+
             cc = CHOOSECOLOR()
             ctypes.memset(ctypes.byref(cc), 0, ctypes.sizeof(cc))
             cc.lStructSize = ctypes.sizeof(cc)
@@ -250,8 +255,8 @@ class ColorPickCommand(sublime_plugin.TextCommand):
             args = [location]
 
             if not os.access(location, os.X_OK):
-                os.chmod(location, 0755)
-                
+                os.chmod(location, 0o755)
+
             if start_color_osx:
                 args.append('-startColor')
                 args.append(start_color_osx)
@@ -261,8 +266,8 @@ class ColorPickCommand(sublime_plugin.TextCommand):
             args = [location]
 
             if not os.access(location, os.X_OK):
-                os.chmod(location, 0755)
-            
+                os.chmod(location, 0o755)
+
             if start_color:
                 args.append(start_color)
 
@@ -272,6 +277,8 @@ class ColorPickCommand(sublime_plugin.TextCommand):
             color = proc.communicate()[0].strip()
 
         if color:
+            color = color.decode('utf-8')
+
             # replace all regions with color
             for region in sel:
                 word = self.view.word(region)
@@ -285,7 +292,7 @@ class ColorPickCommand(sublime_plugin.TextCommand):
                 # otherwise just replace the selected region
                 else:
                     self.view.replace(edit, region, '#' + color)
-                    
+
 
     def __get_pixel(self):
         hdc = GetDC(0)
@@ -315,7 +322,7 @@ class ColorPickCommand(sublime_plugin.TextCommand):
         except ValueError:
             return False
 
-    def __bgr_to_hexstr(self, bgr, byte_table=list(map(lambda b: '{0:02X}'.format(b), range(256)))):
+    def __bgr_to_hexstr(self, bgr, byte_table=list(['{0:02X}'.format(b) for b in range(256)])):
         # 0x00BBGGRR
         b = byte_table[(bgr >> 16) & 0xff]
         g = byte_table[(bgr >>  8) & 0xff]
