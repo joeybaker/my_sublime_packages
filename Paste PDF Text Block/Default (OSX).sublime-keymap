@@ -1,0 +1,4 @@
+[
+  { "keys": ["ctrl+super+v"], "command": "paste_pdf" },
+  { "keys": ["ctrl+shift+super+v"], "command": "paste_pdf_pandoc"}
+]

@@ -1,0 +1,8 @@
+[
+    {   "caption": "Paste PDF Text",
+        "command": "paste_pdf"
+    },
+    {   "caption": "Paste PDF Text with Pandoc Footnote",
+        "command": "paste_pdf_pandoc"
+    }
+]
