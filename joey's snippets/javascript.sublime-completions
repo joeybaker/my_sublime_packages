@@ -1,0 +1,41 @@
+{
+  "scope": "source.js - variable.other.js",
+  "completions": [
+    {
+        "trigger": "console.log()",
+        "contents": "console.log($0)"
+    },
+    {
+        "trigger": "console.info()",
+        "contents": "console.info($0)"
+    },
+    {
+        "trigger": "console.warn()",
+        "contents": "console.warn($0)"
+    },
+    {
+        "trigger": "console.error()",
+        "contents": "console.error($0)"
+    },
+    {
+        "trigger": "console.dir(object)",
+        "contents": "console.dir(${1:object})$0"
+    },
+    {
+        "trigger": "console.time(label)",
+        "contents": "console.time(${1:label})$0"
+    },
+    {
+        "trigger": "console.timeEnd(label)",
+        "contents": "console.timeEnd(${1:label})$0"
+    },
+    {
+        "trigger": "console.trace(label)",
+        "contents": "console.trace(${1:label})$0"
+    },
+    {
+        "trigger": "console.assert(expression)",
+        "contents": "console.assert(${1:expression})$0"
+    }
+  ]
+}
