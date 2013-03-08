@@ -1,8 +1,7 @@
 ## Summary
 JsFormat is a javascipt formatting plugin for Sublime Text 2.
 It uses the commandline/python-module javascript formatter from http://jsbeautifier.org/ to format the selected text, 
-or the entire file if there is no selection. The plugin does not check to make sure the buffer has a ".js" file type, 
-it just javascript formats the selection/file. Thus, use with caution if you are in an html file.
+or the entire file if there is no selection.
 
 
 ## Features
@@ -15,15 +14,21 @@ JsFormat uses whatever tab character settings are configured with the standard "
 
 In addition, the following settings are available in JsFormat/JsFormat.sublime-settings (defaults shown below):
 
+* "indent_with_tabs": false
 * "max_preserve_newlines": 4
 * "preserve_newlines": true
 * "jslint_happy": false
 * "brace_style": "collapse"
 * "keep_array_indentation": false
 * "keep_function_indentation": false
-* "indent_with_tabs": false
+* "eval_code": false,
+* "unescape_strings": false,
+* "break_chained_methods": false*
 * "ensure_newline_at_eof_on_save": false
-* "space_before_line_starters": false
+* "format_on_save": false
+
+I had an brain fart a while back and merged a pull request that modified jsbeautifier. As a result, the functionality that
+was added from that pull request has been lost. ```"ensure_newline_at_eof_on_save"``` is no longer supported.
 
 ## Install
 #### [Package Control](https://github.com/wbond/sublime_package_control) (*Recommended*)
