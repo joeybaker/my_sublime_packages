@@ -1,3 +1,0 @@
-SublimeMarkdownBuild 0.3.0
-
-- add quite a number of settings for customization
