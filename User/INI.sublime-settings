@@ -1,6 +1,7 @@
 {
 	"extensions":
 	[
-		".editorconfig"
+		".editorconfig",
+		".vimrc"
 	]
 }

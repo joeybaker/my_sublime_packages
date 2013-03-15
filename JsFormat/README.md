@@ -1,29 +1,36 @@
 ## Summary
 JsFormat is a javascipt formatting plugin for Sublime Text 2.
 It uses the commandline/python-module javascript formatter from http://jsbeautifier.org/ to format the selected text, 
-or the entire file if there is no selection. The plugin does not check to make sure the buffer has a ".js" file type, 
-it just javascript formats the selection/file. Thus, use with caution if you are in an html file.
+or the entire file if there is no selection.
 
 
 ## Features
 * javascript/json formatting (obviously)
 * all settings are customizable (whitespace, formatting style, etc..)
-* puts the cursor back in the same location it was before formatting (accounts for whitespace/newline changes)
+* puts the cursor back in the same location it was before formatting (accounts for whitespace/newline changes)* 
+* Sublime Text 3 support (as much as we can support alpha/beta software)
 
 ## Settings
 JsFormat uses whatever tab character settings are configured with the standard "translate_tabs_to_spaces" and "tab_size" sublime settings.
 
 In addition, the following settings are available in JsFormat/JsFormat.sublime-settings (defaults shown below):
 
+* "indent_with_tabs": false
 * "max_preserve_newlines": 4
 * "preserve_newlines": true
 * "jslint_happy": false
 * "brace_style": "collapse"
 * "keep_array_indentation": false
 * "keep_function_indentation": false
-* "indent_with_tabs": false
-* "ensure_newline_at_eof_on_save": false
-* "space_before_line_starters": false
+* "eval_code": false,
+* "unescape_strings": false,
+* "break_chained_methods": false*
+* "format_on_save": false
+
+I had an brain fart a while back and merged a pull request that modified jsbeautifier. As a result, the functionality that
+was added from that pull request has been lost. ```"ensure_space_before_linestarters"``` is no longer supported.
+
+Suport for ensure_newline_at_eof_on_save has been removed as well. This functionality exists in sublime core, no need for JsFormat to duplicate it.
 
 ## Install
 #### [Package Control](https://github.com/wbond/sublime_package_control) (*Recommended*)

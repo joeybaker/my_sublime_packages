@@ -5,6 +5,7 @@
 	h$2
 </hgroup>$0]]></content>
 	<tabTrigger>hgroup</tabTrigger>
+  <scope>source.php,text.html</scope>
 	<description>&lt;hgroup&gt;</description>
 	<scope>text.html</scope>
 </snippet>

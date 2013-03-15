@@ -11,6 +11,7 @@
 	</object>
 </video>$0]]></content>
 	<tabTrigger>video</tabTrigger>
+	<scope>source.php,text.html</scope>
 	<description>&lt;video&gt; with legacy object</description>
 	<scope>text.html</scope>
 </snippet>

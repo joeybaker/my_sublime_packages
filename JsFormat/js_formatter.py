@@ -1,6 +1,64 @@
-import sublime, sublime_plugin, jsbeautifier, re
+import sublime, sublime_plugin, re, sys, os
 
-s = sublime.load_settings("JsFormat.sublime-settings")
+directory = os.path.dirname(os.path.realpath(__file__))
+libs_path = os.path.join(directory, "libs")
+is_py2k = sys.version_info < (3, 0)
+
+
+# Python 2.x on Windows can't properly import from non-ASCII paths, so
+# this code added the DOC 8.3 version of the lib folder to the path in
+# case the user's username includes non-ASCII characters
+def add_lib_path(lib_path):
+	def _try_get_short_path(path):
+		path = os.path.normpath(path)
+		if is_py2k and os.name == 'nt':
+			from ctypes import windll, create_unicode_buffer
+			buf = create_unicode_buffer(512)
+			path = unicode(path)
+			if windll.kernel32.GetShortPathNameW(path, buf, len(buf)):
+				path = buf.value
+		return path
+	lib_path = _try_get_short_path(lib_path)
+	if lib_path not in sys.path:
+		sys.path.append(lib_path)
+
+# crazyness to get jsbeautifier.unpackers to actually import
+# with sublime's weird hackery of the path and module loading
+add_lib_path(libs_path)
+
+# if you don't explicitly import jsbeautifier.unpackers here things will bomb out,
+# even though we don't use it directly.....
+import jsbeautifier, jsbeautifier.unpackers
+import merge_utils
+
+s = None
+
+def plugin_loaded():
+	global s
+	s = sublime.load_settings("JsFormat.sublime-settings")
+
+if is_py2k:
+	plugin_loaded()
+
+class PreSaveFormatListner(sublime_plugin.EventListener):
+	"""Event listener to run JsFormat during the presave event"""
+	def on_pre_save(self, view):
+		fName = view.file_name()
+		vSettings = view.settings()
+		syntaxPath = vSettings.get('syntax')
+		syntax = ""
+		ext = ""
+
+		if (fName != None): # file exists, pull syntax type from extension
+			ext = os.path.splitext(fName)[1][1:]
+		if(syntaxPath != None):
+			syntax = os.path.splitext(syntaxPath)[0].split('/')[-1].lower()
+
+		formatFile = ext in ['js', 'json'] or "javascript" in syntax or "json" in syntax
+
+		if(s.get("format_on_save") == True and formatFile):
+			view.run_command("js_format")
+
 
 class JsFormatCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
@@ -17,55 +75,94 @@ class JsFormatCommand(sublime_plugin.TextCommand):
 		opts.keep_array_indentation = s.get("keep_array_indentation") or False
 		opts.keep_function_indentation = s.get("keep_function_indentation") or False
 		opts.indent_with_tabs = s.get("indent_with_tabs") or False
-		opts.space_before_line_starters = s.get("space_before_line_starters") or False
+		opts.eval_code = s.get("eval_code") or False
+		opts.unescape_strings = s.get("unescape_strings") or False
+		opts.break_chained_methods = s.get("break_chained_methods") or False
 
 		selection = self.view.sel()[0]
-		nwsOffset = self.prev_non_whitespace()
-
-		# do formatting and replacement
-		replaceRegion = None
 		formatSelection = False
-
 		# formatting a selection/highlighted area
 		if(len(selection) > 0):
 			formatSelection = True
-			replaceRegion = selection
 
-		# formatting the entire file
+		if formatSelection:
+			self.format_selection(edit, opts)
 		else:
-			replaceRegion = sublime.Region(0, self.view.size())
+			self.format_whole_file(edit, opts)
 
-		res = jsbeautifier.beautify(self.view.substr(replaceRegion), opts)
-		if(not formatSelection and settings.get('ensure_newline_at_eof_on_save')):
-			res = res + "\n"
+	def format_selection(self, edit, opts):
+		def get_line_indentation_pos(view, point):
+			line_region = view.line(point)
+			pos = line_region.a
+			end = line_region.b
+			while pos < end:
+				ch = view.substr(pos)
+				if ch != ' ' and ch != '\t':
+					break
+				pos += 1
+			return pos
 
-		self.view.replace(edit, replaceRegion, res)
+		def get_indentation_count(view, start):
+			indent_count = 0
+			i = start - 1
+			while i > 0:
+				ch = view.substr(i)
+				scope = view.scope_name(i)
+				# Skip preprocessors, strings, characaters and comments
+				if 'string.quoted' in scope or 'comment' in scope or 'preprocessor' in scope:
+					extent = view.extract_scope(i)
+					i = extent.a - 1
+					continue
+				else:
+					i -= 1
 
-		# re-place cursor
-		offset = self.get_nws_offset(nwsOffset, self.view.substr(sublime.Region(0, self.view.size())))
-		rc = self.view.rowcol(offset)
-		pt = self.view.text_point(rc[0], rc[1])
-		sel = self.view.sel()
-		sel.clear()
-		self.view.sel().add(sublime.Region(pt))
+				if ch == '}':
+					indent_count -= 1
+				elif ch == '{':
+					indent_count += 1
+			return indent_count
 
-		self.view.show_at_center(pt)
+		view = self.view
+		regions = []
+		for sel in view.sel():
+			start = get_line_indentation_pos(view, min(sel.a, sel.b))
+			region = sublime.Region(
+				view.line(start).a,  # line start of first line
+				view.line(max(sel.a, sel.b)).b)  # line end of last line
+			indent_count = get_indentation_count(view, start)
+			# Add braces for indentation hack
+			code = '{' * indent_count
+			if indent_count > 0:
+				code += '\n'
+			code += view.substr(region)
+			# Performing astyle formatter
+			formatted_code = jsbeautifier.beautify(code, opts)
+			if indent_count > 0:
+				for _ in range(indent_count):
+					index = formatted_code.find('{') + 1
+					formatted_code = formatted_code[index:]
+				formatted_code = re.sub(r'[ \t]*\n([^\r\n])', r'\1', formatted_code, 1)
+			else:
+				# HACK: While no identation, a '{' will generate a blank line, so strip it.
+				search = "\n{"
+				if search not in code:
+					formatted_code = formatted_code.replace(search, '{', 1)
+			# Applying formatted code
+			view.replace(edit, region, formatted_code)
+			# Region for replaced code
+			if sel.a <= sel.b:
+				regions.append(sublime.Region(region.a, region.a + len(formatted_code)))
+			else:
+				regions.append(sublime.Region(region.a + len(formatted_code), region.a))
+		view.sel().clear()
+		# Add regions of formatted code
+		[view.sel().add(region) for region in regions]
 
-
-	def prev_non_whitespace(self):
-		pos = self.view.sel()[0].a
-		preTxt = self.view.substr(sublime.Region(0, pos));
-		return len(re.findall('\S', preTxt))
-
-	def get_nws_offset(self, nonWsChars, buff):
-		nonWsSeen = 0
-		offset = 0
-		for i in range(0, len(buff)):
-			offset += 1
-			if not(buff[i].isspace()):
-				nonWsSeen += 1
-
-			if(nonWsSeen == nonWsChars):
-				break
-
-		return offset
+	def format_whole_file(self, edit, opts):
+		view = self.view
+		region = sublime.Region(0, view.size())
+		code = view.substr(region)
+		formatted_code = jsbeautifier.beautify(code, opts)
+		_, err = merge_utils.merge_code(view, edit, code, formatted_code)
+		if err:
+			sublime.error_message("JsFormat: Merge failure: '%s'" % err)
