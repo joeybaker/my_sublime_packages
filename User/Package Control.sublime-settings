@@ -43,7 +43,8 @@
 		"SublimeLinter",
 		"Theme - Soda",
 		"TidyHTML5",
-		"Tmux"
+		"Tmux",
+		"Web Inspector"
 	],
 	"repositories":
 	[

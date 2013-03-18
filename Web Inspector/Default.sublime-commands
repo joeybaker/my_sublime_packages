@@ -1,0 +1,6 @@
+[
+    {
+        "caption": "Web Inspector",
+        "command": "swi_debug"
+    }
+]
