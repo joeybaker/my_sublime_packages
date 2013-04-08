@@ -6,7 +6,7 @@
 		"mmd",
 		"txt"
 	],
-	"trim_trailing_white_space_on_save": false,
+	"trim_trailing_white_space_on_save": true,
 	"font_face": "Menlo",
 	"font_size": 15,
 	"font_options": [ "subpixel_antialias", "no_round", "directwrite"],

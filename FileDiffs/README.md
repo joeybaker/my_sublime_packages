@@ -15,7 +15,7 @@ Or:
 
     - OS X: ~/Library/Application Support/Sublime Text 2/Packages/
     - Windows: %APPDATA%/Sublime Text 2/Packages/
-    - Linux: ~/.Sublime Text 2/Packages/
+    - Linux: ~/.Sublime Text 2/Packages/ or ~/.config/sublime-text-2/Packages
 
 2. clone this repo
 3. Install keymaps for the commands (see Example.sublime-keymap for my preferred keys)
@@ -46,3 +46,10 @@ The rest of the commands are not bound by default:
 `file_diff_file`: Shows the diff of the current file or selection(s) and a file that is in the current project.
 
 `file_diff_tab`: Shows the diff of the current file or selection(s) and an open file (aka a file that has a tab).
+
+Help!
+-----
+
+Check the [wiki][] for more tips
+
+[wiki]: https://github.com/colinta/SublimeFileDiffs/wiki

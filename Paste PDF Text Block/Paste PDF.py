@@ -19,11 +19,11 @@ def clean_paste( data ):
 	#         where the text is in form ' - ' & ensure
 	#         we are within a few characters of a previous
 	#         end line. Table that for now.
-	data = data.replace('- ', '') 
+	data = data.replace('- ', '')
 
 	# French accents (Gery Casiez)
 	data = data.replace(u'à',u'à')
-	data = data.replace(u'â',u'â') 
+	data = data.replace(u'â',u'â')
 	data = data.replace(u'À',u'À')
 	data = data.replace(u'Â',u'Â')
 
@@ -40,7 +40,7 @@ def clean_paste( data ):
 	data = data.replace(u'î',u'î')
 	data = data.replace(u'Î',u'Î')
 	data = data.replace(u'ï',u'ï')
-	data = data.replace(u'Ï',u'Ï')	 
+	data = data.replace(u'Ï',u'Ï')
 
 	data = data.replace(u'ô',u'ô')
 	data = data.replace(u'Ô',u'Ô')
@@ -48,10 +48,10 @@ def clean_paste( data ):
 	data = data.replace(u'ù',u'ù')
 	data = data.replace(u'Ù',u'Ù')
 	data = data.replace(u'û',u'û')
-	data = data.replace(u'Û',u'Û')		
+	data = data.replace(u'Û',u'Û')
 
-	data = data.replace(u'œ',u'\oe ') 
-	data = data.replace(u'Ç',u'Ç') 
+	data = data.replace(u'œ',u'\oe ')
+	data = data.replace(u'Ç',u'Ç')
 	data = data.replace(u'ç',u'ç')
 
 	return data;

@@ -1,7 +1,7 @@
 Prettify JSON plugin for Sublime Text 2
 
 ## Installation
-Install this repository via [Package Control](http://wbond.net/sublime_packages/package_control)
+Install this sublime text package via [Package Control](http://wbond.net/sublime_packages/package_control)
 
 ## Usage
 To prettify JSON, make selection of json and press keys:
@@ -35,4 +35,6 @@ You can change configuration key **indent** to string value "\t" or any other st
 Be sure "Indent Using Spaces" is unchecked otherwise you will not see effect and ST2 will convert it back to spaces.
 
 ## Thanks
-https://github.com/the3rdhbtaylor
+
+- @the3rdhbtaylor https://github.com/the3rdhbtaylor
+- @crcastle https://github.com/crcastle

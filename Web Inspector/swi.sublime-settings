@@ -2,8 +2,9 @@
 	"chrome_path": {
 		"osx": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
 		"windows": "C:\\Program Files\\Google\\Chrome\\chrome.exe",
-		"linux": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+		"linux": "/usr/bin/google-chrome"
 	},
+	"chrome_profile": "Default",
 	"chrome_remote_port": "9222",
 	"breakpoint_scope": "swi.breakpoint",
 	"current_line_scope": "swi.current",
@@ -18,8 +19,10 @@
 	    "rows": [0.0, 0.7, 1.0],
 	    "cells": [[0, 0, 2, 1], [0, 1, 1, 2], [1, 1, 2, 2]]
 	},
-	"reload_on_start": true,
+	"reload_on_start": false,
 	"reload_on_save": true,
+	"reload_timeout": 0,
+	"user_agent": "",
 	"set_script_source": false,
 	"open_stack_current_in_new_tab": false,
 	"breaks": {}
