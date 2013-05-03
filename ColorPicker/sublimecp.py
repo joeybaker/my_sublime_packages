@@ -2,6 +2,8 @@ import sublime
 import sublime_plugin
 import subprocess
 import os
+from stat import *
+import threading
 
 sublime_version = 2
 
@@ -239,7 +241,15 @@ class ColorPickCommand(sublime_plugin.TextCommand):
             cc = CHOOSECOLOR()
             ctypes.memset(ctypes.byref(cc), 0, ctypes.sizeof(cc))
             cc.lStructSize = ctypes.sizeof(cc)
-            cc.hwndOwner = self.view.window().hwnd()
+
+            if sublime_version == 2:
+                cc.hwndOwner = self.view.window().hwnd()
+            else:
+                # Temporary fix for Sublime Text 3 - For some reason the hwnd crashes it
+                # Of course, clicking out of the colour picker and into Sublime will make
+                # Sublime not respond, but as soon as you exit the colour picker it's ok
+                cc.hwndOwner = None
+
             cc.Flags = CC_SOLIDCOLOR | CC_FULLOPEN | CC_RGBINIT
             cc.rgbResult = c_uint32(start_color_win) if not paste and start_color_win else self.__get_pixel()
             cc.lpCustColors = self.__to_custom_color_array(custom_colors)
@@ -251,23 +261,13 @@ class ColorPickCommand(sublime_plugin.TextCommand):
 
 
         elif sublime.platform() == 'osx':
-            location = os.path.join(sublime.packages_path(), 'ColorPicker', 'lib', 'osx_colorpicker')
-            args = [location]
-
-            if not os.access(location, os.X_OK):
-                os.chmod(location, 0o755)
-
+            args = [os.path.join(sublime.packages_path(), usrbin, binname)]
             if start_color_osx:
                 args.append('-startColor')
                 args.append(start_color_osx)
 
         else:
-            location = os.path.join(sublime.packages_path(), 'ColorPicker', 'lib', 'linux_colorpicker.py')
-            args = [location]
-
-            if not os.access(location, os.X_OK):
-                os.chmod(location, 0o755)
-
+            args = [os.path.join(sublime.packages_path(), usrbin, binname)]
             if start_color:
                 args.append(start_color)
 
@@ -277,7 +277,8 @@ class ColorPickCommand(sublime_plugin.TextCommand):
             color = proc.communicate()[0].strip()
 
         if color:
-            color = color.decode('utf-8')
+            if sublime.platform() != 'windows' or sublime_version == 2:
+                color = color.decode('utf-8')
 
             # replace all regions with color
             for region in sel:
@@ -337,3 +338,69 @@ class ColorPickCommand(sublime_plugin.TextCommand):
         g = int(hexstr[2:4], 16)
         b = int(hexstr[4:6], 16)
         return (b << 16)| (g << 8) | r
+
+
+if sublime.platform() == 'osx':
+    binname = 'osx_colorpicker'
+else:
+    binname = 'linux_colorpicker.py'
+
+usrbin = os.path.join('User', 'ColorPicker', 'bin')
+
+def update_binary():
+    bindir = os.path.join(sublime.packages_path(), usrbin)
+    binpath = os.path.join(bindir, binname)
+    pkgpath = os.path.join(sublime.installed_packages_path(), 'ColorPicker.sublime-package')
+    respath = 'Packages/ColorPicker/lib/' + binname
+    libdir = os.path.join(sublime.packages_path(), 'ColorPicker', 'lib')
+    libpath = os.path.join(libdir, binname)
+
+    bininfo = None
+    bindata = None
+
+    if os.path.exists(binpath):
+        bininfo = os.stat(binpath)
+    elif not os.path.exists(bindir):
+        os.makedirs(bindir, 0o755)
+
+    if os.path.exists(libpath):
+        libinfo = os.stat(libpath)
+        if bininfo == None or bininfo[ST_MTIME] < libinfo[ST_MTIME]:
+            with open(libpath, 'rb') as libfile:
+                bindata = libfile.read()
+                libfile.close()
+    elif sublime_version == 3 and os.path.exists(pkgpath):
+        pkginfo = os.stat(pkgpath)
+        if bininfo == None or bininfo[ST_MTIME] < pkginfo[ST_MTIME]:
+            bindata = sublime.load_binary_resource(respath)
+
+    if bindata != None:
+        print("* Updating " + binpath)
+        with open(binpath, 'wb') as binfile:
+            binfile.write(bindata)
+            binfile.close()
+
+    if not os.access(binpath, os.X_OK):
+        os.chmod(binpath, 0o755)
+
+
+def plugin_loaded():
+    if sublime.platform() == 'osx' or sublime.platform() == 'linux':
+        set_timeout_async(update_binary)
+
+
+if sublime_version == 3:
+    set_timeout_async = sublime.set_timeout_async
+else:
+    class Async(threading.Thread):
+        def __init__(self, callback):
+            self.callback = callback
+            threading.Thread.__init__(self)
+
+        def run(self):
+            self.callback()
+
+    def set_timeout_async(callback, delay_ms = 0):
+        sublime.set_timeout(lambda: Async(callback).start(), delay_ms)
+
+    plugin_loaded()

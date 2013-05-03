@@ -7,6 +7,7 @@
 		".bash_prompt",
 		".bashrc",
 		".brew",
+		".curlrc",
 		".exports",
 		".functions",
 		".git",
@@ -20,8 +21,11 @@
 		".packages",
 		".pkginit",
 		".screenrc",
-		".zshrc",
 		".zlogin",
+		".zlogout",
+		".zprofile",
+		".zshenv",
+		".zshrc",
 		".wgetrc"
 	]
 }

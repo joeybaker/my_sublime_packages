@@ -1,8 +1,14 @@
 import sublime
 import sublime_plugin
-import threading
-import sys
-from bower.utils.download import Download
+
+try:
+    # ST3
+    from ..utils.download import Download
+
+except ImportError:
+    # ST2
+    from bower.utils.download import Download
+
 
 class DownloadPackageCommand(sublime_plugin.TextCommand):
     result = None
@@ -12,7 +18,7 @@ class DownloadPackageCommand(sublime_plugin.TextCommand):
         self.edit = edit
         self.pkg_name = pkg_name
         self.cwd = cwd
-        
+
         threads = []
         thread = Download(pkg_name, cwd)
         threads.append(thread)
@@ -24,11 +30,10 @@ class DownloadPackageCommand(sublime_plugin.TextCommand):
         next_threads = []
         for thread in threads:
             status = thread.result
-            txt = thread.txt
             if thread.is_alive():
                 next_threads.append(thread)
                 continue
-            if thread.result == False:
+            if thread.result is False:
                 continue
 
         threads = next_threads
@@ -44,7 +49,7 @@ class DownloadPackageCommand(sublime_plugin.TextCommand):
                 dir = 1
 
             i += dir
-            sublime.status_message(('Downloading %s [%s=%s]') % (self.pkg_name, ' ' * before, ' ' * after)) 
+            sublime.status_message(('Downloading %s [%s=%s]') % (self.pkg_name, ' ' * before, ' ' * after))
 
             sublime.set_timeout(lambda: self.handle_threads(edit, threads, offset, i, dir), 100)
             return

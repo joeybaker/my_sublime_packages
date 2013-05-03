@@ -1,13 +1,18 @@
 import sublime_plugin
-from bower.utils.api import API
+try:
+    # ST3
+    from ..utils.api import API
+except ImportError:
+    # ST2
+    from bower.utils.api import API
+
 
 class InstallCommand(sublime_plugin.WindowCommand):
-    fileList = []
-
     def run(self, *args, **kwargs):
         self.list_packages()
 
     def list_packages(self):
+        self.fileList = []
         packages = API().get('packages')
         packages.reverse()
 

@@ -33,7 +33,7 @@ logger = logging.getLogger()
 
 
 class AdvancedNewFileCommand(sublime_plugin.WindowCommand):
-    def run(self, is_python=False):
+    def run(self, is_python=False, initial_path=None):
         self.PLATFORM = sublime.platform().lower()
         self.root = None
         self.alias_root = None
@@ -60,11 +60,14 @@ class AdvancedNewFileCommand(sublime_plugin.WindowCommand):
         PathAutocomplete.set_ignore_case(settings.get("ignore_case"))
 
         # Search for initial string
-        path = settings.get("default_initial", "")
-        if settings.get("use_cursor_text", False):
-            tmp = self.get_cursor_path()
-            if tmp != "":
-                path = tmp
+        if initial_path is not None:
+            path = initial_path
+        else:
+            path = settings.get("default_initial", "")
+            if settings.get("use_cursor_text", False):
+                tmp = self.get_cursor_path()
+                if tmp != "":
+                    path = tmp
 
         alias_root = self.get_default_root(settings.get("alias_root"), True)
         if alias_root == "path":
@@ -310,13 +313,20 @@ class AdvancedNewFileCommand(sublime_plugin.WindowCommand):
             open(os.path.join(base, filename), "a").close()
 
     def create_folder(self, path):
+        init_list = []
+        if self.is_python:
+            temp_path = path
+            while not os.path.exists(temp_path):
+                init_list.append(temp_path)
+                temp_path = os.path.dirname(temp_path)
         try:
             os.makedirs(path)
         except OSError as ex:
             if ex.errno != errno.EEXIST:
                 raise
-        if self.is_python:
-            open(os.path.join(base, '__init__.py'), 'a').close()
+
+        for entry in init_list:
+            open(os.path.join(entry, '__init__.py'), 'a').close()
 
     def get_cursor_path(self):
         if self.view == None:
@@ -325,7 +335,7 @@ class AdvancedNewFileCommand(sublime_plugin.WindowCommand):
         view = self.view
         path = ""
         for region in view.sel():
-            syntax = view.syntax_name(region.begin())
+            syntax = view.scope_name(region.begin())
             if region.begin() != region.end():
                 path = view.substr(region)
                 break
@@ -557,6 +567,19 @@ class PathAutocomplete(sublime_plugin.EventListener):
     @staticmethod
     def set_view_id(view_id):
         PathAutocomplete.view_id = view_id
+
+
+class AdvancedNewFileAtCommand(sublime_plugin.WindowCommand):
+    def run(self, dirs):
+        if len(dirs) != 1:
+            return
+        path = dirs[0]
+        self.window.run_command("advanced_new_file", {"initial_path": path + os.sep})
+
+
+    def is_visible(self, dirs):
+        settings = sublime.load_settings("AdvancedNewFile.sublime-settings")
+        return settings.get("show_sidebar_menu", False) and len(dirs) == 1
 
 
 def get_settings(view):

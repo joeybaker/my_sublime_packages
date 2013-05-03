@@ -4,7 +4,6 @@ import sublime_plugin, sublime, re
 # to transfer cleaned data to sublime text
 def clean_paste( data ):
 	# step 1. make smart ticks dumb
-	# data = unicode(sublime.get_clipboard())
 	data = data.replace(u'”', '"').replace(u'“', '"').replace(u'’', "'")
 	# step 2. replace hr's with new lines
 	data = data.replace('________________________________________', '\n')
@@ -65,13 +64,13 @@ def pandoc_clean_paste( data ):
 # Paste PDF Function
 class PastePdf(sublime_plugin.TextCommand):
 	def run(self, edit):
-		old_clipboard = unicode(sublime.get_clipboard())
+		old_clipboard = sublime.get_clipboard()
 		sublime.set_clipboard(clean_paste(old_clipboard))
 		self.view.run_command('paste')
 
 class PastePdfPandoc(sublime_plugin.TextCommand):
 	def run(self, edit):
-		old_clipboard = unicode(sublime.get_clipboard())
+		old_clipboard = sublime.get_clipboard()
 		sublime.set_clipboard(pandoc_clean_paste(old_clipboard))
 		self.view.run_command('paste')
 		sublime.set_clipboard(old_clipboard)

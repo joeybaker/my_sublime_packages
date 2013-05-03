@@ -1,5 +1,7 @@
 # Description
 
+> Tested on Sublime Text 2 and Sublime Text 3.
+
 Clipboard functionality to copy a block of text from PDF and paste it with the new lines and hyphenated words stripped so that it is a clean paste of a block of text into the target area. 
 
 Given that we do a lot of work between PDFs and Markdown in drafting of documents, it seemed necessary to work on the paste functionality a bit. 

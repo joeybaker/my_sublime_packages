@@ -14,6 +14,7 @@ Install via [Package Control](http://wbond.net/sublime_packages/package_control)
 `.bash_prompt`
 `.bashrc`
 `.brew`
+`.curlrc`
 `.exports`
 `.functions`
 `.git`
@@ -27,8 +28,11 @@ Install via [Package Control](http://wbond.net/sublime_packages/package_control)
 `.packages`
 `.pkginit`
 `.screenrc`
-`.zshrc`
 `.zlogin`
+`.zlogout`
+`.zprofile`
+`.zshenv`
+`.zshrc`
 `.wgetrc`
 
 If you want other file types, add them in or submit a pull request.
@@ -42,3 +46,5 @@ If you want other file types, add them in or submit a pull request.
 - [mathiasbynens](https://github.com/mathiasbynens)
 - [lotsofcode](https://github.com/lotsofcode)
 - [vivek](https://github.com/vivek)
+- [darinmorrison](https://github.com/darinmorrison)
+- [alrra](https://github.com/alrra)
