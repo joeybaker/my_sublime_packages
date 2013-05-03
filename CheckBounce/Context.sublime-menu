@@ -1,0 +1,7 @@
+[
+    { "caption": "-" },
+    { "command": "check_contextual", "args": { "action": "ignore" }, "caption": "Ignore word" },
+    { "command": "check_contextual", "args": { "action": "learn" }, "caption": "Add word to dictionary" },
+    { "command": "check_contextual", "args": { "action": "suggest" }, "caption": "Suggest corrections" },
+    { "caption": "-" }
+]

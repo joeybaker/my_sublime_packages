@@ -1,0 +1,18 @@
+        CHECKBOUNCE FOR ST2 & ST3       
+=========================================
+    * 07 April 2013---Grammar checking
+      added; discovery that OS X's built-in
+      grammar checker is sort of lame
+      made.
+    * 06 April 2013---Fully compatible
+      with both ST2 and ST3. Runs in the
+      background, corrects documents in
+      any language, generally shames the
+      Sublime spell-checker. It's been
+      thoroughly tested, but please
+      report any errors to the author,
+      Daniel, through the Github Issues
+      interface at
+  https://github.com/phyllisstein/CheckBounce
+      or via e-mail, to d at daniel dot sh.
+      Happy checking!

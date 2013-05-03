@@ -1,0 +1,4 @@
+[
+    { "keys": ["ctrl+alt+s"], "command": "act_on_word"},
+    { "keys": ["ctrl+alt+a"], "command": "check_bounce_cycle"}
+]

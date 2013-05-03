@@ -1,0 +1,20 @@
+{
+    "schema_version": "1.2",
+    "packages": [
+        {
+            "name": "CheckBounce",
+            "description": "OS X spell checking for Sublime Text 2&3",
+            "author": "phyllisstein",
+            "homepage": "https://github.com/phyllisstein/CheckBounce",
+            "last_modified": "2013-04-19 23:01:00",
+            "platforms": {
+                "osx": [
+                    {
+                        "version": "2.1.2",
+                        "url": "https://nodeload.github.com/phyllisstein/CheckBounce/zip/2.1.2"
+                    }
+                ]
+            }
+        }
+    ]
+}

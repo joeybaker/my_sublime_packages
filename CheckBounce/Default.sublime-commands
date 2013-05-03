@@ -1,0 +1,4 @@
+[
+    { "caption": "CheckBounce: Toggle Spell Checking", "command": "toggle_check_bounce_spelling" },
+    { "caption": "CheckBounce: Toggle Grammar Checking", "command": "toggle_check_bounce_grammar" }
+]

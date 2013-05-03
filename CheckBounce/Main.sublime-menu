@@ -1,0 +1,68 @@
+[
+    {
+        "caption": "Preferences",
+        "mnemonic": "n",
+        "id": "preferences",
+        "children":
+        [
+            {
+                "caption": "Package Settings",
+                "mnemonic": "P",
+                "id": "package-settings",
+                "children":
+                [
+                    {
+                        "caption": "CheckBounce",
+                        "children":
+                        [
+                            {
+                                "command": "toggle_check_bounce_spelling",
+                                "caption": "Enable Spellcheck",
+                                "checkbox": "true"
+                            },
+                            {
+                                "command": "toggle_check_bounce_grammar",
+                                "caption": "Enable Grammar Check",
+                                "checkbox": "true"
+                            },
+                            { "caption": "-" },
+                            {
+                                "command": "open_file",
+                                "args": {"file": "${packages}/CheckBounce/README.mdown"},
+                                "caption": "README"
+                            },
+                            {
+                                "command": "open_file",
+                                "args": {"file": "${packages}/CheckBounce/changelog"},
+                                "caption": "Change Log"
+                            },
+                            { "caption": "-" },
+                            {
+                                "command": "open_file",
+                                "args": {"file": "${packages}/CheckBounce/CheckBounce.sublime-settings"},
+                                "caption": "Settings – Default"
+                            },
+                            {
+                                "command": "open_file",
+                                "args": {"file": "${packages}/User/CheckBounce.sublime-settings"},
+                                "caption": "Settings – User"
+                            },
+                            { "caption": "-" },
+                            {
+                                "command": "open_file",
+                                "args": {"file": "${packages}/CheckBounce/Default (OSX).sublime-keymap"},
+                                "caption": "Key Bindings – Default"
+                            },
+                            {
+                                "command": "open_file",
+                                "args": {"file": "${packages}/User/Default (OSX).sublime-keymap"},
+                                "caption": "Key Bindings – User"
+                            },
+                            { "caption": "-" }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]

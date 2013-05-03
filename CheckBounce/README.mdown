@@ -1,0 +1,34 @@
+# CheckBounce for Sublime Text
+CheckBounce is a neat little plugin, based on [lunixbochs](https://github.com/lunixbochs/)' [sublimelint](https://github.com/lunixbochs/sublimelint) package, intended to replace the Sublime Text 2 and 3 spell-checker with the built-in OS X dictionary. It marks and highlights spelling errors, provides suggestions for mistakes, and allows you to ignore words in a particular document or add words to the global OS X spelling dictionary. Features provided by OS X include automatic language detection, word counting and spelling correction in any supported language, ignoring and learning words, grammar checking, and more.
+
+## Installation
+CheckBounce is now in the [Sublime Package Control](http://wbond.net/sublime_packages/package_control/installation) database! You can install it by opening the Command Palette with `⌘+⇧+P`, searching for "Package Control: Install Package," and searching the list of packages for "CheckBounce."
+
+You can also install it by [downloading the repo's zip](https://github.com/phyllisstein/CheckBounce/archive/master.zip), renaming the folder you extract from it `CheckBounce` (rather than `CheckBounce-master`), and copying it into your Sublime Text packages directory. This is `~/Library/Application Support/Sublime Text 2/Packages` for ST2 users, and `~/Library/Application Support/Sublime Text 3/Packages` for ST3 users. You can also clone the repository using git, or Github's GUI. This takes a bit more effort, but makes updating simpler. See the relevant documentation for more info.
+
+## Usage
+The package is configured, by default, to check spelling in LaTeX and Markdown documents and in plain text files. When it detects a spelling error, a squiggly red underline appears below the word. (In ST2, the word is outlined in a red box.) By placing your cursor within an error and pressing `Ctrl+Option+S`, you can make a decision about what to do with the error, telling the package to ignore it, add it to OS X's global spelling dictionary, or correct it. You can also right-click on words to ignore, add, and replace them.
+
+Pressing `Ctrl+Option+A` will summon a quick panel that cycles through all the errors in your document and gives you the option to correct them, ignore them, or replace them. You can also move forward or backward through the list of errors. Press `Esc` to dismiss the quick panel and cancel checking.
+
+Grammar checking is disabled by default, because the built-in OS X grammar checker is mildly useless, but can be enabled in the settings or through the options below.
+
+To disable or re-enable checking in a particular document, you can either use the Command Palette (`⌘+Shift+P`) and search for "CheckBounce: Toggle Spell Checking," and "CheckBounce: Toggle Grammar Checking," or click "Sublime Text→Preferences→Package Settings→CheckBounce→Enable Spellcheck" and "Enable Grammar Check" to toggle the checker on and off. Note that these options will not be enabled for file-types not on the syntax whitelist (see below).
+
+## Configuration
+The `CheckBounce.sublime-settings` file provides descriptions of the configurable options available in the package. Leave the default settings intact; to make changes, open the file `{Packages}/User/CheckBounce.sublime-settings` (or click "Sublime Text→Preferences→Package Settings→CheckBounce→Settings -- User"). The following options are available:
+
+* `"check_spelling"`  
+    Set to `true` to allow the package to check spelling in freshly-loaded documents by default. Documents will only be checked if they are on the list of whitelisted syntaxes (see below). Default: `"true"`.
+* `"check_grammar"`  
+    Set to `true` to allow the package to check grammar in freshly-loaded documents by default. Documents will only be checked if they are on the list of whitelisted syntaxes (see below). Default: `"false"`.
+* `"autocorrect"`  
+    If this key is set to `true`, the package's autocorrect system will be enabled. It provides suggestions for words as you write them, using what information in can gather about your current language. (Try turning it on and typing in French.) In order for autocorrect to be displayed automatically, you must also add `text` to the `"auto_complete_selector"` value in your Sublime settings. You can also trigger it with the `auto_complete` keybinding---by default, in ST3, `Ctrl+Space`. Default: `"false"`.
+* `"syntax_whitelist"`  
+    A list of languages that the checker should check. Useful for making sure that your LaTeX and Markdown documents have their spelling corrected, but your Python code doesn't. Default: `[LaTeX, Markdown, Plain]`.
+
+## Known Issues
+* Enabling or disabling spelling or grammar checking is sometimes not reflected in the affected view until the view is modified.
+
+## License
+This package is based on [lunixbochs](https://github.com/lunixbochs/)' superb [sublimelint](https://github.com/lunixbochs/sublimelint) package; as such, it's released under terms of the MIT license.

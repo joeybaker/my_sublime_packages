@@ -1,0 +1,21 @@
+{
+    // Should the package automatically check spelling in whiteliisted views?
+    "check_spelling": true,
+
+    // Should the package automatically check grammar in whitelisted views?
+    "check_grammar": false,
+
+    // Should the package suggest automatic spelling corrections?
+    // In order for autocorrect to work properly, you must also add
+    // "text" to the "auto_complete_selector" value in your Sublime preferences.
+    // See the README for more information.
+    "autocorrect": false,
+
+    // Which syntaxes should spell-checking be enabled in?
+    "syntax_whitelist":
+    [
+        "LaTeX",
+        "Markdown",
+        "Plain"
+    ]
+}
