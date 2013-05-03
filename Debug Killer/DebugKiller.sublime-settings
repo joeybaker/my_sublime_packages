@@ -1,0 +1,43 @@
+{
+	"patterns": [
+		{
+			"pattern": "(console\\.log\\(.*?\\))",
+			"scopes": [
+				"storage.type.function.js",
+				"meta.function.json.js",
+				"source.js"
+			]
+		},
+		{
+			"pattern": "(<cfdump|writedump)(.*?)(>|;)",
+			"scopes": [
+				"text.html.cfm.embedded.cfml",
+				"source.cfscript.cfc",
+				"text.html.cfm"
+			]
+		},
+		{
+			"pattern": "(<cfabort|abort)(.*?)(>|;)",
+			"scopes": [
+				"text.html.cfm.embedded.cfml",
+				"source.cfscript.cfc",
+				"text.html.cfm"
+			]
+		},
+		{
+			"pattern": "var_dump\\(.*?\\)",
+			"scopes": [
+				"string.quoted.double.sql.php",
+				"source.php.embedded.block.html",
+				"source.sql.embedded.php",
+				"text.html.basic"
+			]
+		},
+		{
+			"pattern": "logger\\.(debug|info|fatal|error).+",
+			"scopes": [
+				"source.ruby"
+			]
+		}
+	]
+}

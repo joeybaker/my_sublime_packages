@@ -1,0 +1,15 @@
+[
+    {
+        "caption": "Tools",
+        "mnemonic": "T",
+        "id": "tools",
+        "children":
+        [ 
+            {
+                "id": "adampresleyDebugKiller",
+                "command": "debug_killer",
+                "caption": "Debug Killer"
+            }
+        ]
+    }
+]

@@ -1,0 +1,7 @@
+[ 
+    {
+        "id": "adampresleyDebugKiller",
+        "command": "debug_killer",
+        "caption": "Debug Killer"
+    }
+]
