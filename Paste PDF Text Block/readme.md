@@ -2,9 +2,32 @@
 
 > Tested on Sublime Text 2 and Sublime Text 3.
 
-Clipboard functionality to copy a block of text from PDF and paste it with the new lines and hyphenated words stripped so that it is a clean paste of a block of text into the target area. 
+Clipboard functionality to copy a block of text from PDF and paste it with the new lines and hyphenated words stripped so that it is a clean paste of a block of text into the target area.
 
-Given that we do a lot of work between PDFs and Markdown in drafting of documents, it seemed necessary to work on the paste functionality a bit. 
+Given that we do a lot of work between PDFs and Markdown in drafting of documents, it seemed necessary to work on the paste functionality a bit.
+
+# Using
+
+## Base Paste PDF Text Block
+
+The default keybinding is CTRL+ALT+V in Linux and Windows, CTRL+Super+V on OsX. To assign a new keybinding:
+
+* Open ".../Packages/User/Default.sublime-keymap"
+* The relevant command name is "paste_pdf"
+
+```
+  { "keys": ["ctrl+alt+v"], "command": "paste_pdf" }
+```
+
+The function will also correct French accents thanks to the kind help of [Gery Casiez](https://github.com/casiez) and Spanish accents thanks to [Ome Gak](https://github.com/OmeGak).
+
+## Paste PDF Text Block with Pandoc Footnote
+
+One thing I often do is paste a text block but then need to mark it for citation. There is a new command that will take care of that for you, called `paste_pdf_pandoc`. This command will preformat the text block using the clean_paste function, wrap the entire block in double quotes, add Pandoc's `^[]` footnote formatting, and place the cursor so you can instantly put in the BibTex reference or citation holder. The default keybinding for this is CTRL+ALT+SHIFT+V in Linux & Windows, and CTRL+SHIFT+Super+v in OsX.
+
+# [Source Code](https://github.com/compleatang/sublimetext-pastepdf)
+
+MIT License - (c) 2012 - Watershed Legal Services, PLLC
 
 # Installation
 
@@ -27,30 +50,3 @@ To download and install package manually:
 * Download the files using the GitHub .zip download option
 * Unzip the files and rename the folder to Paste PDF
 * Move the folder to your Sublime Text 2 Packages directory
-
-# Using
-
-## Base Paste PDF Text Block
-
-The default keybinding is CTRL+ALT+V in Linux and Windows, CTRL+Super+V on OsX. To assign a new keybinding:
-
-* Open ".../Packages/User/Default.sublime-keymap"
-* The relevant command name is "paste_pdf"
-
-```
-  { "keys": ["ctrl+alt+v"], "command": "paste_pdf" }
-```
-
-The function will also correct French accents thanks to the kind help of Gery Casiez. 
-
-## Paste PDF Text Block with Pandoc Footnote
-
-One thing I often do is paste a text block but then need to mark it for citation. There is a new command that will take care of that for you, called `paste_pdf_pandoc`. This command will preformat the text block using the clean_paste function, wrap the entire block in double quotes, add Pandoc's `^[]` footnote formatting, and place the cursor so you can instantly put in the BibTex reference or citation holder. The default keybinding for this is CTRL+ALT+SHIFT+V in Linux & Windows, and CTRL+SHIFT+Super+v in OsX.
-
-# [Source Code](https://github.com/compleatang/sublimetext-pastepdf)
-
-MIT License - (c) 2012 - Watershed Legal Services, PLLC
-
-# TODO
-
-[ ] Build option to turn on or off block quoting of pandoc paste. For now default is to put the paste in a block quote.
