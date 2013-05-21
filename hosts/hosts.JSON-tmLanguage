@@ -1,0 +1,19 @@
+{ "name": "Hosts File",
+  "scopeName": "text.hosts",
+  "fileTypes": ["hosts"],
+  "patterns": [
+    {
+      "name": "comment",
+      "match": "#.*$"
+    },
+    {
+      "name": "constant.numeric",
+      "match": "[\d\.]+"
+    },
+    {
+      "name": "variable",
+      "match": "[\w\.]*"
+    }
+  ],
+  "uuid": "91a133f6-660b-4567-9eb1-422d41dab849"
+}
