@@ -1,0 +1,7 @@
+[
+    {"id": "goto", "children": [
+        {"id": "switch_file", "children": [
+            {"command": "last_view", "caption": "Last File in Stack"}
+        ]}
+    ]}
+]
