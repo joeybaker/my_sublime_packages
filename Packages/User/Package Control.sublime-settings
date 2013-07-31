@@ -1,0 +1,50 @@
+{
+	"installed_packages":
+	[
+		"AdvancedNewFile",
+		"AlignTab",
+		"ApacheConf.tmLanguage",
+		"AutoWrap",
+		"Backbone.js",
+		"Case Conversion",
+		"CheckBounce",
+		"CoffeeScript",
+		"ColorPicker",
+		"Default File Type",
+		"Dotfiles Syntax Highlighting",
+		"EasySettings",
+		"EditorConfig",
+		"EJS",
+		"Focus Last Tab",
+		"GitGutter",
+		"Handlebars",
+		"hosts",
+		"INI",
+		"JsFormat",
+		"JSONLint",
+		"knockdown",
+		"LESS",
+		"Less Tabs",
+		"Marked.app Menu",
+		"nginx",
+		"Package Control",
+		"Paste PDF Text Block",
+		"Pretty JSON",
+		"Puppet",
+		"Revert All Files",
+		"Slate",
+		"SSH Config",
+		"Statusbar Path",
+		"StripHTML",
+		"Syntax Highlighting for Sass",
+		"Theme - Soda",
+		"Tmux",
+		"URLEncode",
+		"Vintageous"
+	],
+	"repositories":
+	[
+		"https://github.com/jodaka/sublime_alignment",
+		"https://github.com/jodaka/sublime_alignment.git"
+	]
+}
