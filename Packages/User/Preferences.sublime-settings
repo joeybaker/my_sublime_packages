@@ -16,6 +16,7 @@
 	"auto_match_enabled": true,
 	"caret_style": "smooth",
 	"color_scheme": "Packages/Color Scheme - User/Joey's Clouds Midnight.tmTheme",
+	"theme": "Soda Dark 3.sublime-theme",
 	"default_encoding": "UTF-8",
 	"default_line_ending": "unix",
 	"detect_indentation": true,
