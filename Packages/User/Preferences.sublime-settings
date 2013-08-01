@@ -76,14 +76,7 @@
 	"highlight_line": true,
 	"ignored_packages":
 	[
-		"CheckBounce",
-		"Vintageous",
-		"Web Inspector",
-		"Alignment",
-		"BufferScroll",
-		"Git",
-		"SideBarEnhancements",
-		"SublimeLinter"
+		"Vintageous"
 	],
 	"ignored_words":
 	[
