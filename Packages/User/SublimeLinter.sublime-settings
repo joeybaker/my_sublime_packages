@@ -57,7 +57,7 @@
     "sublimelinter_delay": 0,
 
     // If true, lines with errors or warnings will be filled in with the outline color.
-    "sublimelinter_fill_outlines": true,
+    "sublimelinter_fill_outlines": false,
 
     // If true, lines with errors or warnings will have a gutter mark.
     "sublimelinter_gutter_marks": true,
