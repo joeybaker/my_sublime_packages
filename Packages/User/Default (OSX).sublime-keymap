@@ -1,4 +1,3 @@
 [
 	  { "keys": ["super+shift+ctrl+w"], "command": "wrap_each" }
-	, { "keys": ["super+alt+."], "command": "close_tagger" }
 ]
