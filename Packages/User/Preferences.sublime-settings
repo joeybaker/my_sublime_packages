@@ -82,7 +82,8 @@
 	[
 		"Ubiquiti",
 		"datastore",
-		"Meraki"
+		"Meraki",
+		"online"
 	],
 	"indent_guide_options":
 	[
