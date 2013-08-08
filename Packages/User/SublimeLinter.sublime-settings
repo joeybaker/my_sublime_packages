@@ -38,7 +38,10 @@
     */
     "sublimelinter_syntax_map":
     {
-        "Python Django": "python"
+        "Python Django": "python",
+        "Python Django": "python",
+        "Ruby on Rails": "ruby",
+        "C++": "c"
     },
 
     // An array of linter names to disable. Names should be lowercase.
@@ -54,13 +57,27 @@
         errors are erased when the file is modified, since the assumption is
         you don't want to see errors while you type.
     */
-    "sublimelinter_delay": 0,
+    "sublimelinter_delay": 1,
 
     // If true, lines with errors or warnings will be filled in with the outline color.
     "sublimelinter_fill_outlines": false,
 
     // If true, lines with errors or warnings will have a gutter mark.
     "sublimelinter_gutter_marks": true,
+
+    /*
+        Choose the theme for gutter marks; available built-in options are:
+        "alpha", "bright", "dark", "hard" and "simple"
+
+        Anything else will be treated as a path to a set of images.
+        For instance, setting the value to "../User/my-awesome-theme"
+        would cause SublimeLinter to look for the images:
+        "../User/my-awesome-theme-illegal.png",
+        "../User/my-awesome-theme-violation.png",
+        "../User/my-awesome-theme-warning.png"
+        These images should all be approximately 32x32px.
+    */
+    "sublimelinter_gutter_marks_theme": "dark",
 
     // If true, the find next/previous error commands will wrap.
     "sublimelinter_wrap_find": true,
@@ -188,7 +205,7 @@
     "sublimelinter_objj_check_ascii": false,
 
     // Set to true to highlight annotations
-    "sublimelinter_notes": false,
+    "sublimelinter_notes": true,
 
     // The set of annotation phrases to highlight
     "annotations": ["TODO", "README", "FIXME"]
