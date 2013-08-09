@@ -77,7 +77,7 @@
         "../User/my-awesome-theme-warning.png"
         These images should all be approximately 32x32px.
     */
-    "sublimelinter_gutter_marks_theme": "dark",
+    "sublimelinter_gutter_marks_theme": "bright",
 
     // If true, the find next/previous error commands will wrap.
     "sublimelinter_wrap_find": true,
