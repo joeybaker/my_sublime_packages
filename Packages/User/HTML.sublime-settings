@@ -2,6 +2,8 @@
 	"extensions":
 	[
 		"mustache",
-		"ejs"
+		"ejs",
+		"html",
+		"hbs"
 	]
 }
