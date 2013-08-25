@@ -6,14 +6,12 @@
 		"ApacheConf.tmLanguage",
 		"AutoWrap",
 		"Backbone.js",
+		"Better CoffeeScript",
 		"Case Conversion",
 		"CheckBounce",
-		"CoffeeScript",
 		"ColorPicker",
-		"Default File Type",
 		"Dotfiles Syntax Highlighting",
 		"EasySettings",
-		"EJS",
 		"Focus Last Tab",
 		"GitGutter",
 		"Handlebars",
@@ -43,10 +41,5 @@
 		"Tmux",
 		"URLEncode",
 		"Vintageous"
-	],
-	"repositories":
-	[
-		"https://github.com/jodaka/sublime_alignment",
-		"https://github.com/jodaka/sublime_alignment.git"
 	]
 }
