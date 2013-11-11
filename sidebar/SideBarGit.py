@@ -2,54 +2,14 @@
 import sublime
 import os
 import subprocess
-from .SideBarItem import SideBarItem
-import threading
+
+from SideBarItem import SideBarItem
 
 class Object():
 	pass
 
-class Content():
-	pass
-
-def plugin_loaded():
-	global s, path_to_git_unixes
-	s = sublime.load_settings('SideBarGit.sublime-settings')
-	path_to_git_unixes = s.get('path_to_git_unixes');
-
-
-def write_to_view(view, content):
-	view.run_command('write_to_view', {"content": content});
-
-class SideBarGitQueue:
-	def __init__(self):
-		self.queue = []
-		self.running = False;
-
-SideBarGitQueue = SideBarGitQueue();
-
-class SideBarGitThread(threading.Thread):
-		def __init__(self):
-			SideBarGitQueue.running = True
-			threading.Thread.__init__(self)
-
-		def run(self):
-			if len(SideBarGitQueue.queue) > 0:
-				object = SideBarGitQueue.queue.pop(0)
-				# print(object);
-				SideBarGit().run2(
-					object[0],
-					object[1],
-					object[2],
-					object[3],
-					object[4],
-					object[5],
-					object[6],
-					object[7],
-					object[8],
-					object[9]
-				);
-				SideBarGitThread().start();
-			SideBarGitQueue.running = False
+s = sublime.load_settings('SideBarGit.sublime-settings')
+path_to_git_unixes = s.get('path_to_git_unixes');
 
 class SideBarGit:
 
@@ -67,51 +27,9 @@ class SideBarGit:
 					refresh_funct_to_status_bar = False,
 					refresh_funct_title = False,
 					refresh_funct_no_results = False,
-					refresh_funct_syntax_file = False,
-					blocking=False
-					):
-		if not blocking:
-			SideBarGitQueue.queue.append([
-			                       	object,
-			                       	modal,
-			                       	background,
-			                       	refresh_funct_view,
-			                       	refresh_funct_command,
-			                       	refresh_funct_item,
-			                       	refresh_funct_to_status_bar,
-			                       	refresh_funct_title,
-			                       	refresh_funct_no_results,
-			                       	refresh_funct_syntax_file
-			                       ]);
-			if not SideBarGitQueue.running:
-				SideBarGitThread().start();
-		else:
-			self.run2(
-			    object,
-					modal,
-					background,
-					refresh_funct_view,
-					refresh_funct_command,
-					refresh_funct_item,
-					refresh_funct_to_status_bar,
-					refresh_funct_title,
-					refresh_funct_no_results,
-					refresh_funct_syntax_file)
-
-	def run2(
-					self,
-					object,
-					modal = False,
-					background = False,
-
-					refresh_funct_view = False,
-					refresh_funct_command = False,
-					refresh_funct_item = False,
-					refresh_funct_to_status_bar = False,
-					refresh_funct_title = False,
-					refresh_funct_no_results = False,
 					refresh_funct_syntax_file = False
 					):
+
 		if not refresh_funct_view:
 			pass
 		else:
@@ -125,18 +43,18 @@ class SideBarGit:
 
 		debug = False
 		if debug:
-			print ('----------------------------------------------------------')
-			print ('GIT:')
-			print (object.command)
-			print ('CWD:')
-			print (object.item.forCwdSystemPath())
-			print ('PATH:')
-			print (object.item.forCwdSystemName())
+			print '----------------------------------------------------------'
+			print 'GIT:'
+			print object.command
+			print 'CWD:'
+			print object.item.forCwdSystemPath()
+			print 'PATH:'
+			print object.item.forCwdSystemName()
 
 		failed = False
 
 		if sublime.platform() == 'windows':
-			object.command = list(map(self.escapeCMDWindows, object.command))
+			object.command = map(self.escapeCMDWindows, object.command)
 
 		if sublime.platform() is not 'windows' and object.command[0] == 'git':
 			if path_to_git_unixes != '':
@@ -148,67 +66,65 @@ class SideBarGit:
 
 		try:
 			if sublime.platform() == 'windows':
-				if 'push' in object.command or 'pull' in object.command or 'clone' in object.command or 'fetch' in object.command:
-					object.command.insert(0, '/C')
-					object.command.insert(0, 'cmd')
-					shell = False
-				else:
-					shell = True
+
 				process = subprocess.Popen(
 																	#" ".join(object.command),
 																	object.command,
 																	cwd=cwd,
 																	stdout=subprocess.PIPE,
 																	stderr=subprocess.STDOUT,
-																	shell=shell)
+																	shell=True,
+																	universal_newlines=True)
 			else:
 				process = subprocess.Popen(
 																	object.command,
 																	cwd=cwd,
 																	stdout=subprocess.PIPE,
 																	stderr=subprocess.STDOUT,
-																	shell=False)
+																	shell=False,
+																	universal_newlines=True)
 
 			if background:
 				if debug:
-					print ('SUCCESS')
-					print ('----------------------------------------------------------')
+					print 'SUCCESS'
+					print '----------------------------------------------------------'
 				return True
 
 			stdout, stderr = process.communicate()
-			try:
-				process.kill()
-			except:
-				pass
-			stdout = stdout.decode('utf-8', 'ignore');
 			SideBarGit.last_stdout = str(stdout).rstrip()
 			self.last_stdout = str(stdout).rstrip()
 
 			stdout = stdout.strip()
 
 			if stdout.find('fatal:') == 0 or stdout.find('error:') == 0 or stdout.find('Permission denied') == 0 or stderr:
-				if debug:
-					print ('FAILED')
+				print 'FAILED'
 				failed = True
 			else:
 				if debug:
-					print ('SUCCESS')
+					print 'SUCCESS'
 			if stdout:
 				if debug:
-					print ('STDOUT')
-					print (stdout)
+					print 'STDOUT'
+					print stdout
 			if stderr:
-				print ('STDERR')
-				print (stderr)
-		except (OSError, IOError) as e:
-			print ('FAILED')
+				print 'STDERR'
+				print stderr
+		except OSError as (errno, strerror):
+			print 'FAILED'
 			failed = True
-			print (e.errno)
-			print (e.strerror)
+			print errno
+			print strerror
+			SideBarGit.last_stdout = ''
+			self.last_stdout = ''
+		except IOError as (errno, strerror):
+			print 'FAILED'
+			failed = True
+			print errno
+			print strerror
 			SideBarGit.last_stdout = ''
 			self.last_stdout = ''
 		if debug:
-			print ('----------------------------------------------------------')
+			print '----------------------------------------------------------'
 
 		try:
 			object.to_status_bar
@@ -260,7 +176,7 @@ class SideBarGit:
 				else:
 					view = refresh_funct_view
 				try:
-					view.set_name(object.title)
+					view.set_name(object.title.decode('utf-8'))
 				except:
 					view.set_name('No Title')
 				try:
@@ -302,9 +218,9 @@ class SideBarGit:
 						view.settings().set('SideBarGitSyntaxFile', False)
 
 				content = "[SideBarGit@SublimeText "
-				content += object.item.name()
+				content += object.item.name().decode('utf-8')
 				content += "/] "
-				content += (" ".join(object.command))
+				content += (" ".join(object.command)).decode('utf-8')
 				content += "\n\n"
 				content += "# Improve this command, the output or the tab title by posting here:"
 				content += "\n"
@@ -312,50 +228,50 @@ class SideBarGit:
 				content += "\n"
 				content += "# Tip: F5 will run the command again and refresh the contents of this tab"
 				content += "\n\n"
-				content += stdout
+				try:
+					content += stdout
+				except:
+					content += unicode(stdout, 'UTF-8', errors='ignore')
 
-				write_to_view(view, content);
-
+				edit = view.begin_edit()
+				view.replace(edit, sublime.Region(0, view.size()), content);
+				view.sel().clear()
+				view.sel().add(sublime.Region(0))
+				view.end_edit(edit)
 		return True
 
 	def confirm(self, message, function, arg1):
 		if int(sublime.version()) >= 2186:
-			if sublime.ok_cancel_dialog('Side Bar Git : '+message):
+			if sublime.ok_cancel_dialog(u'Side Bar Git : '+message):
 				function(arg1, True)
 		else:
 			import functools
 			sublime.active_window().run_command('hide_panel');
-			sublime.active_window().show_input_panel("Confirmation Required:", message, functools.partial(function, arg1, True), None, None)
+			sublime.active_window().show_input_panel("Confirmation Required:", message.decode('utf-8'), functools.partial(function, arg1, True), None, None)
 
 	def prompt(self, message, default, function, arg1):
 		import functools
 		sublime.active_window().run_command('hide_panel');
-		sublime.active_window().show_input_panel(message, default, functools.partial(function, arg1, True), None, None)
+		sublime.active_window().show_input_panel(message.decode('utf-8'), default.decode('utf-8'), functools.partial(function, arg1, True), None, None)
 
 	def alert(self, message):
 		try:
-			sublime.error_message('Git : '+(message))
+			sublime.error_message('Git : '+(message.decode('utf-8')))
 		except:
 			try:
 				sublime.error_message('Git : '+message)
 			except:
-				print (message)
+				print message
 
 	def status(self, message):
-		if len(message) > 150:
-			view = sublime.active_window().new_file()
-			view.settings().set('word_wrap', False)
-			view.set_scratch(True)
-			content = "[SideBarGit@SublimeText] "
-			write_to_view(view, content+"\n"+message);
-		else:
-			message = message.replace('\n', ' ')
-			try:
-				v = sublime.active_window().active_view()
-				v.set_status('SideBarGit', 'Git : '+(message))
-				sublime.set_timeout(lambda: SideBarGit().statusRemove(v), 16000)
-			except:#there is no tabs opened
-				sublime.status_message('Git : '+(message))
+		message = message[:200] + (message[200:] and '…')
+		message = message.replace('\n', ' ')
+		try:
+			v = sublime.active_window().active_view()
+			v.set_status('SideBarGit', 'Git : '+(message.decode('utf-8')))
+			sublime.set_timeout(lambda: SideBarGit().statusRemove(v), 16000)
+		except:#there is no tabs opened
+			sublime.status_message('Git : '+(message.decode('utf-8')))
 
 	def statusRemove(self, v):
 		try:
@@ -366,8 +282,8 @@ class SideBarGit:
 	def quickPanel(self, function, extra, data):
 		import functools
 		window = sublime.active_window()
-		window.show_input_panel("BUG!", '', '', None, None)
-		window.run_command('hide_panel');
+		# window.show_input_panel("BUG!", '', '', None, None)
+		# window.run_command('hide_panel');
 		data = [item[:70] for item in data]
 		window.show_quick_panel(data, functools.partial(self.quickPanelDone, function, extra, data))
 
