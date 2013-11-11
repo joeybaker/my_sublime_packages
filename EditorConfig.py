@@ -1,6 +1,14 @@
-import sublime_plugin, sys, os
-sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-from editorconfig import get_properties, EditorConfigError
+import sublime_plugin
+
+try:
+	import os, sys
+	# stupid python module system
+	sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+	from .editorconfig import get_properties, EditorConfigError
+except:
+	# Python 2
+	from editorconfig import get_properties, EditorConfigError
+
 
 LINE_ENDINGS = {
 	'lf': 'unix',
@@ -17,7 +25,7 @@ CHARSETS = {
 }
 
 class EditorConfig(sublime_plugin.EventListener):
-	def on_load_async(self, view):
+	def on_load(self, view):
 		self.init(view, False)
 
 	def on_pre_save(self, view):
