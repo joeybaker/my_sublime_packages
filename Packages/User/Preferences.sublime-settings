@@ -15,7 +15,7 @@
 	"auto_indent": true,
 	"auto_match_enabled": true,
 	"caret_style": "smooth",
-	"color_scheme": "Packages/Color Scheme - User/Joey's Clouds Midnight.tmTheme",
+	"color_scheme": "Packages/Monokai Extended/Monokai Extended.tmTheme",
 	"default_encoding": "UTF-8",
 	"default_line_ending": "unix",
 	"detect_indentation": true,
