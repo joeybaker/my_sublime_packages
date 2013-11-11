@@ -1,7 +1,7 @@
 import re
 import os
 
-from .base_linter import BaseLinter
+from base_linter import BaseLinter
 
 CONFIG = {
     'language': 'CoffeeScript',
