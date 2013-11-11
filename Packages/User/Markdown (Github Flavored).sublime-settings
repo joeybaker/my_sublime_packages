@@ -1,12 +1,11 @@
 {
-  "wrap_width": 70,
-  "font_size": 14.0,
-  "spell_check": true,
 	"extensions":
 	[
 		"markdown",
 		"mdown",
-		"md",
 		"md"
-	]
+	],
+	"font_size": 14.0,
+	"spell_check": true,
+	"wrap_width": 70
 }
