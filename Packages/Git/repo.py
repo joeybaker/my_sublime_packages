@@ -1,7 +1,7 @@
 import os
 
 import sublime
-from .git import GitTextCommand, GitWindowCommand, git_root_exist
+from git import GitTextCommand, GitWindowCommand, git_root_exist
 
 
 class GitInit(object):
@@ -49,6 +49,7 @@ class GitBranchCommand(GitWindowCommand):
         self.run_command(['git'] + self.command_to_run_after_branch + [picked_branch], self.update_status)
 
     def update_status(self, result):
+        self.panel(result)
         global branch
         branch = ""
         for view in self.window.views():
