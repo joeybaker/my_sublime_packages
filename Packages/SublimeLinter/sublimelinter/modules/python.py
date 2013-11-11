@@ -41,11 +41,12 @@
 
 import re
 import _ast
+from functools import cmp_to_key
 
 import pep8
 import pyflakes.checker as pyflakes
 
-from base_linter import BaseLinter
+from .base_linter import BaseLinter
 
 pyflakes.messages.Message.__str__ = lambda self: self.message % self.message_args
 
@@ -99,7 +100,7 @@ class Linter(BaseLinter):
     def pyflakes_check(self, code, filename, ignore=None):
         try:
             tree = compile(code, filename, "exec", _ast.PyCF_ONLY_AST)
-        except (SyntaxError, IndentationError), value:
+        except (SyntaxError, IndentationError) as value:
             msg = value.args[0]
 
             (lineno, offset, text) = value.lineno, value.offset, value.text
@@ -125,7 +126,7 @@ class Linter(BaseLinter):
                 else:
                     error = PythonError(filename, value, msg)
             return [error]
-        except ValueError, e:
+        except ValueError as e:
             return [PythonError(filename, 0, e.args[0])]
         else:
             # Okay, it's syntactically valid.  Now check it.
@@ -186,8 +187,8 @@ class Linter(BaseLinter):
 
             try:
                 pep8.Checker(filename, good_lines, options).check_all()
-            except Exception, e:
-                print "An exception occured when running pep8 checker: %s" % e
+            except Exception as e:
+                print("An exception occured when running pep8 checker: %s" % e)
 
         return messages
 
@@ -224,7 +225,7 @@ class Linter(BaseLinter):
             regex = 'def [\w_]+\(.*?(?P<underline>[\w]*{0}[\w]*)'.format(re.escape(word))
             self.underline_regex(view, lineno, regex, lines, underlines, word)
 
-        errors.sort(lambda a, b: cmp(a.lineno, b.lineno))
+        errors.sort(key=cmp_to_key(lambda a, b: a.lineno < b.lineno))
         ignoreImportStar = view.settings().get('pyflakes_ignore_import_*', True)
 
         for error in errors:
@@ -274,4 +275,4 @@ class Linter(BaseLinter):
                 pass
 
             else:
-                print 'Oops, we missed an error type!', type(error)
+                print('Oops, we missed an error type!', type(error))
