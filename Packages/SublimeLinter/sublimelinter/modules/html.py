@@ -7,7 +7,7 @@
 import re
 import subprocess
 
-from .base_linter import BaseLinter
+from base_linter import BaseLinter
 
 CONFIG = {
     'language': 'HTML',
@@ -22,7 +22,7 @@ class Linter(BaseLinter):
             path = self.get_mapped_executable(view, 'tidy')
             version_string = subprocess.Popen([path, '-v'], startupinfo=self.get_startupinfo(), stdout=subprocess.PIPE).communicate()[0]
 
-            if 'HTML5' in version_string:
+            if u'HTML5' in version_string:
                 return (True, path, 'using tidy for executable')
 
             return (False, '', 'tidy is not ready for HTML5')

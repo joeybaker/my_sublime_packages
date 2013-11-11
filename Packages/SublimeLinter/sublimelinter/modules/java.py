@@ -2,7 +2,7 @@ import os
 import os.path
 import re
 
-from .base_linter import BaseLinter, INPUT_METHOD_FILE
+from base_linter import BaseLinter, INPUT_METHOD_FILE
 
 CONFIG = {
     'language': 'Java',
@@ -45,7 +45,7 @@ class Linter(BaseLinter):
                 position = -1
 
                 while True:
-                    line = next(it)
+                    line = it.next()
                     match = re.match(MARK_RE, line)
 
                     if match:
