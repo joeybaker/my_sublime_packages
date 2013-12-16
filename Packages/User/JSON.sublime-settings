@@ -1,6 +1,7 @@
 {
 	"extensions":
 	[
-		".jshintrc"
+		".jshintrc",
+		"geojson"
 	]
 }
