@@ -1,0 +1,43 @@
+[
+    {
+        "id": "sublimelinter",
+        "caption": "SublimeLinter",
+        "children":
+        [
+            $menus,
+            {
+                "caption": "Choose Gutter Theme...",
+                "command": "sublimelinter_choose_gutter_theme"
+            },
+            {
+                "caption": "-"
+            },
+            {
+                "caption": "Lint This View",
+                "command": "sublimelinter_lint"
+            },
+            {
+                "caption": "Next Error",
+                "command": "sublimelinter_goto_error", "args": {"direction": "next"}
+            },
+            {
+                "caption": "Previous Error",
+                "command": "sublimelinter_goto_error", "args": {"direction": "previous"}
+            },
+            {
+                "caption": "Show All Errors",
+                "command": "sublimelinter_show_all_errors"
+            },
+            {
+                "caption": "-"
+            },
+            {
+                "caption": "User Settings",
+                "command": "open_file", "args":
+                {
+                    "file": "${packages}/User/SublimeLinter.sublime-settings"
+                }
+            }
+        ]
+    }
+]

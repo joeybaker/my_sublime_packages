@@ -1,45 +1,5 @@
 [
     {
-        "caption": "SublimeLinter: Lint Current File",
-        "command": "sublimelinter_lint",
-        "args": {"action": "lint"}
-    },
-    {
-        "caption": "SublimeLinter: Show Error List",
-        "command": "sublimelinter_show_errors",
-        "args": {"action": "lint", "show_popup": true}
-    },
-    {
-        "caption": "SublimeLinter: Background Linting",
-        "command": "sublimelinter_lint",
-        "args": {"action": "on"}
-    },
-    {
-        "caption": "SublimeLinter: Load-Save Linting",
-        "command": "sublimelinter_enable_load_save",
-        "args": {"action": "load-save"}
-    },
-    {
-        "caption": "SublimeLinter: Save-Only Linting",
-        "command": "sublimelinter_enable_save_only",
-        "args": {"action": "save-only"}
-    },
-    {
-        "caption": "SublimeLinter: Disable Linting",
-        "command": "sublimelinter_disable",
-        "args": {"action": "off"}
-    },
-    {
-        "caption": "SublimeLinter: Extract Annotations",
-        "command": "sublimelinter_annotations",
-        "args": {}
-    },
-    {
-        "caption": "SublimeLinter: Reset",
-        "command": "sublimelinter_lint",
-        "args": {"action": "reset"}
-    },
-    {
         "caption": "Preferences: SublimeLinter Settings – Default",
         "command": "open_file", "args":
         {
@@ -52,5 +12,125 @@
         {
             "file": "${packages}/User/SublimeLinter.sublime-settings"
         }
+    },
+
+    {
+        "caption": "Preferences: SublimeLinter Key Bindings – Default",
+        "command": "open_file", "args":
+        {
+            "file": "${packages}/SublimeLinter/Default (OSX).sublime-keymap",
+            "platform": "OSX"
+        }
+    },
+    {
+        "caption": "Preferences: SublimeLinter Key Bindings – User",
+        "command": "open_file", "args":
+        {
+            "file": "${packages}/User/Default (OSX).sublime-keymap",
+            "platform": "OSX"
+        }
+    },
+
+    {
+        "caption": "Preferences: SublimeLinter Key Bindings – Default",
+        "command": "open_file", "args":
+        {
+            "file": "${packages}/SublimeLinter/Default (Linux).sublime-keymap",
+            "platform": "Linux"
+        }
+    },
+    {
+        "caption": "Preferences: SublimeLinter Key Bindings – User",
+        "command": "open_file", "args":
+        {
+            "file": "${packages}/User/Default (Linux).sublime-keymap",
+            "platform": "Linux"
+        }
+    },
+
+    {
+        "caption": "Preferences: SublimeLinter Key Bindings – Default",
+        "command": "open_file", "args":
+        {
+            "file": "${packages}/SublimeLinter/Default (Windows).sublime-keymap",
+            "platform": "Windows"
+        }
+    },
+    {
+        "caption": "Preferences: SublimeLinter Key Bindings – User",
+        "command": "open_file", "args":
+        {
+            "file": "${packages}/User/Default (Windows).sublime-keymap",
+            "platform": "Windows"
+        }
+    },
+
+    {
+        "caption": "SublimeLinter: Choose Lint Mode",
+        "command": "sublimelinter_choose_lint_mode"
+    },
+    {
+        "caption": "SublimeLinter: Choose Mark Style",
+        "command": "sublimelinter_choose_mark_style"
+    },
+    {
+        "caption": "SublimeLinter: Choose Gutter Theme",
+        "command": "sublimelinter_choose_gutter_theme"
+    },
+    {
+        "caption": "SublimeLinter: Lint This View",
+        "command": "sublimelinter_lint"
+    },
+    {
+        "caption": "SublimeLinter: Next Error",
+        "command": "sublimelinter_goto_error", "args": {"direction": "next"}
+    },
+    {
+        "caption": "SublimeLinter: Previous Error",
+        "command": "sublimelinter_goto_error", "args": {"direction": "previous"}
+    },
+    {
+        "caption": "SublimeLinter: Show All Errors",
+        "command": "sublimelinter_show_all_errors"
+    },
+    {
+        "caption": "SublimeLinter: Show Errors on Save",
+        "command": "sublimelinter_show_errors_on_save"
+    },
+    {
+        "caption": "SublimeLinter: Don’t Show Errors on Save",
+        "command": "sublimelinter_dont_show_errors_on_save"
+    },
+    {
+        "caption": "SublimeLinter: Disable Linting",
+        "command": "sublimelinter_disable_linting"
+    },
+    {
+        "caption": "SublimeLinter: Don’t Disable Linting",
+        "command": "sublimelinter_dont_disable_linting"
+    },
+    {
+        "caption": "SublimeLinter: Enable Debug Mode",
+        "command": "sublimelinter_enable_debug"
+    },
+    {
+        "caption": "SublimeLinter: Disable Debug Mode",
+        "command": "sublimelinter_disable_debug"
+    },
+
+    {
+        "caption": "SublimeLinter: Create Linter Plugin",
+        "command": "sublimelinter_create_linter_plugin"
+    },
+
+    {
+        "caption": "SublimeLinter: Report (Open Files)",
+        "command": "x_sublimelinter_report",
+        "args": {"on": "files"}
+    },
+    {
+        "caption": "SublimeLinter: Report (Open Files and Folders)",
+        "command": "x_sublimelinter_report",
+        "args": {"on": "both"}
     }
 ]

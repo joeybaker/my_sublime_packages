@@ -1,99 +1,189 @@
 [
-    {
-        "caption": "Preferences",
-        "mnemonic": "n",
-        "id": "preferences",
-        "children":
-        [
-            {
-                "caption": "Package Settings",
-                "mnemonic": "P",
-                "id": "package-settings",
-                "children":
-                [
-                    {
-                        "caption": "SublimeLinter",
-                        "children":
-                        [
-                            {
-                                "command": "open_file",
-                                "args": {"file": "${packages}/SublimeLinter/README.md"},
-                                "caption": "README"
-                            },
-                            {
-                                "command": "open_file",
-                                "args": {"file": "${packages}/SublimeLinter/changelog.txt"},
-                                "caption": "Change Log"
-                            },
-                            { "caption": "-" },
-                            {
-                                "command": "open_file",
-                                "args": {"file": "${packages}/SublimeLinter/SublimeLinter.sublime-settings"},
-                                "caption": "Settings – Default"
-                            },
-                            {
-                                "command": "open_file",
-                                "args": {"file": "${packages}/User/SublimeLinter.sublime-settings"},
-                                "caption": "Settings – User"
-                            },
-                            {
-                                "command": "open_file_settings",
-                                "caption": "Settings – Syntax Specific – User"
-                            },
-                            { "caption": "-" },
-                            {
-                                "command": "open_file",
-                                "args": {
-                                    "file": "${packages}/SublimeLinter/Default (OSX).sublime-keymap",
-                                    "platform": "OSX"
-                                },
-                                "caption": "Key Bindings – Default"
-                            },
-                            {
-                                "command": "open_file",
-                                "args": {
-                                    "file": "${packages}/SublimeLinter/Default (Linux).sublime-keymap",
-                                    "platform": "Linux"
-                                },
-                                "caption": "Key Bindings – Default"
-                            },
-                            {
-                                "command": "open_file",
-                                "args": {
-                                    "file": "${packages}/SublimeLinter/Default (Windows).sublime-keymap",
-                                    "platform": "Windows"
-                                },
-                                "caption": "Key Bindings – Default"
-                            },
-                            {
-                                "command": "open_file",
-                                "args": {
-                                    "file": "${packages}/User/Default (OSX).sublime-keymap",
-                                    "platform": "OSX"
-                                },
-                                "caption": "Key Bindings – User"
-                            },
-                            {
-                                "command": "open_file",
-                                "args": {
-                                    "file": "${packages}/User/Default (Linux).sublime-keymap",
-                                    "platform": "Linux"
-                                },
-                                "caption": "Key Bindings – User"
-                            },
-                            {
-                                "command": "open_file",
-                                "args": {
-                                    "file": "${packages}/User/Default (Windows).sublime-keymap",
-                                    "platform": "Windows"
-                                },
-                                "caption": "Key Bindings – User"
-                            },
-                            { "caption": "-" }
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
+	{
+		"id": "tools",
+		"children":
+		[
+		    {
+		        "id": "sublimelinter",
+		        "caption": "SublimeLinter",
+		        "children":
+		        [
+		            {
+		                "caption": "Lint Mode",
+		                "children":
+		                [
+		                    {
+		                        "caption": "Background",
+		                        "command": "sublimelinter_choose_lint_mode", "args": {"value": "Background"}
+		                    },
+		                    {
+		                        "caption": "Load/save",
+		                        "command": "sublimelinter_choose_lint_mode", "args": {"value": "Load/save"}
+		                    },
+		                    {
+		                        "caption": "Save only",
+		                        "command": "sublimelinter_choose_lint_mode", "args": {"value": "Save only"}
+		                    },
+		                    {
+		                        "caption": "Manual",
+		                        "command": "sublimelinter_choose_lint_mode", "args": {"value": "Manual"}
+		                    }
+		                ]
+		            },
+		            {
+		                "caption": "Mark Style",
+		                "children":
+		                [
+		                    {
+		                        "caption": "Fill",
+		                        "command": "sublimelinter_choose_mark_style", "args": {"value": "Fill"}
+		                    },
+		                    {
+		                        "caption": "Outline",
+		                        "command": "sublimelinter_choose_mark_style", "args": {"value": "Outline"}
+		                    },
+		                    {
+		                        "caption": "Solid underline",
+		                        "command": "sublimelinter_choose_mark_style", "args": {"value": "Solid underline"}
+		                    },
+		                    {
+		                        "caption": "Squiggly underline",
+		                        "command": "sublimelinter_choose_mark_style", "args": {"value": "Squiggly underline"}
+		                    },
+		                    {
+		                        "caption": "Stippled underline",
+		                        "command": "sublimelinter_choose_mark_style", "args": {"value": "Stippled underline"}
+		                    },
+		                    {
+		                        "caption": "None",
+		                        "command": "sublimelinter_choose_mark_style", "args": {"value": "None"}
+		                    }
+		                ]
+		            },
+		            {
+		                "caption": "Choose Gutter Theme...",
+		                "command": "sublimelinter_choose_gutter_theme"
+		            },
+		            {
+		                "caption": "-"
+		            },
+		            {
+		                "caption": "Lint This View",
+		                "command": "sublimelinter_lint"
+		            },
+		            {
+		                "caption": "Next Error",
+		                "command": "sublimelinter_goto_error", "args": {"direction": "next"}
+		            },
+		            {
+		                "caption": "Previous Error",
+		                "command": "sublimelinter_goto_error", "args": {"direction": "previous"}
+		            },
+		            {
+		                "caption": "Show All Errors",
+		                "command": "sublimelinter_show_all_errors"
+		            },
+		            {
+		                "caption": "-"
+		            },
+		            {
+		                "caption": "User Settings",
+		                "command": "open_file", "args":
+		                {
+		                    "file": "${packages}/User/SublimeLinter.sublime-settings"
+		                }
+		            }
+		        ]
+		    }
+		]
+		
+	},
+
+	{
+		"caption": "Preferences",
+		"id": "preferences",
+		"mnemonic": "n",
+		"children":
+		[
+			{
+				"caption": "Package Settings",
+				"id": "package-settings",
+				"mnemonic": "P",
+				"children":
+				[
+					{
+						"caption": "SublimeLinter",
+						"children":
+						[
+							{
+								"caption": "Settings – Default",
+								"command": "open_file", "args":
+								{
+									"file": "${packages}/SublimeLinter/SublimeLinter.sublime-settings"
+								}
+							},
+							{
+								"caption": "Settings – User",
+								"command": "open_file", "args":
+								{
+									"file": "${packages}/User/SublimeLinter.sublime-settings"
+								}
+							},
+							{
+								"caption": "-"
+							},
+							{
+							    "caption": "Key Bindings – Default",
+							    "command": "open_file", "args":
+							    {
+							        "file": "${packages}/SublimeLinter/Default (OSX).sublime-keymap",
+							        "platform": "OSX"
+							    }
+							},
+							{
+							    "caption": "Key Bindings – User",
+							    "command": "open_file", "args":
+							    {
+							        "file": "${packages}/User/Default (OSX).sublime-keymap",
+							        "platform": "OSX"
+							    }
+							},
+							{
+							    "caption": "Key Bindings – Default",
+							    "command": "open_file", "args":
+							    {
+							        "file": "${packages}/SublimeLinter/Default (Linux).sublime-keymap",
+							        "platform": "Linux"
+							    }
+							},
+							{
+							    "caption": "Key Bindings – User",
+							    "command": "open_file", "args":
+							    {
+							        "file": "${packages}/User/Default (Linux).sublime-keymap",
+							        "platform": "Linux"
+							    }
+							},
+							{
+							    "caption": "Key Bindings – Default",
+							    "command": "open_file", "args":
+							    {
+							        "file": "${packages}/SublimeLinter/Default (Windows).sublime-keymap",
+							        "platform": "Windows"
+							    }
+							},
+							{
+							    "caption": "Key Bindings – User",
+							    "command": "open_file", "args":
+							    {
+							        "file": "${packages}/User/Default (Windows).sublime-keymap",
+							        "platform": "Windows"
+							    }
+							}
+						]
+					}
+				]
+			}
+		]
+	}
 ]
