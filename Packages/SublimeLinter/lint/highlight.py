@@ -164,7 +164,11 @@ class Highlight:
         base on the *virtual* line number (adjusted by the self.line_offset).
 
         """
-        start, end = self.newlines[line + self.line_offset:line + self.line_offset + 2]
+
+        line += self.line_offset
+        start = self.newlines[line]
+        end = self.newlines[min(line + 1, len(self.newlines) - 1)]
+
         return start, end
 
     def range(self, line, pos, length=-1, error_type=ERROR, word_re=None):
@@ -203,13 +207,15 @@ class Highlight:
         pos += start
         region = sublime.Region(pos, pos + length)
         other_type = ERROR if error_type == WARNING else WARNING
+        i_offset = 0
 
         for i, mark in enumerate(self.marks[other_type].copy()):
             if mark.a == region.a and mark.b == region.b:
                 if error_type == WARNING:
                     return
                 else:
-                    self.marks[other_type].pop(i)
+                    self.marks[other_type].pop(i - i_offset)
+                    i_offset += 1
 
         self.marks[error_type].append(region)
 
@@ -256,11 +262,13 @@ class Highlight:
         for start, end in results:
             self.range(line, start + offset, end - start, error_type=error_type)
 
-    def near(self, line, near, error_type=ERROR, word_re=None):
+    def near(self, line, near, col=None, error_type=ERROR, word_re=None):
         """
         Mark a range of text near a given word.
 
         line, error_type and word_re are the same as in range().
+
+        If col is not None, only select a match at or before that column.
 
         If near is enclosed by quotes, they are stripped. The first occurrence
         of near in the given line of code is matched. If the first and last
@@ -291,12 +299,12 @@ class Highlight:
             if near[pos].isalnum() or near[pos] == '_':
                 fence[i] = r'\b'
 
-        match = re.search(NEAR_RE_TEMPLATE.format(fence[0], re.escape(near), fence[1]), text)
+        start = -1
 
-        if match:
-            start = match.start()
-        else:
-            start = -1
+        for match in re.finditer(NEAR_RE_TEMPLATE.format(fence[0], re.escape(near), fence[1]), text):
+            if col is None or (col is not None and match.start() <= col):
+                start = match.start()
+                break
 
         if start != -1:
             self.range(line, start, len(near), error_type=error_type, word_re=word_re)

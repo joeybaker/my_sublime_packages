@@ -1,12 +1,39 @@
 {
-    "default": {
+    "user": {
         "debug": false,
         "delay": 0.25,
         "error_color": "D02000",
         "gutter_theme": "Packages/SublimeLinter/gutter-themes/Default.gutter-theme",
         "gutter_theme_excludes": [],
         "lint_mode": "background",
-        "mark_style": "outline",
+        "linters": {
+            "csslint": {
+                "@disable": false,
+                "args": [],
+                "errors": "",
+                "excludes": [],
+                "ignore": "",
+                "warnings": ""
+            },
+            "jshint": {
+                "@disable": false,
+                "args": [],
+                "excludes": [],
+                "ignore": ""
+            },
+            "json": {
+                "@disable": false,
+                "args": [],
+                "excludes": [],
+                "ignore": ""
+            },
+            "ruby": {
+                "@disable": false,
+                "args": [],
+                "excludes": []
+            }
+        },
+        "mark_style": "fill",
         "paths": {
             "linux": [],
             "osx": [],
@@ -24,25 +51,6 @@
             "php": "html"
         },
         "warning_color": "DDB700",
-        "wrap_find": true,
-         "linters": {
-            "csslint": {
-                "@disable": false,
-                "args": [],
-                "excludes": []
-            },
-            "jshint": {
-                "@disable": false,
-                "args": [],
-                "excludes": [],
-                "ignore": ""
-            },
-            "json": {
-                "@disable": false,
-                "args": [],
-                "excludes": [],
-                "ignore": ""
-            }
-        }
+        "wrap_find": true
     }
 }

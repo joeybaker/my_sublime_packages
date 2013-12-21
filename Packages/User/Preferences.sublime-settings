@@ -67,6 +67,18 @@
 		"node_modules",
 		"bower_components"
 	],
+  "index_exclude_patterns": [
+    ".svn",
+    ".git",
+    ".hg",
+    "CVS",
+    "wp-includes",
+    "wp-admin",
+    ".sass-cache",
+    "tmp",
+    "node_modules",
+    "bower_components"
+  ],
 	"font_face": "Source Code Pro",
 	"font_options":
 	[
@@ -75,8 +87,8 @@
 	"highlight_line": true,
 	"ignored_packages":
 	[
-		"Markdown",
-		"Vintage"
+		"Vintage",
+		"Markdown"
 	],
 	"ignored_words":
 	[

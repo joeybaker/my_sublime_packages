@@ -669,7 +669,7 @@ class Linter(metaclass=Registrar):
 
             if syntax not in linter.selectors:
                 linter.reset(code, filename=filename or 'untitled')
-                linter.lint()
+                linter.lint(hit_time)
 
         selectors = Linter.get_selectors(vid, syntax=syntax)
 
@@ -687,7 +687,7 @@ class Linter(metaclass=Registrar):
                     linter.highlight.move_to(line_offset, start)
                     linter.code = code[start:end]
                     linter.errors = {}
-                    linter.lint()
+                    linter.lint(hit_time)
 
                     for line, line_errors in linter.errors.items():
                         errors[line + line_offset] = line_errors
@@ -923,7 +923,7 @@ class Linter(metaclass=Registrar):
 
                     options[name] = value
 
-    def lint(self):
+    def lint(self, hit_time):
         """
         Perform the lint, retrieve the results, and add marks to the view.
 
@@ -932,8 +932,9 @@ class Linter(metaclass=Registrar):
         1. Ensure the linter has the minimum configuration necessary to lint.
         2. Get the command line. If it is an empty string, bail.
         3. Run the linter.
-        4. Parse the linter output with the regex.
-        5. Highlight warnings and errors.
+        4. If the view has been modified since the original hit_time, stop.
+        5. Parse the linter output with the regex.
+        6. Highlight warnings and errors.
 
         """
 
@@ -951,6 +952,10 @@ class Linter(metaclass=Registrar):
         output = self.run(cmd, self.code)
 
         if not output:
+            return
+
+        # If the view has been modified since the lint was triggered, no point in continuing.
+        if hit_time is not None and persist.last_hit_times.get(self.view.id(), 0) > hit_time:
             return
 
         if persist.settings.get('debug'):
@@ -984,9 +989,11 @@ class Linter(metaclass=Registrar):
                                 col = i
                                 break
 
+                # If there is also near, give that precedence and pass a hint of where to look
+                if near:
+                    col = self.highlight.near(line, near, col=col, error_type=error_type, word_re=self.word_re)
+                elif col is not None:
                     self.highlight.range(line, col, error_type=error_type, word_re=self.word_re)
-                elif near:
-                    col = self.highlight.near(line, near, error_type=error_type, word_re=self.word_re)
                 else:
                     self.highlight.range(line, 0, length=0, error_type=error_type, word_re=self.word_re)
 

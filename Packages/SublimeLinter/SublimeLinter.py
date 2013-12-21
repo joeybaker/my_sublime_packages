@@ -28,6 +28,9 @@ def plugin_loaded():
     persist.plugin_is_loaded = True
     persist.settings.load()
 
+    plugin = SublimeLinter.shared_plugin()
+    queue.start(plugin.lint)
+
     util.generate_menus()
     util.generate_color_scheme(from_reload=False)
     util.install_syntaxes()
@@ -38,7 +41,7 @@ def plugin_loaded():
     window = sublime.active_window()
 
     if window:
-        SublimeLinter.shared_plugin().on_activated(window.active_view())
+        plugin.on_activated(window.active_view())
 
 
 class SublimeLinter(sublime_plugin.EventListener):
@@ -67,13 +70,7 @@ class SublimeLinter(sublime_plugin.EventListener):
         # A mapping between view ids and syntax names
         self.view_syntax = {}
 
-        # Every time a view is modified, this is updated and an asynchronous lint is queued.
-        # When a lint is done, if the view has been modified since the lint was initiated,
-        # marks are not updated because their positions may no longer be valid.
-        self.last_hit_times = {}
-
         self.__class__.shared_instance = self
-        queue.start(self.lint)
 
     @classmethod
     def lint_all_views(cls):
@@ -104,7 +101,7 @@ class SublimeLinter(sublime_plugin.EventListener):
 
         # If the view has been modified since the lint was triggered,
         # don't lint again.
-        if hit_time is not None and self.last_hit_times.get(view_id, 0) > hit_time:
+        if hit_time is not None and persist.last_hit_times.get(view_id, 0) > hit_time:
             return
 
         view = Linter.get_view(view_id)
@@ -146,7 +143,7 @@ class SublimeLinter(sublime_plugin.EventListener):
 
         # If the view has been modified since the lint was triggered,
         # don't draw marks.
-        if hit_time is not None and self.last_hit_times.get(vid, 0) > hit_time:
+        if hit_time is not None and persist.last_hit_times.get(vid, 0) > hit_time:
             return
 
         errors = {}
@@ -180,7 +177,7 @@ class SublimeLinter(sublime_plugin.EventListener):
 
             return
 
-        self.last_hit_times[vid] = queue.hit(view)
+        persist.last_hit_times[vid] = queue.hit(view)
 
     def check_syntax(self, view):
         """
@@ -211,6 +208,9 @@ class SublimeLinter(sublime_plugin.EventListener):
     def on_modified(self, view):
         """Called when a view is modified."""
 
+        if view.is_scratch():
+            return
+
         if view.id() not in persist.view_linters:
             syntax_changed = self.check_syntax(view)
 
@@ -226,6 +226,9 @@ class SublimeLinter(sublime_plugin.EventListener):
 
     def on_activated(self, view):
         """Called when a view gains input focus."""
+
+        if view.is_scratch():
+            return
 
         # Reload the plugin settings.
         persist.settings.load()
@@ -280,12 +283,19 @@ class SublimeLinter(sublime_plugin.EventListener):
     def on_new(self, view):
         """Called when a new buffer is created."""
         self.on_open_settings(view)
+
+        if view.is_scratch():
+            return
+
         vid = view.id()
         self.loaded_views.add(vid)
         self.view_syntax[vid] = persist.get_syntax(view)
 
     def on_selection_modified_async(self, view):
         """Called when the selection changes (cursor moves or text selected)."""
+
+        if view.is_scratch():
+            return
 
         vid = view.id()
 
@@ -344,6 +354,9 @@ class SublimeLinter(sublime_plugin.EventListener):
     def on_post_save(self, view):
         """Called after view is saved."""
 
+        if view.is_scratch():
+            return
+
         # First check to see if the project settings changed
         if view.window().project_file_name() == view.file_name():
             self.lint_all_views()
@@ -390,6 +403,9 @@ class SublimeLinter(sublime_plugin.EventListener):
     def on_close(self, view):
         """Called after view is closed."""
 
+        if view.is_scratch():
+            return
+
         vid = view.id()
 
         if vid in self.loaded_views:
@@ -400,9 +416,6 @@ class SublimeLinter(sublime_plugin.EventListener):
 
         if vid in self.view_syntax:
             del self.view_syntax[vid]
-
-        if vid in self.last_hit_times:
-            del self.last_hit_times[vid]
 
         persist.view_did_close(vid)
 
