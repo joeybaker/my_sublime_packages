@@ -7,6 +7,7 @@
 		"AutoWrap",
 		"Backbone.js",
 		"Better CoffeeScript",
+		"BracketHighlighter",
 		"BufferScroll",
 		"Case Conversion",
 		"ColorPicker",
