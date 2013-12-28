@@ -14,7 +14,6 @@ from queue import Queue, Empty
 import threading
 import traceback
 import time
-import sys
 
 from . import persist, util
 
@@ -45,11 +44,6 @@ class Daemon:
         if self.running:
             self.q.put('reload')
         else:
-            # Make sure the system python 3 paths are available to plugins.
-            # We do this here to ensure it is only done once, even if the
-            # sublimelinter module is reloaded.
-            sys.path.extend(util.get_python_paths())
-
             self.running = True
             threading.Thread(target=self.loop).start()
 

@@ -165,8 +165,15 @@ class Highlight:
 
         """
 
+        # The first line of the code needs the character offset
+        if line == 0:
+            char_offset = self.char_offset
+        else:
+            char_offset = 0
+
         line += self.line_offset
-        start = self.newlines[line]
+        start = self.newlines[line] + char_offset
+
         end = self.newlines[min(line + 1, len(self.newlines) - 1)]
 
         return start, end
@@ -175,7 +182,9 @@ class Highlight:
         """
         Mark a range of text.
 
-        line and pos should be zero-based. The length argument can be used to control marking:
+        line and pos should be zero-based. The pos and length argument can be used to control marking:
+
+            - If pos < 0, the entire line is marked and length is ignored.
 
             - If length < 0, the nearest word starting at pos is marked, and if
               no word is matched, the character at pos is marked.
@@ -195,7 +204,10 @@ class Highlight:
 
         start, end = self.full_line(line)
 
-        if length < 0:
+        if pos < 0:
+            pos = 0
+            length = (end - start) - 1
+        elif length < 0:
             code = self.code[start:end][pos:]
             match = (word_re or WORD_RE).search(code)
 
@@ -262,13 +274,11 @@ class Highlight:
         for start, end in results:
             self.range(line, start + offset, end - start, error_type=error_type)
 
-    def near(self, line, near, col=None, error_type=ERROR, word_re=None):
+    def near(self, line, near, error_type=ERROR, word_re=None):
         """
         Mark a range of text near a given word.
 
         line, error_type and word_re are the same as in range().
-
-        If col is not None, only select a match at or before that column.
 
         If near is enclosed by quotes, they are stripped. The first occurrence
         of near in the given line of code is matched. If the first and last
@@ -299,12 +309,13 @@ class Highlight:
             if near[pos].isalnum() or near[pos] == '_':
                 fence[i] = r'\b'
 
-        start = -1
+        pattern = NEAR_RE_TEMPLATE.format(fence[0], re.escape(near), fence[1])
+        match = re.search(pattern, text)
 
-        for match in re.finditer(NEAR_RE_TEMPLATE.format(fence[0], re.escape(near), fence[1]), text):
-            if col is None or (col is not None and match.start() <= col):
-                start = match.start()
-                break
+        if match:
+            start = match.start(1)
+        else:
+            start = -1
 
         if start != -1:
             self.range(line, start, len(near), error_type=error_type, word_re=word_re)
@@ -419,8 +430,8 @@ class Highlight:
         """
         Move the highlight to the given line and character offset.
 
-        The character offset is an absolute offset relative to the start
-        of self.code. This method is used to create virtual line numbers
+        The character offset is relative to the start of the line.
+        This method is used to create virtual line numbers
         and character positions when linting embedded code.
 
         """

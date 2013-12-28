@@ -67,18 +67,6 @@
 		"node_modules",
 		"bower_components"
 	],
-  "index_exclude_patterns": [
-    ".svn",
-    ".git",
-    ".hg",
-    "CVS",
-    "wp-includes",
-    "wp-admin",
-    ".sass-cache",
-    "tmp",
-    "node_modules",
-    "bower_components"
-  ],
 	"font_face": "Source Code Pro",
 	"font_options":
 	[
@@ -87,8 +75,8 @@
 	"highlight_line": true,
 	"ignored_packages":
 	[
-		"Vintage",
-		"Markdown"
+		"Markdown",
+		"Vintage"
 	],
 	"ignored_words":
 	[
@@ -110,6 +98,19 @@
 	],
 	"indent_subsequent_lines": true,
 	"indent_to_bracket": false,
+	"index_exclude_patterns":
+	[
+		".svn",
+		".git",
+		".hg",
+		"CVS",
+		"wp-includes",
+		"wp-admin",
+		".sass-cache",
+		"tmp",
+		"node_modules",
+		"bower_components"
+	],
 	"line_numbers": true,
 	"line_padding_bottom": 0,
 	"line_padding_top": 0,

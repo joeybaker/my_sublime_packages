@@ -13,21 +13,18 @@
 		                "children":
 		                [
 		                    {
-		                        "caption": "Background",
 		                        "command": "sublimelinter_choose_lint_mode", "args": {"value": "Background"}
 		                    },
 		                    {
-		                        "caption": "Load/save",
 		                        "command": "sublimelinter_choose_lint_mode", "args": {"value": "Load/save"}
 		                    },
 		                    {
-		                        "caption": "Save only",
 		                        "command": "sublimelinter_choose_lint_mode", "args": {"value": "Save only"}
 		                    },
 		                    {
-		                        "caption": "Manual",
 		                        "command": "sublimelinter_choose_lint_mode", "args": {"value": "Manual"}
-		                    }
+		                    },
+		                    
 		                ]
 		            },
 		            {
@@ -35,34 +32,47 @@
 		                "children":
 		                [
 		                    {
-		                        "caption": "Fill",
 		                        "command": "sublimelinter_choose_mark_style", "args": {"value": "Fill"}
 		                    },
 		                    {
-		                        "caption": "Outline",
 		                        "command": "sublimelinter_choose_mark_style", "args": {"value": "Outline"}
 		                    },
 		                    {
-		                        "caption": "Solid underline",
 		                        "command": "sublimelinter_choose_mark_style", "args": {"value": "Solid underline"}
 		                    },
 		                    {
-		                        "caption": "Squiggly underline",
 		                        "command": "sublimelinter_choose_mark_style", "args": {"value": "Squiggly underline"}
 		                    },
 		                    {
-		                        "caption": "Stippled underline",
 		                        "command": "sublimelinter_choose_mark_style", "args": {"value": "Stippled underline"}
 		                    },
 		                    {
-		                        "caption": "None",
 		                        "command": "sublimelinter_choose_mark_style", "args": {"value": "None"}
+		                    },
+		                    
+		                    {
+		                        "caption": "-"
+		                    },
+		                    {
+		                        "caption": "No Column Highlights Line",
+		                        "command": "sublimelinter_toggle_setting", "args":
+		                        {
+		                            "setting": "no_column_highlights_line",
+		                            "checked": true
+		                        }
 		                    }
 		                ]
 		            },
 		            {
 		                "caption": "Choose Gutter Theme...",
 		                "command": "sublimelinter_choose_gutter_theme"
+		            },
+		            {
+		                "caption": "Toggle Linter...",
+		                "command": "sublimelinter_toggle_linter", "args":
+		                {
+		                    "which": "all"
+		                }
 		            },
 		            {
 		                "caption": "-"
@@ -84,13 +94,29 @@
 		                "command": "sublimelinter_show_all_errors"
 		            },
 		            {
+		                "caption": "Show Errors on Save",
+		                "command": "sublimelinter_toggle_setting", "args":
+		                {
+		                    "setting": "show_errors_on_save",
+		                    "checked": true
+		                }
+		            },
+		            {
 		                "caption": "-"
 		            },
 		            {
-		                "caption": "User Settings",
+		                "caption": "Open User Settings",
 		                "command": "open_file", "args":
 		                {
 		                    "file": "${packages}/User/SublimeLinter.sublime-settings"
+		                }
+		            },
+		            {
+		                "caption": "Debug Mode",
+		                "command": "sublimelinter_toggle_setting", "args":
+		                {
+		                    "setting": "debug",
+		                    "checked": true
 		                }
 		            }
 		        ]

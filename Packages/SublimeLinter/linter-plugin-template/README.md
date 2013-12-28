@@ -15,8 +15,10 @@ Before using this plugin, you must ensure that `__linter__` is installed on your
    ```
    __install__
    ```
+__extra_install_steps__
+Once __linter__ is installed, you must ensure it is in your system PATH so that SublimeLinter can find it. This may not be as straightforward as you think, so please read [How linter executables are located](https://github.com/SublimeLinter/SublimeLinter.github.io/wiki/Usage#how-linter-executables-are-located) in the documentation.
 
-Once __linter__ is installed, you can proceed to install the SublimeLinter-__linter__ plugin if it is not yet installed.
+Once you have installed you can proceed to install the SublimeLinter-__linter__ plugin if it is not yet installed.
 
 ### Plugin installation
 Please use [Package Control](https://sublime.wbond.net/installation) to install the linter plugin. This will ensure that the plugin will be updated when new versions are available. If you want to install from source so you can modify the source code, you probably know what you are doing so we won’t cover that here.
@@ -51,5 +53,6 @@ Please note that modications should follow these coding guidelines:
 - Indent is 4 spaces.
 - Code should pass flake8 and pep257 linters.
 - Vertical whitespace helps readability, don’t be afraid to use it.
+- Please use descriptive variable names, no abbrevations unless they are very well known.
 
 Thank you for helping out!

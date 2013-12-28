@@ -48,6 +48,8 @@ MARK_COLOR_RE = (
     r'\s*<string>)#.+?(</string>\s*\r?\n)'
 )
 
+ANSI_COLOR_RE = re.compile(r'\033\[[0-9;]*m')
+
 
 # settings utils
 
@@ -167,7 +169,7 @@ def get_rc_settings(start_dir, limit=None):
             return rc_settings
         except (OSError, ValueError) as ex:
             from . import persist
-            persist.debug('error loading \'{}\': {}'.format(path, str(ex)))
+            persist.printf('ERROR: could not load \'{}\': {}'.format(path, str(ex)))
     else:
         return None
 
@@ -339,7 +341,7 @@ def install_syntaxes_async():
                     except OSError as ex:
                         from . import persist
                         persist.printf(
-                            'could not remove existing {} syntax package: {}'
+                            'ERROR: could not remove existing {} syntax package: {}'
                             .format(syntax, str(ex))
                         )
                         copy = False
@@ -359,7 +361,7 @@ def install_syntaxes_async():
                     persist.printf('copied {} syntax package'.format(syntax))
                 except OSError as ex:
                     persist.printf(
-                        'could not copy {} syntax package: {}'
+                        'ERROR: could not copy {} syntax package: {}'
                         .format(syntax, str(ex))
                     )
 
@@ -388,7 +390,11 @@ def generate_menus_async():
     commands = []
 
     for chooser in CHOOSERS:
-        commands.append({'caption': chooser, 'menus': build_submenu(chooser)})
+        commands.append({
+            'caption': chooser,
+            'menus': build_submenu(chooser),
+            'toggleItems': ''
+        })
 
     menus = []
     indent = MENU_INDENT_RE.search(CHOOSER_MENU).group(1)
@@ -397,6 +403,11 @@ def generate_menus_async():
         # Indent the commands to where they want to be in the template.
         # The first line doesn't need to be indented, remove the extra indent.
         cmd['menus'] = indent_lines(cmd['menus'], indent)
+
+        if cmd['caption'] in TOGGLE_ITEMS:
+            cmd['toggleItems'] = TOGGLE_ITEMS[cmd['caption']]
+            cmd['toggleItems'] = indent_lines(cmd['toggleItems'], indent)
+
         menus.append(Template(CHOOSER_MENU).safe_substitute(cmd))
 
     menus = ',\n'.join(menus)
@@ -443,12 +454,12 @@ def build_submenu(caption):
     commands = []
 
     for name in names:
-        commands.append(CHOOSER_COMMAND.format(name, setting.replace(' ', '_'), name))
+        commands.append(CHOOSER_COMMAND.format(setting.replace(' ', '_'), name))
 
     return ',\n'.join(commands)
 
 
-# file/directory utils
+# file/directory/environment utils
 
 def climb(start_dir, limit=None):
     """
@@ -491,10 +502,38 @@ def find_file(start_dir, name, parent=False, limit=None):
             return target
 
 
+def run_shell_cmd(cmd):
+    """Run a shell command and return stdout."""
+    proc = popen(cmd, env=os.environ)
+
+    try:
+        out, err = proc.communicate(timeout=2)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        out = b''
+
+    return out
+
+
 def extract_path(cmd, delim=':'):
     """Return the user's PATH as a colon-delimited list."""
-    path = popen(cmd, os.environ).communicate()[0].decode()
-    return ':'.join(path.strip().split(delim))
+    from . import persist
+    persist.debug('User shell:', cmd[0])
+
+    out = run_shell_cmd(cmd).decode()
+    path = out.split('__SUBL_PATH__', 2)
+
+    if len(path) > 1:
+        path = path[1]
+        return ':'.join(path.strip().split(delim))
+    else:
+        persist.printf('Could not parse shell PATH output:\n' + (out if out else '<empty>'))
+        sublime.error_message(
+            'SublimeLinter could not determine your shell PATH. '
+            'It is unlikely that any linters will work. '
+            '\n\n'
+            'Please see the troubleshooting guide for info on how to debug PATH problems.')
+        return ''
 
 
 def get_shell_path(env):
@@ -509,15 +548,20 @@ def get_shell_path(env):
         shell_path = env['SHELL']
         shell = os.path.basename(shell_path)
 
-        if shell in ('bash', 'zsh', 'ksh', 'sh'):
+        # We have to delimit the PATH output with markers because
+        # text might be output during shell startup.
+        if shell in ('bash', 'zsh'):
             return extract_path(
-                (shell_path, '-l', '-c', 'echo $PATH')
+                (shell_path, '-l', '-c', 'echo "__SUBL_PATH__${PATH}__SUBL_PATH__"')
             )
         elif shell == 'fish':
             return extract_path(
-                (shell_path, '-l', '-c', 'for p in $PATH; echo $p; end'),
+                (shell_path, '-l', '-c', 'echo "__SUBL_PATH__"; for p in $PATH; echo $p; end; echo "__SUBL_PATH__"'),
                 '\n'
             )
+        else:
+            from . import persist
+            persist.printf('Using an unsupported shell:', shell)
 
     # guess PATH if we haven't returned yet
     split = env['PATH'].split(':')
@@ -531,6 +575,31 @@ def get_shell_path(env):
             p += (':' + path)
 
     return p
+
+
+@lru_cache(maxsize=None)
+def get_environment_variable(name):
+    """Return the value of the given environment variable, or None if not found."""
+
+    if os.name == 'posix':
+        value = None
+
+        if 'SHELL' in os.environ:
+            shell_path = os.environ['SHELL']
+
+            # We have to delimit the output with markers because
+            # text might be output during shell startup.
+            out = run_shell_cmd((shell_path, '-l', '-c', 'echo "__SUBL_VAR__${{{}}}__SUBL_VAR__"'.format(name))).strip()
+
+            if out:
+                value = out.decode().split('__SUBL_VAR__', 2)[1].strip() or None
+    else:
+        value = os.environ.get(name, None)
+
+    from . import persist
+    persist.debug('ENV[\'{}\'] = \'{}\''.format(name, value))
+
+    return value
 
 
 def get_path_components(path):
@@ -605,6 +674,20 @@ def create_environment():
     if paths:
         env['PATH'] += os.pathsep + os.pathsep.join(paths)
 
+    from . import persist
+
+    if persist.debug_mode():
+        if os.name == 'posix':
+            if 'SHELL' in env:
+                shell = 'using ' + env['SHELL']
+            else:
+                shell = 'using standard paths'
+        else:
+            shell = 'from system'
+
+        if env['PATH']:
+            persist.printf('computed PATH {}:\n{}\n'.format(shell, env['PATH'].replace(os.pathsep, '\n')))
+
     # Many linters use stdin, and we convert text to utf-8
     # before sending to stdin, so we have to make sure stdin
     # in the target executable is looking for utf-8.
@@ -656,12 +739,16 @@ def get_python_version(path):
     """Return a dict with the major/minor version of the python at path."""
 
     try:
-        output = subprocess.check_output((path, '-V'), stderr=subprocess.STDOUT)
-        output = output.decode().strip()
+        output = communicate((path, '-V'), '', output_stream=STREAM_STDERR)
 
         # 'python -V' returns 'Python <version>', extract the version number
         return extract_major_minor_version(output.split(' ')[1])
-    except:
+    except Exception as ex:
+        from . import persist
+        persist.printf(
+            'ERROR: an error occurred retrieving the version for {}: {}'
+            .format(path, str(ex)))
+
         return {'major': None, 'minor': None}
 
 
@@ -844,14 +931,21 @@ def get_python_paths():
 
     """
 
+    from . import persist
+
     python_path = which('@python3')[0]
 
     if python_path:
         code = r'import sys;print("\n".join(sys.path).strip())'
         out = communicate(python_path, code)
-        return out.splitlines()
+        paths = out.splitlines()
+
+        if persist.debug_mode():
+            persist.printf('sys.path for {}:\n{}\n'.format(python_path, '\n'.join(paths)))
     else:
-        return []
+        paths = []
+
+    return paths
 
 
 @lru_cache(maxsize=None)
@@ -910,38 +1004,36 @@ def get_subl_executable_path():
 
 # popen utils
 
-def combine_output(out, output_stream=STREAM_STDOUT, sep=''):
-    """Return stdout and/or stderr as returned by communicate, combining if necessary."""
-    if output_stream == STREAM_STDOUT:
-        return out[0].decode('utf8') or ''
-    elif output_stream == STREAM_STDERR:
-        return out[1].decode('utf8') or ''
-    else:
-        return sep.join((
-            (out[0].decode('utf8') or ''),
-            (out[1].decode('utf8') or ''),
-        ))
+def combine_output(out, sep=''):
+    """Return stdout and/or stderr combined into a string, stripped of ANSI colors."""
+    output = sep.join((
+        (out[0].decode('utf8') or '') if out[0] else '',
+        (out[1].decode('utf8') or '') if out[1] else '',
+    ))
+
+    return ANSI_COLOR_RE.sub('', output)
 
 
-def communicate(cmd, code, output_stream=STREAM_STDOUT):
+def communicate(cmd, code, output_stream=STREAM_STDOUT, env=None):
     """
     Return the result of sending code via stdin to an executable.
 
     The result is a string combination of stdout and stderr.
+    If env is not None, it is merged with the result of create_environment.
 
     """
 
-    out = popen(cmd)
+    out = popen(cmd, output_stream=output_stream, extra_env=env)
 
     if out is not None:
         code = code.encode('utf8')
         out = out.communicate(code)
-        return combine_output(out, output_stream=output_stream)
+        return combine_output(out)
     else:
         return ''
 
 
-def tmpfile(cmd, code, suffix='', output_stream=STREAM_STDOUT):
+def tmpfile(cmd, code, suffix='', output_stream=STREAM_STDOUT, env=None):
     """
     Return the result of running an executable against a temporary file containing code.
 
@@ -949,6 +1041,7 @@ def tmpfile(cmd, code, suffix='', output_stream=STREAM_STDOUT):
     which is a filename to process.
 
     The result is a string combination of stdout and stderr.
+    If env is not None, it is merged with the result of create_environment.
 
     """
 
@@ -957,17 +1050,23 @@ def tmpfile(cmd, code, suffix='', output_stream=STREAM_STDOUT):
     try:
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
             if isinstance(code, str):
-                code = code.encode('utf8')
+                code = code.encode('utf-8')
 
             f.write(code)
             f.flush()
 
-        cmd = tuple(cmd) + (f.name,)
-        out = popen(cmd)
+        cmd = list(cmd)
+
+        if '@' in cmd:
+            cmd[cmd.index('@')] = f.name
+        else:
+            cmd.append(f.name)
+
+        out = popen(cmd, output_stream=output_stream, extra_env=env)
 
         if out:
             out = out.communicate()
-            return combine_output(out, output_stream)
+            return combine_output(out)
         else:
             return ''
     finally:
@@ -975,7 +1074,7 @@ def tmpfile(cmd, code, suffix='', output_stream=STREAM_STDOUT):
             os.remove(f.name)
 
 
-def tmpdir(cmd, files, filename, code, output_stream=STREAM_STDOUT):
+def tmpdir(cmd, files, filename, code, output_stream=STREAM_STDOUT, env=None):
     """
     Run an executable against a temporary file containing code.
 
@@ -983,6 +1082,7 @@ def tmpdir(cmd, files, filename, code, output_stream=STREAM_STDOUT):
     which is a filename to process.
 
     Returns a string combination of stdout and stderr.
+    If env is not None, it is merged with the result of create_environment.
 
     """
 
@@ -1012,11 +1112,11 @@ def tmpdir(cmd, files, filename, code, output_stream=STREAM_STDOUT):
                 shutil.copyfile(f, target)
 
         os.chdir(d)
-        out = popen(cmd)
+        out = popen(cmd, output_stream=output_stream, extra_env=env)
 
         if out:
             out = out.communicate()
-            out = combine_output(out, sep='\n', output_stream=output_stream)
+            out = combine_output(out, sep='\n')
 
             # filter results from build to just this filename
             # no guarantee all syntaxes are as nice about this as Go
@@ -1032,7 +1132,7 @@ def tmpdir(cmd, files, filename, code, output_stream=STREAM_STDOUT):
     return out or ''
 
 
-def popen(cmd, env=None):
+def popen(cmd, output_stream=STREAM_BOTH, env=None, extra_env=None):
     """Open a pipe to an external process and return a Popen object."""
 
     info = None
@@ -1042,19 +1142,31 @@ def popen(cmd, env=None):
         info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         info.wShowWindow = subprocess.SW_HIDE
 
+    if output_stream == STREAM_BOTH:
+        stdout = stderr = subprocess.PIPE
+    elif output_stream == STREAM_STDOUT:
+        stdout = subprocess.PIPE
+        stderr = subprocess.DEVNULL
+    else:  # STREAM_STDERR
+        stdout = subprocess.DEVNULL
+        stderr = subprocess.PIPE
+
     if env is None:
         env = create_environment()
+
+    if extra_env is not None:
+        env.update(extra_env)
 
     try:
         return subprocess.Popen(
             cmd, stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            stdout=stdout, stderr=stderr,
             startupinfo=info, env=env)
-    except OSError as err:
+    except Exception as err:
         from . import persist
-        persist.debug('error launching', repr(cmd))
-        persist.debug('error was:', err.strerror)
-        persist.debug('environment:', env)
+        persist.printf('ERROR: could not launch', repr(cmd))
+        persist.printf('reason:', str(err))
+        persist.printf('PATH:', env.get('PATH', ''))
 
 
 # view utils
@@ -1077,13 +1189,13 @@ def clear_caches():
     find_executable.cache_clear()
 
 
-def convert_type(value, type_value, sep=None):
+def convert_type(value, type_value, sep=None, default=None):
     """
     Convert value to the type of type_value.
 
-    If the value cannot be converted to the desired type, None is returned.
-    If sep is not None, strings are split by sep to make lists/tuples, and
-    tuples/lists are joined by sep to make strings.
+    If the value cannot be converted to the desired type, default is returned.
+    If sep is not None, strings are split by sep (plus surrounding whitespace)
+    to make lists/tuples, and tuples/lists are joined by sep to make strings.
 
     """
 
@@ -1096,13 +1208,13 @@ def convert_type(value, type_value, sep=None):
                 return [value]
             else:
                 if value:
-                    return value.split(sep)
+                    return re.split(r'\s*{}\s*'.format(sep), value)
                 else:
                     return []
         elif isinstance(type_value, Number):
             return float(value)
         else:
-            return None
+            return default
 
     if isinstance(value, Number):
         if isinstance(type_value, str):
@@ -1110,7 +1222,7 @@ def convert_type(value, type_value, sep=None):
         elif isinstance(type_value, (tuple, list)):
             return [value]
         else:
-            return None
+            return default
 
     if isinstance(value, (tuple, list)):
         if isinstance(type_value, str):
@@ -1118,7 +1230,7 @@ def convert_type(value, type_value, sep=None):
         else:
             return list(value)
 
-    return None
+    return default
 
 
 def get_user_fullname():
@@ -1129,6 +1241,28 @@ def get_user_fullname():
         return pwd.getpwuid(os.getuid()).pw_gecos
     else:
         return os.environ.get('USERNAME', 'Me')
+
+
+def center_region_in_view(region, view):
+    """
+    Center the given region in view.
+
+    There is a bug in ST3 that prevents a selection change
+    from being drawn when a quick panel is open unless the
+    viewport moves. So we get the current viewport position,
+    move it down 1.0, center the region, see if the viewport
+    moved, and if not, move it up 1.0 and center again.
+
+    """
+
+    x1, y1 = view.viewport_position()
+    view.set_viewport_position((x1, y1 + 1.0))
+    view.show_at_center(region)
+    x2, y2 = view.viewport_position()
+
+    if y2 == y1:
+        view.set_viewport_position((x1, y1 - 1.0))
+        view.show_at_center(region)
 
 
 # color-related constants
@@ -1195,11 +1329,26 @@ CHOOSER_MENU = '''{
     "caption": "$caption",
     "children":
     [
-        $menus
+        $menus,
+        $toggleItems
     ]
 }'''
 
 CHOOSER_COMMAND = '''{{
-    "caption": "{}",
     "command": "sublimelinter_choose_{}", "args": {{"value": "{}"}}
 }}'''
+
+TOGGLE_ITEMS = {
+    'Mark Style': '''
+{
+    "caption": "-"
+},
+{
+    "caption": "No Column Highlights Line",
+    "command": "sublimelinter_toggle_setting", "args":
+    {
+        "setting": "no_column_highlights_line",
+        "checked": true
+    }
+}'''
+}
