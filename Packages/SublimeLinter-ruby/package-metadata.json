@@ -1,1 +1,1 @@
-{"version": "1.0.6", "description": "SublimeLinter plugin for ruby, using ruby -wc.", "url": "https://github.com/SublimeLinter/SublimeLinter-ruby"}
+{"description": "SublimeLinter plugin for ruby, using ruby -wc.", "version": "1.0.7", "url": "https://github.com/SublimeLinter/SublimeLinter-ruby"}
