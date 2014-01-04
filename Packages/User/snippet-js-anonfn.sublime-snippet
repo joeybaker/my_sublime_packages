@@ -1,6 +1,6 @@
 <snippet>
   <content><![CDATA[
-function($1)\{$2$0}
+function($1)\{$0}
 ]]></content>
   <!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
   <tabTrigger>f</tabTrigger>
