@@ -35,7 +35,7 @@ STREAM_BOTH = STREAM_STDOUT + STREAM_STDERR
 PYTHON_CMD_RE = re.compile(r'(?P<script>[^@]+)?@python(?P<version>[\d\.]+)?')
 VERSION_RE = re.compile(r'(?P<major>\d+)(?:\.(?P<minor>\d+))?')
 
-INLINE_SETTINGS_RE = re.compile(r'.*?\[SublimeLinter[ ]+(?P<settings>[^\]]+)\]')
+INLINE_SETTINGS_RE = re.compile(r'(?i).*?\[sublimelinter[ ]+(?P<settings>[^\]]+)\]')
 INLINE_SETTING_RE = re.compile(r'(?P<key>[@\w][\w\-]*)\s*:\s*(?P<value>[^\s]+)')
 
 MENU_INDENT_RE = re.compile(r'^(\s+)\$menus', re.MULTILINE)
@@ -77,7 +77,7 @@ def merge_user_settings(settings):
     return default
 
 
-def inline_settings(comment_re, code, prefix=None):
+def inline_settings(comment_re, code, prefix=None, alt_prefix=None):
     r"""
     Return a dict of inline settings within the first two lines of code.
 
@@ -90,8 +90,8 @@ def inline_settings(comment_re, code, prefix=None):
 
     r'\s*/[/*]'
 
-    If prefix is a non-empty string, setting names must begin with the given prefix
-    to be considered as a setting.
+    If prefix or alt_prefix is a non-empty string, setting names must begin with
+    the given prefix or alt_prefix to be considered as a setting.
 
     A dict of matching name/value pairs is returned.
 
@@ -99,6 +99,9 @@ def inline_settings(comment_re, code, prefix=None):
 
     if prefix:
         prefix = prefix.lower() + '-'
+
+    if alt_prefix:
+        alt_prefix = alt_prefix.lower() + '-'
 
     settings = {}
     pos = -1
@@ -127,6 +130,8 @@ def inline_settings(comment_re, code, prefix=None):
             if prefix and key[0] != '@':
                 if key.startswith(prefix):
                     key = key[len(prefix):]
+                elif alt_prefix and key.startswith(alt_prefix):
+                    key = key[len(alt_prefix):]
                 else:
                     continue
 
@@ -507,7 +512,7 @@ def run_shell_cmd(cmd):
     proc = popen(cmd, env=os.environ)
 
     try:
-        out, err = proc.communicate(timeout=2)
+        out, err = proc.communicate(timeout=1)
     except subprocess.TimeoutExpired:
         proc.kill()
         out = b''
@@ -1014,7 +1019,7 @@ def combine_output(out, sep=''):
     return ANSI_COLOR_RE.sub('', output)
 
 
-def communicate(cmd, code, output_stream=STREAM_STDOUT, env=None):
+def communicate(cmd, code='', output_stream=STREAM_STDOUT, env=None):
     """
     Return the result of sending code via stdin to an executable.
 

@@ -31,7 +31,7 @@ from . import highlight, persist, util
 #
 # Private constants
 #
-ARG_RE = re.compile(r'(?P<prefix>--?)?(?P<name>[@\w][\w\-]*)(?:(?P<joiner>[=:])(?:(?P<sep>.)(?P<multiple>\+)?)?)?')
+ARG_RE = re.compile(r'(?P<prefix>@|--?)?(?P<name>[@\w][\w\-]*)(?:(?P<joiner>[=:])(?:(?P<sep>.)(?P<multiple>\+)?)?)?')
 BASE_CLASSES = ('PythonLinter',)
 HTML_ENTITY_RE = re.compile(r'&(?:(?:#(x)?([0-9a-fA-F]{1,4}))|(\w+));')
 
@@ -63,6 +63,7 @@ class LinterMeta(type):
             if name in ('PythonLinter', 'RubyLinter'):
                 return
 
+            self.alt_name = self.make_alt_name(name)
             cmd = attrs.get('cmd')
 
             if isinstance(cmd, str):
@@ -138,6 +139,21 @@ class LinterMeta(type):
 
         setattr(self, 'args_map', args_map)
 
+    @staticmethod
+    def make_alt_name(name):
+        """Convert a camel-case name to lowercase with dashes."""
+        previous = name[0]
+        alt_name = previous.lower()
+
+        for c in name[1:]:
+            if c.isupper() and previous.islower():
+                alt_name += '-'
+
+            alt_name += c.lower()
+            previous = c
+
+        return alt_name
+
     @property
     def name(self):
         """Return the class name lowercased."""
@@ -206,6 +222,12 @@ class Linter(metaclass=LinterMeta):
     # to tempfile suffixes. The syntax used to lookup the suffix is the mapped
     # syntax, after using "syntax_map" in settings. If the view's syntax is not
     # in this map, the class' syntax will be used.
+    #
+    # Some linters can only work from an actual disk file, because they
+    # rely on an entire directory structure that cannot be realistically be copied
+    # to a temp directory (e.g. javac). In such cases, set this attribute to '-',
+    # which marks the linter as "file-only". That will disable the linter for
+    # any views that are dirty.
     tempfile_suffix = None
 
     # Linters may output to both stdout and stderr. By default stdout and sterr are captured.
@@ -213,6 +235,18 @@ class Linter(metaclass=LinterMeta):
     # there is an error within the linter), you can ignore that stream by setting
     # this attribute to the other stream.
     error_stream = util.STREAM_BOTH
+
+    # Many linters look for a config file in the linted file’s directory and in
+    # all parent directories up to the root directory. However, some of them
+    # will not do this if receiving input from stdin, and others use temp files,
+    # so looking in the temp file directory doesn’t work. If this attribute
+    # is set to a tuple of a config file argument and the name of the config file,
+    # the linter will automatically try to find the config file, and if it is found,
+    # add the config file argument to the executed command.
+    #
+    # Example: config_file = ('--config', '.jshintrc')
+    #
+    config_file = None
 
     # Tab width
     tab_width = 1
@@ -240,11 +274,12 @@ class Linter(metaclass=LinterMeta):
     #
     # <prefix><name><joiner>[<sep>[+]]
     #
-    # - <prefix>: Either '-' or '--'.
+    # - <prefix>: Either empty, '@', '-' or '--'.
     # - <name>: The name of the setting.
-    # - <joiner>: Either '=' or ':'. If '=', the setting value is joined
-    #   with <name> by '=' and passed as a single argument. If ':', <name>
-    #   and the value are passed as separate arguments.
+    # - <joiner>: Either '=' or ':'. If <prefix> is empty or '@', <joiner> is ignored.
+    #   Otherwise, if '=', the setting value is joined with <name> by '=' and
+    #   passed as a single argument. If ':', <name> and the value are passed
+    #   as separate arguments.
     # - <sep>: If the argument accepts a list of values, <sep> specifies
     #   the character used to delimit the list (usually ',').
     # - +: If the setting can be a list of values, but each value must be
@@ -389,7 +424,8 @@ class Linter(metaclass=LinterMeta):
                 inline_settings.update(util.inline_settings(
                     self.comment_re,
                     self.code,
-                    self.name
+                    prefix=self.name,
+                    alt_prefix=self.alt_name
                 ))
 
             settings = self.merge_inline_settings(settings.copy(), inline_settings)
@@ -682,7 +718,6 @@ class Linter(metaclass=LinterMeta):
         has selectors, return a tuple of the selector and the linter.
 
         """
-        view = persist.views[vid]
         selectors = []
 
         for linter in cls.get_linters(vid):
@@ -731,10 +766,19 @@ class Linter(metaclass=LinterMeta):
         syntax = persist.get_syntax(persist.views[vid])
 
         for linter in linters:
+            # First check to see if the linter can run in the current lint mode.
+            if linter.tempfile_suffix == '-' and view.is_dirty():
+                disabled.add(linter)
+                continue
+
             # Because get_view_settings is expensive, we use an lru_cache
             # to cache its results. Before each lint, reset the cache.
             linter.clear_settings_caches()
             view_settings = linter.get_view_settings(no_inline=True)
+
+            # We compile the ignore matches for a linter on each run,
+            # clear the cache first.
+            linter.ignore_matches = None
 
             if view_settings.get('@disable'):
                 disabled.add(linter)
@@ -761,7 +805,7 @@ class Linter(metaclass=LinterMeta):
                         continue
 
             if syntax not in linter.selectors and '*' not in linter.selectors:
-                linter.reset(code)
+                linter.reset(code, view_settings)
                 linter.lint(hit_time)
 
         selectors = Linter.get_selectors(vid, syntax)
@@ -776,7 +820,7 @@ class Linter(metaclass=LinterMeta):
             for region in view.find_by_selector(selector):
                 regions.append(region)
 
-            linter.reset(code)
+            linter.reset(code, view_settings)
             errors = {}
 
             for region in regions:
@@ -797,11 +841,75 @@ class Linter(metaclass=LinterMeta):
         # Merge our result back to the main thread
         callback(cls.get_view(vid), linters, hit_time)
 
-    def reset(self, code):
+    def compile_ignore_match(self, match):
+        try:
+            return re.compile(match)
+        except re.error as err:
+            persist.printf(
+                'ERROR: {}: invalid ignore_match: "{}" ({})'
+                .format(self.name, match, str(err))
+            )
+            return None
+
+    def compiled_ignore_matches(self, ignore_match):
+        """
+        As an optimization, compile the "ignore_match" linter setting.
+
+        If it's a string, return a list with a single compiled regex.
+        If it's a list, return a list of the compiled regexes.
+        If it's a dict, return a list only of the regexes whose key
+        matches the file's extension.
+
+        """
+
+        if isinstance(ignore_match, str):
+            regex = self.compile_ignore_match(ignore_match)
+            return [regex] if regex else []
+
+        elif isinstance(ignore_match, list):
+            matches = []
+
+            for match in ignore_match:
+                regex = self.compile_ignore_match(match)
+
+                if regex:
+                    matches.append(regex)
+
+            return matches
+
+        elif isinstance(ignore_match, dict):
+            if not self.filename:
+                return []
+
+            ext = os.path.splitext(self.filename)[1].lower()
+
+            if not ext:
+                return []
+
+            # Try to match the extension, then the extension without the dot
+            ignore_match = ignore_match.get(ext, ignore_match.get(ext[1:]))
+
+            if ignore_match:
+                return self.compiled_ignore_matches(ignore_match)
+            else:
+                return []
+
+        else:
+            return []
+
+    def reset(self, code, settings):
         """Reset a linter to work on the given code and filename."""
         self.errors = {}
         self.code = code
         self.highlight = highlight.Highlight(self.code)
+
+        if self.ignore_matches is None:
+            ignore_match = settings.get('ignore_match')
+
+            if ignore_match:
+                self.ignore_matches = self.compiled_ignore_matches(ignore_match)
+            else:
+                self.ignore_matches = []
 
     @classmethod
     def which(cls, cmd):
@@ -934,6 +1042,8 @@ class Linter(metaclass=LinterMeta):
           default/user/view settings. If arg is not in settings or is a meta
           setting (beginning with '@'), it is skipped.
 
+        - If the arg has no prefix, it is skipped.
+
         - Get the setting value. If it is None or an empty string/list, skip this arg.
 
         - If the setting value is a non-empty list and the arg was specified
@@ -949,6 +1059,10 @@ class Linter(metaclass=LinterMeta):
         - If the joiner is '=', join '=' and the value and append to the args.
         - If the joiner is ':', append the arg and value as separate args.
 
+        Finally, if the config_file attribute is set and the user has not
+        set the config_file arg in the linter's "args" setting, try to
+        locate the config file and if found add the config file arg.
+
         Return the arg list.
 
         """
@@ -957,7 +1071,9 @@ class Linter(metaclass=LinterMeta):
         args_map = getattr(self, 'args_map', {})
 
         for setting, arg_info in args_map.items():
-            if setting not in settings or setting[0] == '@':
+            prefix = arg_info['prefix']
+
+            if setting not in settings or setting[0] == '@' or prefix is None:
                 continue
 
             values = settings[setting]
@@ -987,14 +1103,24 @@ class Linter(metaclass=LinterMeta):
                 continue
 
             for value in values:
-                arg = arg_info['prefix'] + arg_info['name']
-                joiner = arg_info['joiner']
-
-                if joiner == '=':
-                    args.append('{}={}'.format(arg, value))
-                elif joiner == ':':
-                    args.append(arg)
+                if prefix == '@':
                     args.append(str(value))
+                else:
+                    arg = prefix + arg_info['name']
+                    joiner = arg_info['joiner']
+
+                    if joiner == '=':
+                        args.append('{}={}'.format(arg, value))
+                    elif joiner == ':':
+                        args.append(arg)
+                        args.append(str(value))
+
+        if self.config_file:
+            if self.config_file[0] not in args and self.filename:
+                config = util.find_file(os.path.dirname(self.filename), self.config_file[1])
+
+                if config:
+                    args += [self.config_file[0], config]
 
         return args
 
@@ -1080,7 +1206,29 @@ class Linter(metaclass=LinterMeta):
             persist.printf('{} output:\n{}'.format(self.name, stripped_output))
 
         for match, line, col, error, warning, message, near in self.find_errors(output):
-            if match and line is not None:
+            if match and message and line is not None:
+                if self.ignore_matches:
+                    ignore = False
+
+                    for ignore_match in self.ignore_matches:
+                        if ignore_match.match(message):
+                            ignore = True
+
+                            if persist.debug_mode():
+                                persist.printf(
+                                    '{} ({}): ignore_match: "{}" == "{}"'
+                                    .format(
+                                        self.name,
+                                        os.path.basename(self.filename) or '<unsaved>',
+                                        ignore_match.pattern,
+                                        message
+                                    )
+                                )
+                            break
+
+                    if ignore:
+                        continue
+
                 if error:
                     error_type = highlight.ERROR
                 elif warning:
@@ -1106,13 +1254,15 @@ class Linter(metaclass=LinterMeta):
                                 col = i
                                 break
 
-                # If there is also near, give that precedence and pass a hint of where to look
                 if col is not None:
                     self.highlight.range(line, col, error_type=error_type, word_re=self.word_re)
                 elif near:
                     col = self.highlight.near(line, near, error_type=error_type, word_re=self.word_re)
                 else:
-                    if persist.settings.get('no_column_highlights_line'):
+                    if (
+                        persist.settings.get('no_column_highlights_line') or
+                        persist.settings.get('gutter_theme') == 'none'
+                    ):
                         pos = -1
                     else:
                         pos = 0
@@ -1320,7 +1470,10 @@ class Linter(metaclass=LinterMeta):
                                               cmd or '<builtin>'))
 
         if self.tempfile_suffix:
-            return self.tmpfile(cmd, code, suffix=self.get_tempfile_suffix())
+            if self.tempfile_suffix != '-':
+                return self.tmpfile(cmd, code, suffix=self.get_tempfile_suffix())
+            else:
+                return self.communicate(cmd)
         else:
             return self.communicate(cmd, code)
 
@@ -1341,7 +1494,7 @@ class Linter(metaclass=LinterMeta):
 
     # popen wrappers
 
-    def communicate(self, cmd, code):
+    def communicate(self, cmd, code=''):
         """Run an external executable using stdin to pass code and return its output."""
         if '@' in cmd:
             cmd[cmd.index('@')] = self.filename
