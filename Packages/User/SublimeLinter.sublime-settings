@@ -15,6 +15,11 @@
                 "ignore": "",
                 "warnings": ""
             },
+            "jscs": {
+                "@disable": false,
+                "args": [],
+                "excludes": []
+            },
             "jshint": {
                 "@disable": false,
                 "args": [],
