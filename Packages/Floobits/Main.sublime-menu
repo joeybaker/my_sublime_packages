@@ -1,0 +1,98 @@
+[{
+  "caption": "Tools",
+  "mnemonic": "t",
+  "id": "tools",
+  "children": [{
+    "id": "floobitsmenu",
+    "caption": "Floobits",
+    "children": [
+      {
+        "caption": "Request Edit Permission",
+        "command": "floobits_request_permission",
+        "args": {
+          "perms": ["edit_room"]
+        }
+      },
+      {
+        "id": "floobits_share_dir",
+        "caption": "Share Directory (Public)",
+        "command": "floobits_share_dir"
+      },
+      {
+        "id": "floobits_share_dir_private",
+        "caption": "Share Directory (Private)",
+        "command": "floobits_share_dir",
+        "args": {
+          "api_args": {"perms": {"AnonymousUser": []}}
+        }
+      },
+      {
+        "id": "floobits_create_hangout",
+        "caption": "Open Workspace in a Google+ Hangout",
+        "command": "floobits_create_hangout"
+      },
+      {
+        "id": "floobits_open_web_editor",
+        "caption": "Open Workspace in web editor",
+        "command": "floobits_open_web_editor"
+      },
+      {
+        "id": "floobits_workspace_menu",
+        "caption": "Join Workspace",
+        "command": "floobits_prompt_join_workspace"
+      },
+      {
+        "id": "floobits_join_recent_workspace",
+        "caption": "Join Recent Workspace",
+        "command": "floobits_join_recent_workspace"
+      },
+      {
+        "id": "floobits_leave_workspace",
+        "caption": "Leave Workspace",
+        "command": "floobits_leave_workspace"
+      },
+      {
+        "caption": "Open Workspace Settings (in Browser)",
+        "command": "floobits_open_workspace_settings"
+      },
+      {
+        "id": "floobits_msg",
+        "caption": "Send Message",
+        "command": "floobits_prompt_msg"
+      },
+      { "command": "floobits_open_message_view",
+        "caption": "Open Messages View",
+        "id": "floobits_open_message_view"
+      },
+      {
+        "caption": " ",
+        "command": "floobits_not_a"
+      },
+      {
+        "caption": "Help",
+        "command": "floobits_help"
+      }
+    ]
+  }]
+},
+{
+  "caption": "Preferences",
+  "mnemonic": "n",
+  "id": "preferences",
+  "children":[{
+    "caption": "Package Settings",
+    "mnemonic": "P",
+    "id": "package-settings",
+    "children":[{
+      "caption": "Floobits",
+      "children": [
+      {
+        "command": "floobits_open_settings",
+        "caption": "Settings (~/.floorc)"
+      },
+      {
+        "caption": "-"
+      }]
+    }]
+  }]
+}]

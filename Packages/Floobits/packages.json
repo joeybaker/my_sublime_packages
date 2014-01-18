@@ -1,0 +1,22 @@
+{
+    "schema_version": "2.0",
+    "packages": [
+        {
+            "name": "Floobits",
+            "author": "Floobits",
+            "description": "Real-time collaboration plugin for Sublime Text 2/3",
+            "details": "https://github.com/Floobits/floobits-sublime",
+            "homepage": "https://floobits.com/",
+            "labels": [
+                "code sharing",
+                "pair programming"
+            ],
+            "releases": [
+                {
+                    "sublime_text": "*",
+                    "details": "https://github.com/Floobits/floobits-sublime/tags"
+                }
+            ]
+        }
+    ]
+}

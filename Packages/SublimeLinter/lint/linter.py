@@ -141,7 +141,7 @@ class LinterMeta(type):
 
     @staticmethod
     def make_alt_name(name):
-        """Convert a camel-case name to lowercase with dashes."""
+        """Convert and return a camel-case name to lowercase with dashes."""
         previous = name[0]
         alt_name = previous.lower()
 
@@ -370,6 +370,7 @@ class Linter(metaclass=LinterMeta):
 
     @classmethod
     def clear_settings_caches(cls):
+        """Clear lru caches for this class' methods."""
         cls.get_view_settings.cache_clear()
         cls.get_merged_settings.cache_clear()
 
@@ -841,19 +842,20 @@ class Linter(metaclass=LinterMeta):
         # Merge our result back to the main thread
         callback(cls.get_view(vid), linters, hit_time)
 
-    def compile_ignore_match(self, match):
+    def compile_ignore_match(self, pattern):
+        """Return the compiled pattern, log the error if compilation fails."""
         try:
-            return re.compile(match)
+            return re.compile(pattern)
         except re.error as err:
             persist.printf(
                 'ERROR: {}: invalid ignore_match: "{}" ({})'
-                .format(self.name, match, str(err))
+                .format(self.name, pattern, str(err))
             )
             return None
 
     def compiled_ignore_matches(self, ignore_match):
         """
-        As an optimization, compile the "ignore_match" linter setting.
+        Compile the "ignore_match" linter setting as an optimization.
 
         If it's a string, return a list with a single compiled regex.
         If it's a list, return a list of the compiled regexes.
@@ -967,22 +969,12 @@ class Linter(metaclass=LinterMeta):
             cmd = list(cmd)
 
         which = cmd[0]
+        have_path, path = self.context_sensitive_executable_path(cmd)
 
-        # Check to see if we have a @python command
-        match = util.PYTHON_CMD_RE.match(cmd[0])
-        settings = self.get_view_settings()
-
-        if match and '@python' in settings:
-            script = match.group('script') or ''
-            which = '{}@python{}'.format(script, settings.get('@python'))
-            path = self.which(which)
-
-            if path:
-                # Returning None means the linter runs code internally
-                if path[0] == '<builtin>':
-                    return None
-                elif path[0] is None or script and path[1] is None:
-                    path = None
+        if have_path:
+            # Returning None means the linter runs code internally
+            if path == '<builtin>':
+                return None
         elif self.executable_path:
             path = self.executable_path
 
@@ -997,6 +989,15 @@ class Linter(metaclass=LinterMeta):
 
         cmd[0:1] = util.convert_type(path, [])
         return self.insert_args(cmd)
+
+    def context_sensitive_executable_path(self, cmd):
+        """
+        Calculate the context-sensitive executable path, return a tuple of (have_path, path).
+
+        Subclasses may override this to return a special path.
+
+        """
+        return False, None
 
     def insert_args(self, cmd):
         """Insert user arguments into cmd and return the result."""

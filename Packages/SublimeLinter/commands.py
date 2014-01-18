@@ -67,10 +67,10 @@ class SublimelinterLintCommand(sublime_plugin.TextCommand):
         """
         Return True if the current view can be linted.
 
-        A view can be linted if:
+        If the view has *only* file-only linters, it can be linted
+        only if the view is not dirty.
 
-        - The view has only file-only linters and the view is not dirty.
-        - The lint mode is not "background".
+        Otherwise it can be linted.
 
         """
 
@@ -87,7 +87,7 @@ class SublimelinterLintCommand(sublime_plugin.TextCommand):
         if not has_non_file_only_linter:
             return not self.view.is_dirty()
 
-        return persist.settings.get('lint_mode', 'background') != 'background'
+        return True
 
     def run(self, edit):
         """Lint the current view."""
@@ -717,7 +717,7 @@ class SublimelinterCreateLinterPluginCommand(sublime_plugin.WindowCommand):
         """Copy the template linter to a new linter with the given name."""
 
         self.name = name
-        self.fullname = 'SublimeLinter-{}'.format(name)
+        self.fullname = 'SublimeLinter-contrib-{}'.format(name)
         self.dest = os.path.join(sublime.packages_path(), self.fullname)
 
         if os.path.exists(self.dest):

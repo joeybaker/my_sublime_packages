@@ -1,0 +1,47 @@
+[
+  {
+    "caption": "Floobits",
+    "children": [
+      {
+        "caption": "Stalk Workspace (Follow changes)",
+        "command": "floobits_enable_stalker_mode"
+      },
+      {
+        "caption": "Stop Stalking Workspace",
+        "command": "floobits_disable_stalker_mode"
+      },
+      {
+        "caption": "Summon",
+        "command": "floobits_summon"
+      },
+      {
+        "caption": "Clear Highlights",
+        "command": "floobits_clear_highlights"
+      },
+      {
+        "caption": "Send Message",
+        "command": "floobits_prompt_msg"
+      },
+      {
+        "caption": "Join Workspace",
+        "command": "floobits_prompt_join_workspace"
+      },
+      {
+        "caption": "Join Recent Workspace",
+        "command": "floobits_join_recent_workspace"
+      },
+      {
+        "caption": "Leave Workspace",
+        "command": "floobits_leave_workspace"
+      },
+      {
+        "caption": " ",
+        "command": "floobits_not_a"
+      },
+      {
+        "caption": "Help",
+        "command": "floobits_help"
+      }
+    ]
+  }
+]

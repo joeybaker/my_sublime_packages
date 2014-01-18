@@ -137,10 +137,16 @@ class PythonLinter(linter.Linter):
                             module = None
 
             except ImportError:
-                persist.printf(
-                    'WARNING: import of {} module in {} failed'
-                    .format(module, cls.name)
-                )
+                message = '{}import of {} module in {} failed'
+
+                if cls.check_version:
+                    warning = 'WARNING: '
+                    message += ', linter will not work with python 3 code'
+                else:
+                    warning = ''
+                    message += ', linter will not run using built in python'
+
+                persist.printf(message.format(warning, module, cls.name))
                 module = None
 
             except Exception as ex:
@@ -186,6 +192,43 @@ class PythonLinter(linter.Linter):
             cls.disabled = True
 
         cls.module = module
+
+    def context_sensitive_executable_path(self, cmd):
+        """
+        Calculate the context-sensitive executable path, using @python and check_version.
+
+        Return a tuple of (have_path, path).
+
+        Return have_path == False if not self.check_version.
+        Return have_path == True if cmd is in [script]@python[version] form.
+        Return None for path if the desired version of python/script cannot be found.
+        Return '<builtin>' for path if the built-in python should be used.
+
+        """
+
+        if not self.check_version:
+            return False, None
+
+        # Check to see if we have a @python command
+        match = util.PYTHON_CMD_RE.match(cmd[0])
+
+        if match:
+            settings = self.get_view_settings()
+
+            if '@python' in settings:
+                script = match.group('script') or ''
+                which = '{}@python{}'.format(script, settings.get('@python'))
+                path = self.which(which)
+
+                if path:
+                    if path[0] == '<builtin>':
+                        return True, '<builtin>'
+                    elif path[0] is None or script and path[1] is None:
+                        return True, None
+
+                return True, path
+
+        return False, None
 
     def run(self, cmd, code):
         """Run the module checker or executable on code and return the output."""

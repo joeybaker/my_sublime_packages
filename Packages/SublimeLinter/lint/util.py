@@ -243,32 +243,15 @@ def generate_color_scheme_async():
     original_name = os.path.splitext(os.path.basename(scheme))[0]
     name = original_name + ' (SL)'
     scheme_path = os.path.join(sublime.packages_path(), 'User', name + '.tmTheme')
-    generate = True
-    have_existing = os.path.exists(scheme_path)
 
-    if have_existing:
-        generate = sublime.ok_cancel_dialog(
-            'SublimeLinter wants to generate an amended version of “{}”,'
-            ' but one already exists. Overwrite it, or cancel and use'
-            ' the existing amended version?'.format(original_name),
-            'Overwrite'
-        )
-
-    if (generate):
-        with open(scheme_path, 'w', encoding='utf8') as f:
-            f.write(COLOR_SCHEME_PREAMBLE)
-            f.write(ElementTree.tostring(plist, encoding='unicode'))
+    with open(scheme_path, 'w', encoding='utf8') as f:
+        f.write(COLOR_SCHEME_PREAMBLE)
+        f.write(ElementTree.tostring(plist, encoding='unicode'))
 
     # Set the amended color scheme to the current color scheme
     path = os.path.join('User', os.path.basename(scheme_path))
     prefs.set('color_scheme', packages_relative_path(path))
     sublime.save_settings('Preferences.sublime-settings')
-
-    if generate and not have_existing:
-        sublime.message_dialog(
-            'SublimeLinter generated and switched to an amended version'
-            ' of “{}”.'.format(original_name)
-        )
 
 
 def change_mark_colors(error_color, warning_color):
@@ -523,12 +506,15 @@ def find_file(start_dir, name, parent=False, limit=None, aux_dirs=[]):
 def run_shell_cmd(cmd):
     """Run a shell command and return stdout."""
     proc = popen(cmd, env=os.environ)
+    from . import persist
 
     try:
-        out, err = proc.communicate(timeout=1)
+        timeout = persist.settings.get('shell_timeout', 10)
+        out, err = proc.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
         proc.kill()
         out = b''
+        persist.printf('shell timed out after {} seconds, executing {}'.format(timeout, cmd))
 
     return out
 
@@ -536,7 +522,7 @@ def run_shell_cmd(cmd):
 def extract_path(cmd, delim=':'):
     """Return the user's PATH as a colon-delimited list."""
     from . import persist
-    persist.debug('User shell:', cmd[0])
+    persist.debug('user shell:', cmd[0])
 
     out = run_shell_cmd(cmd).decode()
     path = out.split('__SUBL_PATH__', 2)
@@ -690,7 +676,7 @@ def create_environment():
         paths = []
 
     if paths:
-        env['PATH'] += os.pathsep + os.pathsep.join(paths)
+        env['PATH'] = os.pathsep.join(paths) + os.pathsep + env['PATH']
 
     from . import persist
 
@@ -961,6 +947,7 @@ def get_python_paths():
         if persist.debug_mode():
             persist.printf('sys.path for {}:\n{}\n'.format(python_path, '\n'.join(paths)))
     else:
+        persist.debug('no python 3 available to augment sys.path')
         paths = []
 
     return paths
@@ -979,7 +966,7 @@ def find_executable(executable):
     env = create_environment()
 
     for base in env.get('PATH', '').split(os.pathsep):
-        path = os.path.join(base, executable)
+        path = os.path.join(os.path.expanduser(base), executable)
 
         # On Windows, if path does not have an extension, try .exe, .cmd, .bat
         if sublime.platform() == 'windows' and not os.path.splitext(path)[1]:

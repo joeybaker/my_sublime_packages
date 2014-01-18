@@ -1,0 +1,21 @@
+[
+  { "caption": "-"},
+  {
+    "caption": "Floobits", "id":"side-bar-floobits",
+    "children": [
+      {"caption": "  Floobits", "command": "floobits_not_a", "args": {"paths": []}},
+      {"caption": "-"},
+      {"caption": "Add to workspace", "command": "floobits_add_to_workspace", "args": {"paths": []}},
+      {"caption": "Delete from workspace", "command": "floobits_delete_from_workspace", "args": {"paths": []}},
+      {"caption": "Share this (Public)", "command": "floobits_share_dir", "args": {"paths": []}},
+      {
+        "caption": "Share this (Private)",
+        "command": "floobits_share_dir",
+        "args": {
+          "api_args": {"perms": {"AnonymousUser": []}},
+          "paths": []
+        }
+      }
+    ]
+  }
+]
