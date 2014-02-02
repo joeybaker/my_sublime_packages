@@ -854,7 +854,7 @@ class SublimelinterCreateLinterPluginCommand(sublime_plugin.WindowCommand):
         return True
 
     def camel_case(self, name):
-        """Convert a name in the form foo-bar to FooBar."""
+        """Convert and return a name in the form foo-bar to FooBar."""
         camel_name = name[0].capitalize()
         i = 1
 
@@ -911,10 +911,7 @@ class SublimelinterPackageControlCommand(sublime_plugin.WindowCommand):
         self.git = ''
 
     def is_visible(self, paths=[]):
-        """
-        Return True if any eligible plugin directories are selected.
-
-        """
+        """Return True if any eligible plugin directories are selected."""
 
         if self.git == '':
             self.git = util.which('git')
@@ -968,7 +965,9 @@ class SublimelinterPackageControlCommand(sublime_plugin.WindowCommand):
 class SublimelinterNewPackageControlMessageCommand(SublimelinterPackageControlCommand):
 
     """
-    A command that creates a new entry in messages.json for the next version
+    This command automates the process of creating new Package Control release messages.
+
+    It creates a new entry in messages.json for the next version
     and creates a new file named messages/<version>.txt.
 
     """
@@ -1051,6 +1050,8 @@ class SublimelinterNewPackageControlMessageCommand(SublimelinterPackageControlCo
         return message_path
 
     def sortable_tag(self, tag):
+        """Return a version tag in a sortable form."""
+
         if tag == 'install':
             return (tag, tag)
 
@@ -1103,6 +1104,9 @@ class SublimelinterReportCommand(sublime_plugin.WindowCommand):
         output.set_name('{} Error Report'.format(persist.PLUGIN_NAME))
         output.set_scratch(True)
 
+        from .sublimelinter import SublimeLinter
+        self.plugin = SublimeLinter.shared_plugin()
+
         if on == 'files' or on == 'both':
             for view in self.window.views():
                 self.report(output, view)
@@ -1126,7 +1130,7 @@ class SublimelinterReportCommand(sublime_plugin.WindowCommand):
     def report(self, output, view):
         """Write a report on the given view to output."""
 
-        def finish_lint(view, linters):
+        def finish_lint(view, linters, hit_time):
             if not linters:
                 return
 
@@ -1137,18 +1141,29 @@ class SublimelinterReportCommand(sublime_plugin.WindowCommand):
                 filename = os.path.basename(linters[0].filename or 'untitled')
                 out = '\n{}:\n'.format(filename)
 
-                for linter in linters:
+                for linter in sorted(linters, key=lambda linter: linter.name):
                     if linter.errors:
-                        for line, errors in sorted(linter.errors.items()):
-                            for col, error_type, error in errors:
-                                out += '  {}: {}\n'.format(line, error)
+                        out += '\n  {}:\n'.format(linter.name)
+                        items = sorted(linter.errors.items())
+
+                        # Get the highest line number so we know how much padding numbers need
+                        highest_line = items[-1][0]
+                        width = 1
+
+                        while highest_line >= 10:
+                            highest_line /= 10
+                            width += 1
+
+                        for line, messages in items:
+                            for col, message in messages:
+                                out += '    {:>{width}}: {}\n'.format(line, message, width=width)
 
                 output.insert(edit, output.size(), out)
 
             persist.edits[output.id()].append(insert)
             output.run_command('sublimelinter_edit')
 
-        args = (view.id(), finish_lint)
+        kwargs = {'self': self.plugin, 'view_id': view.id(), 'callback': finish_lint}
 
         from .sublimelinter import SublimeLinter
-        Thread(target=SublimeLinter.lint, args=args).start()
+        Thread(target=SublimeLinter.lint, kwargs=kwargs).start()

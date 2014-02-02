@@ -16,6 +16,7 @@ Linter          The main base class for linters.
 
 """
 
+from distutils.versionpredicate import VersionPredicate
 from fnmatch import fnmatch
 from functools import lru_cache
 import html.entities
@@ -40,7 +41,7 @@ class LinterMeta(type):
 
     """Metaclass for Linter and its subclasses."""
 
-    def __init__(self, name, bases, attrs):
+    def __init__(cls, name, bases, attrs):
         """
         Initialize a Linter class.
 
@@ -58,61 +59,74 @@ class LinterMeta(type):
         """
 
         if bases:
-            setattr(self, 'disabled', False)
+            setattr(cls, 'disabled', False)
 
             if name in ('PythonLinter', 'RubyLinter'):
                 return
 
-            self.alt_name = self.make_alt_name(name)
+            cls.alt_name = cls.make_alt_name(name)
             cmd = attrs.get('cmd')
 
             if isinstance(cmd, str):
-                setattr(self, 'cmd', shlex.split(cmd))
+                setattr(cls, 'cmd', shlex.split(cmd))
 
-            for regex in ('regex', 'comment_re', 'word_re'):
-                attr = getattr(self, regex)
+            syntax = attrs.get('syntax')
 
-                if isinstance(attr, str):
-                    if regex == 'regex' and self.multiline:
-                        setattr(self, 're_flags', self.re_flags | re.MULTILINE)
+            try:
+                if isinstance(syntax, str) and syntax[0] == '^':
+                    setattr(cls, 'syntax', re.compile(syntax))
+            except re.error as err:
+                persist.printf(
+                    'ERROR: {} disabled, error compiling syntax: {}'
+                    .format(name.lower(), str(err))
+                )
+                setattr(cls, 'disabled', True)
 
-                    try:
-                        setattr(self, regex, re.compile(attr, self.re_flags))
-                    except re.error as err:
-                        persist.printf(
-                            'ERROR: {} disabled, error compiling {}: {}'
-                            .format(name.lower(), regex, str(err))
-                        )
-                        setattr(self, 'disabled', True)
+            if not cls.disabled:
+                for regex in ('regex', 'comment_re', 'word_re', 'version_re'):
+                    attr = getattr(cls, regex)
 
-            if not self.disabled:
-                if not self.syntax or (self.cmd is not None and not self.cmd) or not self.regex:
+                    if isinstance(attr, str):
+                        if regex == 'regex' and cls.multiline:
+                            setattr(cls, 're_flags', cls.re_flags | re.MULTILINE)
+
+                        try:
+                            setattr(cls, regex, re.compile(attr, cls.re_flags))
+                        except re.error as err:
+                            persist.printf(
+                                'ERROR: {} disabled, error compiling {}: {}'
+                                .format(name.lower(), regex, str(err))
+                            )
+                            setattr(cls, 'disabled', True)
+
+            if not cls.disabled:
+                if not cls.syntax or (cls.cmd is not None and not cls.cmd) or not cls.regex:
                     persist.printf('ERROR: {} disabled, not fully implemented'.format(name.lower()))
-                    setattr(self, 'disabled', True)
+                    setattr(cls, 'disabled', True)
 
             for attr in ('inline_settings', 'inline_overrides'):
                 if attr in attrs and isinstance(attrs[attr], str):
-                    setattr(self, attr, (attrs[attr],))
+                    setattr(cls, attr, (attrs[attr],))
 
             # If this class has its own defaults, create an args_map.
             # Otherwise we use the superclass' args_map.
             if 'defaults' in attrs and attrs['defaults']:
-                self.map_args(attrs['defaults'])
+                cls.map_args(attrs['defaults'])
 
             if 'PythonLinter' in [base.__name__ for base in bases]:
                 # Set attributes necessary for the @python inline setting
-                inline_settings = list(getattr(self, 'inline_settings') or [])
-                setattr(self, 'inline_settings', inline_settings + ['@python'])
+                inline_settings = list(getattr(cls, 'inline_settings') or [])
+                setattr(cls, 'inline_settings', inline_settings + ['@python'])
 
             if persist.plugin_is_loaded:
                 # If the plugin has already loaded, then we get here because
                 # a linter was added or reloaded. In that case we run reinitialize.
-                self.reinitialize()
+                cls.reinitialize()
 
             if 'syntax' in attrs and name not in BASE_CLASSES:
-                persist.register_linter(self, name, attrs)
+                persist.register_linter(cls, name, attrs)
 
-    def map_args(self, defaults):
+    def map_args(cls, defaults):
         """
         Map plain setting names to args that will be passed to the linter executable.
 
@@ -126,7 +140,7 @@ class LinterMeta(type):
         # If so, add a mapping between the setting and the argument format,
         # then change the name in the defaults to the setting name.
         args_map = {}
-        setattr(self, 'defaults', {})
+        setattr(cls, 'defaults', {})
 
         for name, value in defaults.items():
             match = ARG_RE.match(name)
@@ -135,9 +149,9 @@ class LinterMeta(type):
                 name = match.group('name')
                 args_map[name] = match.groupdict()
 
-            self.defaults[name] = value
+            cls.defaults[name] = value
 
-        setattr(self, 'args_map', args_map)
+        setattr(cls, 'args_map', args_map)
 
     @staticmethod
     def make_alt_name(name):
@@ -155,9 +169,9 @@ class LinterMeta(type):
         return alt_name
 
     @property
-    def name(self):
+    def name(cls):
         """Return the class name lowercased."""
-        return self.__name__.lower()
+        return cls.__name__.lower()
 
 
 class Linter(metaclass=LinterMeta):
@@ -193,6 +207,25 @@ class Linter(metaclass=LinterMeta):
     # If the executable is not available, it is set an empty string.
     # Subclasses should consider this read only.
     executable_path = None
+
+    # Some linter plugins have version requirements as far as the linter executable.
+    # The following three attributes can be defined to define the requirements.
+    # version_args is a string/list/tuple that represents the args used to get
+    # the linter executable's version as a string.
+    version_args = None
+
+    # A regex pattern or compiled regex used to match the numeric portion of the version
+    # from the output of version_args. It must contain a named capture group called
+    # "version" that captures only the version, including dots but excluding a prefix
+    # such as "v".
+    version_re = None
+
+    # A string which describes the version requirements, suitable for passing to
+    # the distutils.versionpredicate.VersionPredicate constructor, as documented here:
+    # http://pydoc.org/2.5.1/distutils.versionpredicate.html
+    # Only the version requirements (what is inside the parens) should be
+    # specified here, do not include the package name or parens.
+    version_requirement = None
 
     # A regex pattern used to extract information from the executable's output.
     regex = ''
@@ -329,6 +362,8 @@ class Linter(metaclass=LinterMeta):
     highlight = None
     lint_settings = None
     env = None
+    disabled = False
+    executable_version = None
 
     @classmethod
     def initialize(cls):
@@ -357,6 +392,7 @@ class Linter(metaclass=LinterMeta):
         self.syntax = syntax
         self.code = ''
         self.highlight = highlight.Highlight()
+        self.ignore_matches = None
 
     @property
     def filename(self):
@@ -611,8 +647,6 @@ class Linter(metaclass=LinterMeta):
         linters = set()
 
         for name, linter_class in persist.linter_classes.items():
-            # During import, if the linter is disabled cmd is set to zero
-            # to mark it as disabled.
             if not linter_class.disabled and linter_class.can_lint(syntax):
 
                 if reset:
@@ -1297,6 +1331,7 @@ class Linter(metaclass=LinterMeta):
     # Helper methods
 
     @classmethod
+    @lru_cache(maxsize=None)
     def can_lint(cls, syntax):
         """
         Determine if a linter class can lint the given syntax.
@@ -1306,9 +1341,11 @@ class Linter(metaclass=LinterMeta):
 
         The following tests must all pass for this method to return True:
 
-        1. syntax must be one of the syntaxes the linter defines.
+        1. syntax must match one of the syntaxes the linter defines.
         2. If the linter uses an external executable, it must be available.
-        3. can_lint_syntax must return True.
+        3. If there is a version requirement and the executable is available,
+           its version must fulfill the requirement.
+        4. can_lint_syntax must return True.
 
         """
 
@@ -1317,31 +1354,50 @@ class Linter(metaclass=LinterMeta):
 
         if cls.syntax:
             if isinstance(cls.syntax, (tuple, list)):
-                if syntax in cls.syntax:
-                    can = True
-            elif syntax == cls.syntax or cls.syntax == '*':
+                can = syntax in cls.syntax
+            elif cls.syntax == '*':
                 can = True
-
-        if can and cls.executable_path is None:
-            executable = ''
-
-            if not callable(cls.cmd):
-                if isinstance(cls.cmd, (tuple, list)):
-                    executable = (cls.cmd or [''])[0]
-                elif isinstance(cls.cmd, str):
-                    executable = cls.cmd
-
-            if not executable and cls.executable:
-                executable = cls.executable
-
-            if executable:
-                cls.executable_path = cls.which(executable) or ''
-            elif cls.cmd is None:
-                cls.executable_path = '<builtin>'
+            elif isinstance(cls.syntax, str):
+                can = syntax == cls.syntax
             else:
-                cls.executable_path = ''
+                can = cls.syntax.match(syntax) is not None
 
-            can = cls.can_lint_syntax(syntax)
+        if can:
+            if cls.executable_path is None:
+                executable = ''
+
+                if not callable(cls.cmd):
+                    if isinstance(cls.cmd, (tuple, list)):
+                        executable = (cls.cmd or [''])[0]
+                    elif isinstance(cls.cmd, str):
+                        executable = cls.cmd
+
+                if not executable and cls.executable:
+                    executable = cls.executable
+
+                if executable:
+                    cls.executable_path = cls.which(executable) or ''
+
+                    if (
+                        cls.executable_path is None or
+                        (isinstance(cls.executable_path, (tuple, list)) and None in cls.executable_path)
+                    ):
+                        cls.executable_path = ''
+                elif cls.cmd is None:
+                    cls.executable_path = '<builtin>'
+                else:
+                    cls.executable_path = ''
+
+            status = None
+
+            if cls.executable_path:
+                can = cls.fulfills_version_requirement()
+
+                if not can:
+                    status = ''  # Warning was already printed
+
+            if can:
+                can = cls.can_lint_syntax(syntax)
 
             if can:
                 settings = persist.settings
@@ -1354,10 +1410,11 @@ class Linter(metaclass=LinterMeta):
                     cls.executable_path,
                     ' (disabled in settings)' if disabled else ''
                 )
-            else:
+            elif status is None:
                 status = 'WARNING: {} deactivated, cannot locate \'{}\''.format(cls.name, executable)
 
-            persist.printf(status)
+            if status:
+                persist.printf(status)
 
         return can
 
@@ -1373,6 +1430,85 @@ class Linter(metaclass=LinterMeta):
 
         """
         return cls.executable_path != ''
+
+    @classmethod
+    def fulfills_version_requirement(cls):
+        """
+        Return whether the executable fulfills version_requirement.
+
+        When this is called, cls.executable_path has been set.
+
+        """
+
+        cls.executable_version = None
+
+        if cls.executable_path == '<builtin>':
+            if callable(getattr(cls, 'get_module_version', None)):
+                if not(cls.version_re and cls.version_requirement):
+                    return True
+
+                cls.executable_version = cls.get_module_version()
+
+                if cls.executable_version:
+                    persist.debug('{} version: {}'.format(cls.name, cls.executable_version))
+                else:
+                    persist.printf('WARNING: {} unable to determine module version'.format(cls.name))
+            else:
+                return True
+        elif not(cls.version_args is not None and cls.version_re and cls.version_requirement):
+            return True
+
+        if cls.executable_version is None:
+            cls.executable_version = cls.get_executable_version()
+
+        if cls.executable_version:
+            predicate = VersionPredicate(
+                '{} ({})'.format(cls.name.replace('-', '.'), cls.version_requirement)
+            )
+
+            if predicate.satisfied_by(cls.executable_version):
+                persist.debug(
+                    '{}: ({}) satisfied by {}'
+                    .format(cls.name, cls.version_requirement, cls.executable_version)
+                )
+                return True
+            else:
+                persist.printf(
+                    'WARNING: {} deactivated, version requirement ({}) not fulfilled by {}'
+                    .format(cls.name, cls.version_requirement, cls.executable_version)
+                )
+
+        return False
+
+    @classmethod
+    def get_executable_version(cls):
+        """Extract and return the string version of the linter executable."""
+
+        args = cls.version_args
+
+        if isinstance(args, str):
+            args = shlex.split(args)
+        else:
+            args = list(args)
+
+        if isinstance(cls.executable_path, str):
+            cmd = [cls.executable_path]
+        else:
+            cmd = list(cls.executable_path)
+
+        cmd += args
+        persist.debug('{} version query: {}'.format(cls.name, ' '.join(cmd)))
+
+        version = util.communicate(cmd, output_stream=util.STREAM_BOTH)
+        match = cls.version_re.search(version)
+
+        if match:
+            version = match.group('version')
+            persist.debug('{} version: {}'.format(cls.name, version))
+            return version
+        else:
+            persist.printf('WARNING: no {} version could be extracted from:\n{}'.format(cls.name, version))
+            return None
 
     @staticmethod
     def replace_entity(match):
@@ -1391,9 +1527,6 @@ class Linter(metaclass=LinterMeta):
     def error(self, line, col, message, error_type):
         """Add a reference to an error/warning on the given line and column."""
         self.highlight.line(line, error_type)
-
-        # Capitalize the first word
-        message = message[0].upper() + message[1:]
 
         # Some linters use html entities in error messages, decode them
         message = HTML_ENTITY_RE.sub(self.replace_entity, message)
@@ -1503,6 +1636,8 @@ class Linter(metaclass=LinterMeta):
         """Run an external executable using stdin to pass code and return its output."""
         if '@' in cmd:
             cmd[cmd.index('@')] = self.filename
+        elif not code:
+            cmd.append(self.filename)
 
         return util.communicate(
             cmd,

@@ -1,6 +1,8 @@
 SublimeLinter-jshint
 =========================
 
+[![Build Status](https://khancdn.eu/badges.php?service=https%3A%2F%2Ftravis-ci.org%2FSublimeLinter%2FSublimeLinter-jshint.png%3Fbranch%3Dmaster)](https://travis-ci.org/SublimeLinter/SublimeLinter-jshint)
+
 This linter plugin for [SublimeLinter](http://sublimelinter.readthedocs.org) provides an interface to [jshint](http://www.jshint.com/docs/). It will be used with files that have the “JavaScript” syntax, or within `<script>` tags in HTML files.
 
 ## Installation
@@ -17,6 +19,8 @@ Before installing this plugin, you must ensure that `jshint` is installed on you
    ```
 
 1. If you are using `nvm` and `zsh`, ensure that the line to load `nvm` is in `.zshenv` and not `.zshrc`.
+
+**Note:** This plugin requires `jshint` 2.4.0 or later.
 
 ### Linter configuration
 In order for `jshint` to be executed by SublimeLinter, you must ensure that its path is available to SublimeLinter. Before going any further, please read and follow the steps in [“Finding a linter executable”](http://sublimelinter.readthedocs.org/en/latest/troubleshooting.html#finding-a-linter-executable) through “Validating your PATH” in the documentation.

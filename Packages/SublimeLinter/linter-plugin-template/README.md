@@ -1,6 +1,8 @@
 SublimeLinter-contrib-__linter__
 ================================
 
+[![Build Status](https://khancdn.eu/badges.php?service=https%3A%2F%2Ftravis-ci.org%2FSublimeLinter%2FSublimeLinter-contrib-__linter__.png%3Fbranch%3Dmaster)](https://travis-ci.org/SublimeLinter/SublimeLinter-contrib-__linter__)
+
 This linter plugin for [SublimeLinter][docs] provides an interface to [__linter__](__linter_homepage__). It will be used with files that have the “__syntax__” syntax.
 
 ## Installation
@@ -16,7 +18,8 @@ Before using this plugin, you must ensure that `__linter__` is installed on your
    __install__
    ```
 __extra_install_steps__
-Once `__linter__` is installed, you must ensure it is in your system PATH so that SublimeLinter can find it. This may not be as straightforward as you think, so please read about [how linter executables are located][locating-executables] in the documentation.
+
+**Note:** This plugin requires `__linter__` __version__ or later.
 
 ### Linter configuration
 In order for `__linter__` to be executed by SublimeLinter, you must ensure that its path is available to SublimeLinter. Before going any further, please read and follow the steps in [“Finding a linter executable”](http://sublimelinter.readthedocs.org/en/latest/troubleshooting.html#finding-a-linter-executable) through “Validating your PATH” in the documentation.

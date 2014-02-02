@@ -1,7 +1,11 @@
 import subprocess
 import re
-import fcntl
 import os.path
+
+try:
+    import fcntl
+except Exception:
+    pass
 
 try:
     from .. import event_emitter, msg, shared as G
@@ -54,14 +58,20 @@ class ProxyProtocol(event_emitter.EventEmitter):
                 if not d:
                     break
                 data += d
-            except IOError:
+            except (IOError, OSError):
                 break
         self.buf[0] += data
         if not data:
             return
-        lines = self.buf[0].decode('utf-8').split('\n')
-        self.buf[0] = lines[-1].encode('utf-8')
-        msg.debug("Floobits SSL proxy output: %s" % '\n'.join(lines[:-1]))
+        while True:
+            before, sep, after = self.buf[0].partition(b'\n')
+            if not sep:
+                break
+            self.buf[0] = after
+            try:
+                msg.debug("Floobits SSL proxy output: %s" % before.decode('utf-8', 'ignore'))
+            except Exception:
+                pass
 
     def error(self):
         self.cleanup()

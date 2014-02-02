@@ -293,6 +293,8 @@ def install_syntaxes_async():
 
     """
 
+    from . import persist
+
     plugin_dir = os.path.dirname(os.path.dirname(__file__))
     syntaxes_dir = os.path.join(plugin_dir, 'fixed-syntaxes')
 
@@ -301,57 +303,83 @@ def install_syntaxes_async():
         src_dir = os.path.join(syntaxes_dir, syntax)
         version_file = os.path.join(src_dir, 'sublimelinter.version')
 
-        if os.path.isdir(src_dir) and os.path.isfile(version_file):
-            with open(version_file, encoding='utf8') as f:
-                my_version = int(f.read().strip())
+        if not os.path.isdir(src_dir) or not os.path.isfile(version_file):
+            continue
 
-            dest_dir = os.path.join(sublime.packages_path(), syntax)
-            version_file = os.path.join(dest_dir, 'sublimelinter.version')
+        with open(version_file, encoding='utf8') as f:
+            my_version = int(f.read().strip())
 
-            if os.path.isdir(dest_dir):
-                if os.path.isfile(version_file):
-                    with open(version_file, encoding='utf8') as f:
-                        try:
-                            other_version = int(f.read().strip())
-                        except ValueError:
-                            other_version = 0
+        dest_dir = os.path.join(sublime.packages_path(), syntax)
+        version_file = os.path.join(dest_dir, 'sublimelinter.version')
 
-                    copy = my_version > other_version
-                else:
-                    copy = sublime.ok_cancel_dialog(
-                        'An existing {} syntax package exists, '.format(syntax) +
-                        'and SublimeLinter wants to overwrite it with its version. ' +
-                        'Is that okay?')
-
-                if copy:
+        if os.path.isdir(dest_dir):
+            if os.path.isfile(version_file):
+                with open(version_file, encoding='utf8') as f:
                     try:
-                        shutil.rmtree(dest_dir)
-                    except OSError as ex:
-                        from . import persist
-                        persist.printf(
-                            'ERROR: could not remove existing {} syntax package: {}'
-                            .format(syntax, str(ex))
-                        )
-                        copy = False
+                        other_version = int(f.read().strip())
+                    except ValueError:
+                        other_version = 0
+
+                persist.debug('found existing {} syntax, version {}'.format(syntax, other_version))
+                copy = my_version > other_version
             else:
-                copy = True
+                copy = sublime.ok_cancel_dialog(
+                    'An existing {} syntax definition exists, '.format(syntax) +
+                    'and SublimeLinter wants to overwrite it with its own version. ' +
+                    'Is that okay?')
 
-            if copy:
-                from . import persist
+        else:
+            copy = True
 
-                try:
-                    cached = os.path.join(sublime.cache_path(), syntax)
+        if copy:
+            copy_syntax(syntax, src_dir, my_version, dest_dir)
 
-                    if os.path.isdir(cached):
-                        shutil.rmtree(cached)
+    update_syntax_map()
 
-                    shutil.copytree(src_dir, dest_dir)
-                    persist.printf('copied {} syntax package'.format(syntax))
-                except OSError as ex:
-                    persist.printf(
-                        'ERROR: could not copy {} syntax package: {}'
-                        .format(syntax, str(ex))
-                    )
+
+def copy_syntax(syntax, src_dir, version, dest_dir):
+    """Copy a customized syntax and related files to Packages."""
+    from . import persist
+
+    try:
+        cached = os.path.join(sublime.cache_path(), syntax)
+
+        if os.path.isdir(cached):
+            shutil.rmtree(cached)
+
+        if not os.path.exists(dest_dir):
+            os.mkdir(dest_dir)
+
+        for filename in os.listdir(src_dir):
+            shutil.copy2(os.path.join(src_dir, filename), dest_dir)
+
+        persist.printf('copied {} syntax version {}'.format(syntax, version))
+    except OSError as ex:
+        persist.printf(
+            'ERROR: could not copy {} syntax package: {}'
+            .format(syntax, str(ex))
+        )
+
+
+def update_syntax_map():
+    """Update the user syntax_map setting with any missing entries from the defaults."""
+
+    from . import persist
+
+    syntax_map = {}
+    syntax_map.update(persist.settings.get('syntax_map', {}))
+    default_syntax_map = persist.settings.plugin_settings.get('default', {}).get('syntax_map', {})
+    modified = False
+
+    for key, value in default_syntax_map.items():
+        if key not in syntax_map:
+            syntax_map[key] = value
+            modified = True
+            persist.debug('added syntax mapping: \'{}\' => \'{}\''.format(key, value))
+
+    if modified:
+        persist.settings.set('syntax_map', syntax_map)
+        persist.settings.save()
 
 
 # menu utils
@@ -777,6 +805,12 @@ def find_python(version=None, script=None, module=None):
 
     """
 
+    from . import persist
+    persist.debug(
+        'find_python(version={!r}, script={!r}, module={!r})'
+        .format(version, script, module)
+    )
+
     path = None
     script_path = None
 
@@ -794,13 +828,17 @@ def find_python(version=None, script=None, module=None):
         # If no specific version is requested and we have a module,
         # assume the linter will run using ST's python.
         if module is not None:
-            return ('<builtin>', script, available_version['major'], available_version['minor'])
+            result = ('<builtin>', script, available_version['major'], available_version['minor'])
+            persist.debug('find_python: <=', repr(result))
+            return result
 
         # No version was specified, get the default python
         path = find_executable('python')
+        persist.debug('find_python: default python =', path)
     else:
         version = str(version)
         requested_version = extract_major_minor_version(version)
+        persist.debug('find_python: requested version =', repr(requested_version))
 
         # If there is no module, we will use a system python.
         # If there is a module, a specific version was requested,
@@ -809,6 +847,7 @@ def find_python(version=None, script=None, module=None):
         if module is None:
             need_system_python = True
         else:
+            persist.debug('find_python: available version =', repr(available_version))
             need_system_python = not version_fulfills_request(available_version, requested_version)
             path = '<builtin>'
 
@@ -818,19 +857,25 @@ def find_python(version=None, script=None, module=None):
             else:
                 path = find_windows_python(version)
 
+            persist.debug('find_python: system python =', path)
+
     if path and path != '<builtin>':
         available_version = get_python_version(path)
+        persist.debug('find_python: available version =', repr(available_version))
 
         if version_fulfills_request(available_version, requested_version):
             if script:
                 script_path = find_python_script(path, script)
+                persist.debug('find_python: {!r} path = {}'.format(script, script_path))
 
                 if script_path is None:
                     path = None
         else:
             path = script_path = None
 
-    return (path, script_path, available_version['major'], available_version['minor'])
+    result = (path, script_path, available_version['major'], available_version['minor'])
+    persist.debug('find_python: <=', repr(result))
+    return result
 
 
 def version_fulfills_request(available_version, requested_version):
@@ -864,19 +909,25 @@ def version_fulfills_request(available_version, requested_version):
 def find_posix_python(version):
     """Find the nearest version of python and return its path."""
 
+    from . import persist
+
     if version:
         # Try the exact requested version first
         path = find_executable('python' + version)
+        persist.debug('find_posix_python: python{} => {}'.format(version, path))
 
         # If that fails, try the major version
         if not path:
             path = find_executable('python' + version[0])
+            persist.debug('find_posix_python: python{} => {}'.format(version[0], path))
 
             # If the major version failed, see if the default is available
             if not path:
                 path = find_executable('python')
+                persist.debug('find_posix_python: python =>', path)
     else:
         path = find_executable('python')
+        persist.debug('find_posix_python: python =>', path)
 
     return path
 
@@ -896,19 +947,24 @@ def find_windows_python(version):
         prefix = os.path.abspath('\\Python')
         prefix_len = len(prefix)
         dirs = glob(prefix + '*')
+        from . import persist
 
         # Try the exact version first, then the major version
         for version in (stripped_version, stripped_version[0]):
             for python_dir in dirs:
                 path = os.path.join(python_dir, 'python.exe')
                 python_version = python_dir[prefix_len:]
+                persist.debug('find_windows_python: matching =>', path)
 
                 # Try the exact version first, then the major version
                 if python_version.startswith(version) and can_exec(path):
+                    persist.debug('find_windows_python: <=', path)
                     return path
 
     # No version or couldn't find a version match, try the default python
-    return find_executable('python')
+    path = find_executable('python')
+    persist.debug('find_windows_python: <=', path)
+    return path
 
 
 @lru_cache(maxsize=None)
@@ -1023,7 +1079,8 @@ def communicate(cmd, code='', output_stream=STREAM_STDOUT, env=None):
     """
     Return the result of sending code via stdin to an executable.
 
-    The result is a string combination of stdout and stderr.
+    The result is a string which comes from stdout, stderr or the
+    combining of the two, depending on the value of output_stream.
     If env is not None, it is merged with the result of create_environment.
 
     """
