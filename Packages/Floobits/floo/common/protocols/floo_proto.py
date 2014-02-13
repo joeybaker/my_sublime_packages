@@ -100,8 +100,8 @@ class FlooProtocol(base.BaseProtocol):
                 continue
             name = data.get('name')
             try:
+                msg.debug("got data " + (name or "no name"))
                 self.emit("data", name, data)
-                msg.debug("got data " + name)
             except Exception as e:
                 print(traceback.format_exc())
                 msg.error('Error handling %s event (%s).' % (name, str(e)))

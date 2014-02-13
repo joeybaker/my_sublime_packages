@@ -76,6 +76,7 @@
 	"ignored_packages":
 	[
 		"Markdown",
+		"Git",
 		"Vintage"
 	],
 	"ignored_words":
