@@ -18,7 +18,7 @@ class JSHint(Linter):
 
     """Provides an interface to the jshint executable."""
 
-    syntax = ('javascript', 'html')
+    syntax = ('javascript', 'html', 'javascriptnext')
     executable = 'jshint'
     version_args = '--version'
     version_re = r'\bv(?P<version>\d+\.\d+\.\d+)'
@@ -50,7 +50,6 @@ class JSHint(Linter):
 
     def cmd(self):
         """Return the command line to execute."""
-
         command = [self.executable_path, '--verbose']
 
         if self.syntax == 'html':
@@ -62,11 +61,10 @@ class JSHint(Linter):
         """
         Return the components of the match.
 
-        We override this to catch linter error messages and place them
-        at the top of the file.
+        We override this to catch linter error messages and return more presise
+        info used for highlighting.
 
         """
-
         # restore word regex to default each iteration
         self.word_re = None
 
@@ -82,7 +80,9 @@ class JSHint(Linter):
             warning = match.group('warning')
             message = match.group('message')
             code = match.group('code')
-            line = int(match.group('line')) - 1
+            # force line numbers to be at least 0
+            # if not they appear at end of file
+            line = max(int(match.group('line')) - 1, 0)
             col = int(match.group('col')) - 1
             near = None
 

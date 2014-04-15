@@ -1,12 +1,13 @@
 import sys
+import os
 
 try:
     import sublime
-except:
+except Exception:
     pass
 
-welcome_text = 'Welcome %s!\n\nYou\'re all set to collaborate. You should check out our docs at https://%s/help/plugins/#sublime-usage. \
-You must run \'Floobits - Complete Sign Up\' in the command palette before you can login to floobits.com.'
+welcome_text = 'Welcome %s!\n\nYou\'re all set to collaborate. You should check out our docs at https://%s/help/plugins/sublime#usage. \
+You must run \'Floobits - Complete Sign Up\' in the command palette before you can sign in to floobits.com.'
 
 
 def name():
@@ -15,6 +16,10 @@ def name():
     else:
         py_version = 3
     return 'Sublime Text %s' % py_version
+
+
+def codename():
+    return 'sublime'
 
 
 def ok_cancel_dialog(dialog):
@@ -49,3 +54,12 @@ def open_file(file):
     win = sublime.active_window()
     if win:
         win.open_file(file)
+
+
+def get_line_endings(path=None):
+    ending = sublime.load_settings('Preferences.sublime-settings').get('default_line_ending')
+    if ending == 'system':
+        return os.linesep
+    if ending == 'windows':
+        return '\r\n'
+    return '\n'

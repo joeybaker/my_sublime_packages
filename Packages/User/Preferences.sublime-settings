@@ -15,7 +15,7 @@
 	"auto_indent": true,
 	"auto_match_enabled": true,
 	"caret_style": "smooth",
-	"color_scheme": "Packages/User/Monokai Extended (SL).tmTheme",
+	"color_scheme": "Packages/User/Monokai (SL).tmTheme",
 	"default_encoding": "UTF-8",
 	"default_line_ending": "unix",
 	"detect_indentation": true,
@@ -75,9 +75,8 @@
 	"highlight_line": true,
 	"ignored_packages":
 	[
-		"Markdown",
-		"Git",
-		"Vintage"
+		"Vintage",
+		"Markdown"
 	],
 	"ignored_words":
 	[

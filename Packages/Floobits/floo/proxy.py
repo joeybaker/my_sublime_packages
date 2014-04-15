@@ -8,6 +8,7 @@ import optparse
 import platform
 import sys
 import time
+import copy
 
 # Monkey patch editor
 timeouts = defaultdict(list)
@@ -69,14 +70,11 @@ def call_timeouts():
         return
     calling_timeouts = True
     now = time.time()
-    to_remove = []
-    for t, tos in timeouts.items():
+    for t, tos in copy.copy(timeouts).items():
         if now >= t:
             for timeout in tos:
                 timeout()
-            to_remove.append(t)
-    for k in to_remove:
-        del timeouts[k]
+            del timeouts[t]
     calling_timeouts = False
 
 
@@ -119,7 +117,8 @@ def conn_log(action, item):
         item = item.decode('utf-8')
     except Exception:
         pass
-    msg.log('%s: %s' % (action, item))
+    if G.SOCK_DEBUG:
+        msg.log('%s: %s' % (action, item))
     sys.stdout.flush()
 
 eventStream.on('to_floobits', lambda x: conn_log('to_floobits', x))
@@ -198,12 +197,17 @@ class LocalProtocol(floo_proto.FlooProtocol):
             self.to_proxy.append(data)
 
 
+remote_host = G.DEFAULT_HOST
+remote_port = G.DEFAULT_PORT
+remote_ssl = True
+
+
 class Server(base.BaseHandler):
     PROTOCOL = LocalProtocol
 
     def on_connect(self):
         self.conn = FlooConn(self)
-        reactor.reactor.connect(self.conn, G.DEFAULT_HOST, G.DEFAULT_PORT, True)
+        reactor.reactor.connect(self.conn, remote_host, remote_port, remote_ssl)
 
 
 try:
@@ -217,6 +221,7 @@ except (AttributeError, ImportError, ValueError):
 
 
 def main():
+    global remote_host, remote_port, remote_ssl
     msg.LOG_LEVEL = msg.LOG_LEVELS['ERROR']
 
     usage = 'Figure it out :P'
@@ -231,6 +236,27 @@ def main():
         dest='data',
         default=None
     )
+    parser.add_option(
+        '--method',
+        dest='method',
+        default=None
+    )
+
+    parser.add_option(
+        '--host',
+        dest='host',
+        default=None
+    )
+    parser.add_option(
+        '--port',
+        dest='port',
+        default=None
+    )
+    parser.add_option(
+        '--ssl',
+        dest='ssl',
+        default=None
+    )
 
     options, args = parser.parse_args()
 
@@ -240,7 +266,7 @@ def main():
         if options.data:
             data = json.loads(options.data)
         try:
-            r = api.hit_url(options.url, data)
+            r = api.hit_url(options.url, data, options.method)
         except HTTPError as e:
             r = e
         except URLError as e:
@@ -253,6 +279,10 @@ def main():
             err = True
         print(r.read().decode('utf-8'))
         sys.exit(err)
+
+    remote_host = options.host or remote_host
+    remote_port = int(options.port) or remote_port
+    remote_ssl = bool(options.ssl) or remote_ssl
 
     proxy = Server()
     _, port = reactor.reactor.listen(proxy, port=int(G.PROXY_PORT))

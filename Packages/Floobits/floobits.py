@@ -23,14 +23,16 @@ PY2 = sys.version_info < (3, 0)
 
 
 if PY2 and sublime.platform() == 'windows':
-    sublime.error_message('''Sorry, but the Windows version of Sublime Text 2 lacks Python's select module, so the Floobits plugin won't work.
-Please upgrade to Sublime Text 3. :(''')
+    err_msg = '''Sorry, but the Windows version of Sublime Text 2 lacks Python's select module, so the Floobits plugin won't work.
+Please upgrade to Sublime Text 3. :('''
+    raise(Exception(err_msg))
 elif sublime.platform() == 'osx':
     try:
         p = subprocess.Popen(['/usr/bin/sw_vers', '-productVersion'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         result = p.communicate()
         if float(result[0][:4]) < 10.7:
-            sublime.error_message('Sorry, but the Floobits plugin doesn\'t. Please upgrade your operating system if you want to use this plugin. :(')
+            sublime.error_message('''Sorry, but the Floobits plugin doesn\'t work on 10.6 or earlier.
+Please upgrade your operating system if you want to use this plugin. :(''')
     except Exception as e:
         print(e)
 
@@ -76,15 +78,6 @@ def update_recent_workspaces(workspace):
     utils.update_persistent_data(d)
 
 
-def add_workspace_to_persistent_json(owner, name, url, path):
-    d = utils.get_persistent_data()
-    workspaces = d['workspaces']
-    if owner not in workspaces:
-        workspaces[owner] = {}
-    workspaces[owner][name] = {'url': url, 'path': path}
-    utils.update_persistent_data(d)
-
-
 def ssl_error_msg(action):
     sublime.error_message('Your version of Sublime Text can\'t ' + action + ' because it has a broken SSL module. '
                           'This is a known issue on Linux builds of Sublime Text. '
@@ -106,7 +99,9 @@ def create_or_link_account():
     if account:
         token = binascii.b2a_hex(uuid.uuid4().bytes).decode('utf-8')
         agent = RequestCredentialsHandler(token)
-    elif not utils.get_persistent_data().get('disable_account_creation'):
+    elif utils.get_persistent_data().get('disable_account_creation'):
+        print('persistent.json has disable_account_creation. Skipping CreateAccountHandler')
+    else:
         agent = CreateAccountHandler()
 
     if not agent:
@@ -128,7 +123,7 @@ def global_tick():
 
 
 def disconnect_dialog():
-    if G.AGENT and G.JOINED_WORKSPACE:
+    if G.AGENT and G.AGENT.joined_workspace:
         disconnect = sublime.ok_cancel_dialog('You can only be in one workspace at a time.', 'Leave %s/%s' % (G.AGENT.owner, G.AGENT.workspace))
         if disconnect:
             msg.debug('Stopping agent.')
@@ -150,7 +145,7 @@ def on_room_info_msg():
 
 class FloobitsBaseCommand(sublime_plugin.WindowCommand):
     def is_visible(self):
-        return bool(self.is_enabled())
+        return True
 
     def is_enabled(self):
         return bool(G.AGENT and G.AGENT.is_ready())
@@ -178,7 +173,11 @@ class FloobitsShareDirCommand(FloobitsBaseCommand):
                 return sublime.error_message('Only one folder at a time, please. :(')
             return self.on_input(paths[0])
         if dir_to_share is None:
-            dir_to_share = os.path.expanduser(os.path.join('~', 'share_me'))
+            folders = self.window.folders()
+            if folders:
+                dir_to_share = folders[0]
+            else:
+                dir_to_share = os.path.expanduser(os.path.join('~', 'share_me'))
         on_room_info_waterfall = utils.Waterfall()
         self.window.show_input_panel('Directory to share:', dir_to_share, self.on_input, None, None)
 
@@ -191,15 +190,11 @@ class FloobitsShareDirCommand(FloobitsBaseCommand):
         print(G.COLAB_DIR, G.USERNAME, workspace_name)
 
         def find_workspace(workspace_url):
-            try:
-                r = api.get_workspace_by_url(workspace_url)
-            except IOError:
-                # Timeout or something bad. Just assume the workspace exists
-                return True
+            r = api.get_workspace_by_url(workspace_url)
             if r.code < 400:
                 on_room_info_waterfall.add(ignore.create_flooignore, dir_to_share)
                 on_room_info_waterfall.add(lambda: G.AGENT.upload(dir_to_share, on_room_info_msg))
-                return True
+                return r
             try:
                 result = utils.parse_url(workspace_url)
                 d = utils.get_persistent_data()
@@ -207,47 +202,67 @@ class FloobitsShareDirCommand(FloobitsBaseCommand):
                 utils.update_persistent_data(d)
             except Exception as e:
                 msg.debug(unicode(e))
-            return False
+            return
+
+        def join_workspace(workspace_url):
+            try:
+                w = find_workspace(workspace_url)
+            except Exception as e:
+                sublime.error_message('Error: %s' % str(e))
+                return False
+            if not w:
+                return False
+            msg.debug('workspace: %s', json.dumps(w.body))
+            # if self.api_args:
+            anon_perms = w.body.get('perms', {}).get('AnonymousUser', [])
+            new_anon_perms = self.api_args.get('perms').get('AnonymousUser', [])
+            # TODO: warn user about making a private workspace public
+            if set(anon_perms) != set(new_anon_perms):
+                msg.debug(str(anon_perms), str(new_anon_perms))
+                w.body['perms']['AnonymousUser'] = new_anon_perms
+                response = api.update_workspace(w.body['owner'], w.body['name'], w.body)
+                msg.debug(str(response.body))
+            utils.add_workspace_to_persistent_json(w.body['owner'], w.body['name'], workspace_url, dir_to_share)
+            self.window.run_command('floobits_join_workspace', {
+                'workspace_url': workspace_url,
+                'agent_conn_kwargs': {'get_bufs': False}})
+            return True
 
         if os.path.isfile(dir_to_share):
             file_to_share = dir_to_share
             dir_to_share = os.path.dirname(dir_to_share)
-        else:
-            try:
-                utils.mkdir(dir_to_share)
-            except Exception:
-                return sublime.error_message('The directory %s doesn\'t exist and I can\'t make it.' % dir_to_share)
 
-            floo_file = os.path.join(dir_to_share, '.floo')
+        try:
+            utils.mkdir(dir_to_share)
+        except Exception:
+            return sublime.error_message('The directory %s doesn\'t exist and I can\'t create it.' % dir_to_share)
 
-            info = {}
-            try:
-                floo_info = open(floo_file, 'r').read()
-                info = json.loads(floo_info)
-            except (IOError, OSError):
-                pass
-            except Exception:
-                print('Couldn\'t read the floo_info file: %s' % floo_file)
+        floo_file = os.path.join(dir_to_share, '.floo')
 
-            workspace_url = info.get('url')
-            try:
-                result = utils.parse_url(workspace_url)
-            except Exception:
-                workspace_url = None
-            if workspace_url and find_workspace(workspace_url):
-                add_workspace_to_persistent_json(result['owner'], result['workspace'], workspace_url, dir_to_share)
-                return self.window.run_command('floobits_join_workspace', {
-                    'workspace_url': workspace_url,
-                    'agent_conn_kwargs': {'get_bufs': False}})
+        info = {}
+        try:
+            floo_info = open(floo_file, 'r').read()
+            info = json.loads(floo_info)
+        except (IOError, OSError):
+            pass
+        except Exception:
+            msg.error('Couldn\'t read the floo_info file: %s' % floo_file)
+
+        workspace_url = info.get('url')
+        try:
+            utils.parse_url(workspace_url)
+        except Exception:
+            workspace_url = None
+
+        if workspace_url and join_workspace(workspace_url):
+            return
 
         for owner, workspaces in utils.get_persistent_data()['workspaces'].items():
             for name, workspace in workspaces.items():
                 if workspace['path'] == dir_to_share:
                     workspace_url = workspace['url']
-                    if find_workspace(workspace_url):
-                        return self.window.run_command('floobits_join_workspace', {
-                            'workspace_url': workspace_url,
-                            'agent_conn_kwargs': {'get_bufs': False}})
+                    if join_workspace(workspace_url):
+                        return
 
         # make & join workspace
         on_room_info_waterfall.add(ignore.create_flooignore, dir_to_share)
@@ -269,8 +284,8 @@ class FloobitsShareDirCommand(FloobitsBaseCommand):
         if r.code >= 400 or len(r.body) == 0:
             return on_done([G.USERNAME])
 
-        orgs = [[org['name'], 'Create workspace under %s' % org['name']] for org in r.body]
-        orgs.insert(0, [G.USERNAME, 'Create workspace under %s' % G.USERNAME])
+        orgs = [[org['name'], 'Create workspace owned by %s' % org['name']] for org in r.body]
+        orgs.insert(0, [G.USERNAME, 'Create workspace owned by %s' % G.USERNAME])
         self.window.show_quick_panel(orgs, lambda index: index < 0 or on_done(orgs[index]))
 
 
@@ -307,11 +322,11 @@ class FloobitsCreateWorkspaceCommand(sublime_plugin.WindowCommand):
             msg.error('Unable to create workspace: %s' % unicode(e))
             return sublime.error_message('Unable to create workspace: %s' % unicode(e))
 
-        workspace_url = 'https://%s/%s/%s/' % (G.DEFAULT_HOST, self.owner, workspace_name)
-        print('Created workspace %s' % workspace_url)
+        workspace_url = 'https://%s/%s/%s' % (G.DEFAULT_HOST, self.owner, workspace_name)
+        msg.log('Created workspace %s' % workspace_url)
 
         if r.code < 400:
-            add_workspace_to_persistent_json(self.owner, workspace_name, workspace_url, self.dir_to_share)
+            utils.add_workspace_to_persistent_json(self.owner, workspace_name, workspace_url, self.dir_to_share)
             return self.window.run_command('floobits_join_workspace', {
                 'workspace_url': workspace_url,
                 'agent_conn_kwargs': {
@@ -341,7 +356,9 @@ class FloobitsCreateWorkspaceCommand(sublime_plugin.WindowCommand):
                 r.body = r.body['detail']
             except Exception:
                 pass
-            return sublime.error_message('%s' % r.body)
+            if sublime.ok_cancel_dialog('%s' % r.body, 'Open billing settings'):
+                webbrowser.open('https://%s/%s/settings#billing' % (G.DEFAULT_HOST, self.owner))
+            return
         else:
             kwargs['prompt'] = 'Workspace %s/%s already exists. Choose another name:' % (self.owner, workspace_name)
 
@@ -351,6 +368,17 @@ class FloobitsCreateWorkspaceCommand(sublime_plugin.WindowCommand):
 class FloobitsPromptJoinWorkspaceCommand(sublime_plugin.WindowCommand):
 
     def run(self, workspace='https://floobits.com/'):
+        for d in self.window.folders():
+            floo_file = os.path.join(d, '.floo')
+            try:
+                floo_info = open(floo_file, 'r').read()
+                wurl = json.loads(floo_info).get('url')
+                utils.parse_url(wurl)
+                # TODO: check if workspace actually exists
+                workspace = wurl
+                break
+            except Exception:
+                pass
         self.window.show_input_panel('Workspace URL:', workspace, self.on_input, None, None)
 
     def on_input(self, workspace_url):
@@ -391,9 +419,11 @@ class FloobitsJoinWorkspaceCommand(sublime_plugin.WindowCommand):
             if sublime.platform() == 'linux':
                 subl = open('/proc/self/cmdline').read().split(chr(0))[0]
             elif sublime.platform() == 'osx':
-                # TODO: totally explodes if you install ST2 somewhere else
-                settings = sublime.load_settings('Floobits.sublime-settings')
-                subl = settings.get('sublime_executable', '/Applications/Sublime Text 2.app/Contents/SharedSupport/bin/subl')
+                floorc = utils.load_floorc()
+                subl = floorc.get('SUBLIME_EXECUTABLE')
+                if not subl:
+                    settings = sublime.load_settings('Floobits.sublime-settings')
+                    subl = settings.get('sublime_executable', '/Applications/Sublime Text 2.app/Contents/SharedSupport/bin/subl')
                 if not os.path.exists(subl):
                     return sublime.error_message('''Can't find your Sublime Text executable at %s.
 Please add "sublime_executable /path/to/subl" to your ~/.floorc and restart Sublime Text''' % subl)
@@ -462,7 +492,7 @@ Please add "sublime_executable /path/to/subl" to your ~/.floorc and restart Subl
                     return sublime.error_message('Could not create directory %s: %s' % (d, str(e)))
 
             G.PROJECT_PATH = d
-            add_workspace_to_persistent_json(result['owner'], result['workspace'], workspace_url, d)
+            utils.add_workspace_to_persistent_json(result['owner'], result['workspace'], workspace_url, d)
             open_workspace_window(lambda: run_agent(**result))
 
         def run_agent(owner, workspace, host, port, secure):
@@ -500,7 +530,24 @@ Please add "sublime_executable /path/to/subl" to your ~/.floorc and restart Subl
         print('Project path is %s' % G.PROJECT_PATH)
 
         if not os.path.isdir(G.PROJECT_PATH):
-            default_dir = os.path.realpath(os.path.join(G.COLAB_DIR, result['owner'], result['workspace']))
+            default_dir = None
+            for w in sublime.windows():
+                if default_dir:
+                    break
+                for d in self.window.folders():
+                    floo_file = os.path.join(d, '.floo')
+                    try:
+                        floo_info = open(floo_file, 'r').read()
+                        wurl = json.loads(floo_info).get('url')
+                        if wurl == workspace_url:
+                            # TODO: check if workspace actually exists
+                            default_dir = d
+                            break
+                    except Exception:
+                        pass
+
+            default_dir = default_dir or os.path.realpath(os.path.join(G.COLAB_DIR, result['owner'], result['workspace']))
+
             return self.window.show_input_panel('Save workspace in directory:', default_dir, make_dir, None, None)
 
         open_workspace_window(lambda: run_agent(**result))
@@ -520,7 +567,7 @@ class FloobitsPinocchioCommand(sublime_plugin.WindowCommand):
         print(username, secret)
         if not (username and secret):
             return sublime.error_message('You don\'t seem to have a Floobits account of any sort')
-        webbrowser.open('https://%s/%s/pinocchio/%s/' % (G.DEFAULT_HOST, username, secret))
+        webbrowser.open('https://%s/%s/pinocchio/%s' % (G.DEFAULT_HOST, username, secret))
 
 
 class FloobitsLeaveWorkspaceCommand(FloobitsBaseCommand):
@@ -533,6 +580,9 @@ class FloobitsLeaveWorkspaceCommand(FloobitsBaseCommand):
             sublime.error_message('You have left the workspace.')
         else:
             sublime.error_message('You are not joined to any workspace.')
+
+    def is_enabled(self):
+        return bool(G.AGENT)
 
 
 class FloobitsClearHighlightsCommand(FloobitsBaseCommand):
@@ -579,27 +629,34 @@ class FloobitsAddToWorkspaceCommand(FloobitsBaseCommand):
         if paths is None and current_file:
             paths = [self.window.active_view().file_name()]
 
+        notshared = []
         for path in paths:
-            G.AGENT.upload(path)
+            if utils.is_shared(path):
+                G.AGENT.upload(path)
+            else:
+                notshared.append(path)
+
+        if notshared:
+            limit = 5
+            sublime.error_message("The following paths are not a child of\n\n%s\n\nand will not be shared for security reasons:\n\n%s%s." %
+                                 (G.PROJECT_PATH, ",\n".join(notshared[:limit]), len(notshared) > limit and ",\n..." or ""))
 
     def description(self):
         return 'Add file or directory to currently-joined Floobits workspace.'
 
 
-class FloobitsDeleteFromWorkspaceCommand(FloobitsBaseCommand):
+class FloobitsRemoveFromWorkspaceCommand(FloobitsBaseCommand):
     def run(self, paths, current_file=False):
         if not self.is_enabled():
             return
 
-        confirm = bool(sublime.ok_cancel_dialog('This will delete your local copy as well. Are you sure you want do do this?', 'Delete'))
-        if not confirm:
-            return
+        unlink = bool(sublime.ok_cancel_dialog('Delete? Hit cancel to remove from the workspace without deleting.', 'Delete'))
 
         if paths is None and current_file:
             paths = [self.window.active_view().file_name()]
 
         for path in paths:
-            G.AGENT.delete_buf(path)
+            G.AGENT.delete_buf(path, unlink)
 
     def description(self):
         return 'Add file or directory to currently-joined Floobits workspace.'
@@ -656,10 +713,25 @@ class FloobitsHelpCommand(FloobitsBaseCommand):
         return True
 
 
+class FloobitsToggleStalkerModeCommand(FloobitsBaseCommand):
+    def run(self):
+        if G.STALKER_MODE:
+            self.window.run_command('floobits_disable_stalker_mode')
+        else:
+            self.window.run_command('floobits_enable_stalker_mode')
+
+
 class FloobitsEnableStalkerModeCommand(FloobitsBaseCommand):
     def run(self):
         G.STALKER_MODE = True
-        # TODO: go to most recent highlight
+        msg.log('Stalker mode enabled')
+        G.AGENT.update_status_msg()
+        G.AGENT.highlight()
+
+    def is_visible(self):
+        if G.AGENT:
+            return self.is_enabled()
+        return True
 
     def is_enabled(self):
         return bool(super(FloobitsEnableStalkerModeCommand, self).is_enabled() and not G.STALKER_MODE)
@@ -669,6 +741,11 @@ class FloobitsDisableStalkerModeCommand(FloobitsBaseCommand):
     def run(self):
         G.STALKER_MODE = False
         G.SPLIT_MODE = False
+        msg.log('Stalker mode disabled')
+        G.AGENT.update_status_msg('Stopped following changes. ')
+
+    def is_visible(self):
+        return self.is_enabled()
 
     def is_enabled(self):
         return bool(super(FloobitsDisableStalkerModeCommand, self).is_enabled() and G.STALKER_MODE)
@@ -766,7 +843,7 @@ class FlooViewReplaceRegion(sublime_plugin.TextCommand):
         if stop - start > 10000:
             self.view.replace(edit, region, data)
             G.VIEW_TO_HASH[self.view.buffer_id()] = hashlib.md5(sutils.get_text(self.view).encode('utf-8')).hexdigest()
-            return transform_selections(selections, start, stop - start)
+            return transform_selections(selections, stop, 0)
 
         existing = self.view.substr(region)
         i = 0
@@ -842,6 +919,12 @@ def plugin_loaded():
         print('renaming %s to %s' % (old_colab_dir, G.BASE_DIR))
         os.rename(old_colab_dir, G.BASE_DIR)
         os.symlink(G.BASE_DIR, old_colab_dir)
+
+    try:
+        utils.normalize_persistent_data()
+    except Exception as e:
+        print('Floobits: Error normalizing persistent data:', e)
+        # Keep on truckin' I guess
 
     d = utils.get_persistent_data()
     G.AUTO_GENERATED_ACCOUNT = d.get('auto_generated_account', False)

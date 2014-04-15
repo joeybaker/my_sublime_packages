@@ -603,7 +603,7 @@ def get_shell_path(env):
         '/usr/bin', '/usr/local/bin',
         '/usr/local/php/bin', '/usr/local/php5/bin'
     ):
-        if not path in split:
+        if path not in split:
             p += (':' + path)
 
     return p
@@ -771,7 +771,8 @@ def get_python_version(path):
     """Return a dict with the major/minor version of the python at path."""
 
     try:
-        output = communicate((path, '-V'), '', output_stream=STREAM_STDERR)
+        # Different python versions use different output streams, so check both
+        output = communicate((path, '-V'), '', output_stream=STREAM_BOTH)
 
         # 'python -V' returns 'Python <version>', extract the version number
         return extract_major_minor_version(output.split(' ')[1])
