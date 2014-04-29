@@ -1,6 +1,7 @@
 {
 	"extensions":
 	[
-		"hbs"
+		"hbs",
+		"hb"
 	]
 }
