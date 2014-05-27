@@ -71,12 +71,13 @@
 	"font_options":
 	[
 	],
+	"font_size": 11,
 	"gutter": true,
 	"highlight_line": true,
 	"ignored_packages":
 	[
-		"Vintage",
-		"Markdown"
+		"Markdown",
+		"Vintage"
 	],
 	"ignored_words":
 	[
