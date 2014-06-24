@@ -357,7 +357,6 @@ class Linter(metaclass=LinterMeta):
     #
     # Internal class storage, do not set
     #
-    RC_SEARCH_LIMIT = 3
     errors = None
     highlight = None
     lint_settings = None
@@ -407,9 +406,8 @@ class Linter(metaclass=LinterMeta):
 
     @classmethod
     def clear_settings_caches(cls):
-        """Clear lru caches for this class' methods."""
+        """Clear settings-related caches for this class' methods."""
         cls.get_view_settings.cache_clear()
-        cls.get_merged_settings.cache_clear()
 
     @classmethod
     def settings(cls):
@@ -428,7 +426,7 @@ class Linter(metaclass=LinterMeta):
         return {key: value for key, value in settings.items() if key.startswith('@')}
 
     @lru_cache(maxsize=None)
-    def get_view_settings(self, no_inline=False):
+    def get_view_settings(self, inline=True):
         """
         Return a union of all settings specific to this linter, related to the given view.
 
@@ -446,34 +444,15 @@ class Linter(metaclass=LinterMeta):
 
         settings = self.get_merged_settings()
 
-        if not no_inline:
-            inline_settings = {}
-
-            if self.shebang_match:
-                eol = self.code.find('\n')
-
-                if eol != -1:
-                    setting = self.shebang_match(self.code[0:eol])
-
-                    if setting is not None:
-                        inline_settings[setting[0]] = setting[1]
-
-            if self.comment_re and (self.inline_settings or self.inline_overrides):
-                inline_settings.update(util.inline_settings(
-                    self.comment_re,
-                    self.code,
-                    prefix=self.name,
-                    alt_prefix=self.alt_name
-                ))
-
+        if inline:
+            inline_settings = self.get_inline_settings()
             settings = self.merge_inline_settings(settings.copy(), inline_settings)
 
         return settings
 
-    @lru_cache(maxsize=None)
     def get_merged_settings(self):
         """
-        Return a union of all non-inline settings specific to this linter, related to the given view.
+        Return a union of all non-inline, non-rc settings specific to this view's linter.
 
         The settings are merged in the following order:
 
@@ -505,49 +484,67 @@ class Linter(metaclass=LinterMeta):
         project_settings = project_settings.get('linters', {}).get(self.name, {})
         project_settings.update(meta)
 
-        # Update the linter's settings with the project settings
+        # Update the linter's settings with the project settings and rc settings
         settings = self.merge_project_settings(self.settings().copy(), project_settings)
-
-        # Update with rc settings
         self.merge_rc_settings(settings)
-
         self.replace_settings_tokens(settings)
         return settings
 
-    def replace_settings_tokens(self, settings):
-        """Replace tokens with values in settings."""
-        def recursive_replace(expressions, mutable_input):
-            for k, v in mutable_input.items():
-                if type(v) is dict:
-                    recursive_replace(expressions, mutable_input[k])
-                elif type(v) is list:
-                    for exp in expressions:
-                        if exp['is_regex']:
-                            mutable_input[k] = [
-                                exp['token'].sub(exp['value'], i)
-                                for i in mutable_input[k]
-                            ]
-                        else:
-                            mutable_input[k] = [
-                                i.replace(exp['token'], exp['value'])
-                                for i in mutable_input[k]
-                            ]
-                elif type(v) is str:
-                    for exp in expressions:
-                        if exp['is_regex']:
-                            mutable_input[k] = exp['token'].sub(exp['value'], mutable_input[k])
-                        else:
-                            mutable_input[k] = mutable_input[k].replace(exp['token'], exp['value'])
+    def get_inline_settings(self):
+        """Return shebang and inline settings from the current file."""
+        settings = {}
 
-        # Go through and expand the supported path tokens in place.
-        # Supported tokens, in the order they are expanded:
-        # ${project}: the project's base directory, if available.
-        # ${directory}: the dirname of the current view's file.
-        # ${env:<x>}: the environment variable 'x'.
-        # ${home}: the user's $HOME directory.
-        #
-        # ${project} and ${directory} expansion are dependent on
-        # having a window.
+        if self.shebang_match:
+            eol = self.code.find('\n')
+
+            if eol != -1:
+                setting = self.shebang_match(self.code[0:eol])
+
+                if setting is not None:
+                    settings[setting[0]] = setting[1]
+
+        if self.comment_re and (self.inline_settings or self.inline_overrides):
+            settings.update(util.inline_settings(
+                self.comment_re,
+                self.code,
+                prefix=self.name,
+                alt_prefix=self.alt_name
+            ))
+
+        return settings
+
+    def replace_settings_tokens(self, settings):
+        """
+        Replace tokens with values in settings.
+
+        Supported tokens, in the order they are expanded:
+
+        ${project}: the project's base directory, if available.
+        ${directory}: the dirname of the current view's file.
+        ${env:<x>}: the environment variable 'x'.
+        ${home}: the user's $HOME directory.
+
+        ${project} and ${directory} expansion are dependent on
+        having a window.
+
+        """
+        def recursive_replace_value(expressions, value):
+            if isinstance(value, dict):
+                return recursive_replace(expressions, value)
+            elif isinstance(value, list):
+                return [recursive_replace_value(expressions, item) for item in value]
+            elif isinstance(value, str):
+                for exp in expressions:
+                    if exp['is_regex']:
+                        return exp['token'].sub(exp['value'], value)
+                    else:
+                        return value.replace(exp['token'], exp['value'])
+            else:
+                return value
+
+        def recursive_replace(expressions, mutable_input):
+            for key, value in mutable_input.items():
+                mutable_input[key] = recursive_replace_value(expressions, value)
 
         # Expressions are evaluated in list order.
         expressions = []
@@ -590,14 +587,14 @@ class Linter(metaclass=LinterMeta):
         """
         Merge .sublimelinterrc settings with settings.
 
-        Searches for .sublimelinterrc in, starting at the directory of the linter's view.
+        Searches for .sublimelinterrc, starting at the directory of the linter's view.
         The search is limited to rc_search_limit directories. If found, the meta settings
         and settings for this linter in the rc file are merged with settings.
 
         """
 
-        search_limit = persist.settings.get('rc_search_limit', self.RC_SEARCH_LIMIT)
-        rc_settings = util.get_view_rc_settings(self.view, limit=search_limit)
+        limit = persist.settings.get('rc_search_limit', None)
+        rc_settings = util.get_view_rc_settings(self.view, limit=limit)
 
         if rc_settings:
             meta = self.meta_settings(rc_settings)
@@ -880,10 +877,10 @@ class Linter(metaclass=LinterMeta):
                 disabled.add(linter)
                 continue
 
-            # Because get_view_settings is expensive, we use an lru_cache
+            # Because get_view_settings is potentially expensive, we use an lru_cache
             # to cache its results. Before each lint, reset the cache.
             linter.clear_settings_caches()
-            view_settings = linter.get_view_settings(no_inline=True)
+            view_settings = linter.get_view_settings(inline=False)
 
             # We compile the ignore matches for a linter on each run,
             # clear the cache first.
@@ -1109,7 +1106,7 @@ class Linter(metaclass=LinterMeta):
 
     def insert_args(self, cmd):
         """Insert user arguments into cmd and return the result."""
-        args = self.build_args(self.get_view_settings())
+        args = self.build_args(self.get_view_settings(inline=True))
         cmd = list(cmd)
 
         if '*' in cmd:
@@ -1128,7 +1125,7 @@ class Linter(metaclass=LinterMeta):
         """Return any args the user specifies in settings as a list."""
 
         if settings is None:
-            settings = self.get_merged_settings()
+            settings = self.get_view_settings(inline=False)
 
         args = settings.get('args', [])
 
@@ -1259,7 +1256,7 @@ class Linter(metaclass=LinterMeta):
 
         """
 
-        view_settings = self.get_view_settings()
+        view_settings = self.get_view_settings(inline=True)
 
         for name, info in self.args_map.items():
             value = view_settings.get(name)
@@ -1706,7 +1703,7 @@ class Linter(metaclass=LinterMeta):
 
     # popen wrappers
 
-    def communicate(self, cmd, code=''):
+    def communicate(self, cmd, code=None):
         """Run an external executable using stdin to pass code and return its output."""
         if '@' in cmd:
             cmd[cmd.index('@')] = self.filename
@@ -1738,11 +1735,3 @@ class Linter(metaclass=LinterMeta):
             code,
             output_stream=self.error_stream,
             env=self.env)
-
-    def popen(self, cmd, env=None):
-        """Run cmd in a subprocess with the given environment and return the output."""
-        return util.popen(
-            cmd,
-            env=env,
-            extra_env=self.env,
-            output_stream=self.error_stream)

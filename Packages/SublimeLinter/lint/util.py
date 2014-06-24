@@ -150,11 +150,12 @@ def get_view_rc_settings(view, limit=None):
     filename = view.file_name()
 
     if filename:
-        return get_rc_settings(os.path.dirname(filename))
+        return get_rc_settings(os.path.dirname(filename), limit=limit)
     else:
         return None
 
 
+@lru_cache(maxsize=None)
 def get_rc_settings(start_dir, limit=None):
     """
     Search for a file named .sublimelinterrc starting in start_dir.
@@ -167,7 +168,7 @@ def get_rc_settings(start_dir, limit=None):
     """
 
     if not start_dir:
-        return
+        return None
 
     path = find_file(start_dir, '.sublimelinterrc', limit=limit)
 
@@ -486,7 +487,7 @@ def climb(start_dir, limit=None):
     """
     Generate directories, starting from start_dir.
 
-    If limit is None or <= 0, stop at the root directory.
+    If limit is None, stop at the root directory.
     Otherwise return a maximum of limit directories.
 
     """
@@ -508,7 +509,7 @@ def find_file(start_dir, name, parent=False, limit=None, aux_dirs=[]):
     If the file is found and parent is False, returns the path to the file.
     If parent is True the path to the file's parent directory is returned.
 
-    If limit is None or <= 0, the search will continue up to the root directory.
+    If limit is None, the search will continue up to the root directory.
     Otherwise a maximum of limit directories will be checked.
 
     If aux_dirs is not empty and the file hierarchy search failed,
@@ -1085,7 +1086,7 @@ def combine_output(out, sep=''):
     return ANSI_COLOR_RE.sub('', output)
 
 
-def communicate(cmd, code='', output_stream=STREAM_STDOUT, env=None):
+def communicate(cmd, code=None, output_stream=STREAM_STDOUT, env=None):
     """
     Return the result of sending code via stdin to an executable.
 
@@ -1095,11 +1096,37 @@ def communicate(cmd, code='', output_stream=STREAM_STDOUT, env=None):
 
     """
 
-    out = popen(cmd, output_stream=output_stream, extra_env=env)
+    # On Windows, using subprocess.PIPE with Popen() is broken when not
+    # sending input through stdin. So we use temp files instead of a pipe.
+    if code is None and os.name == 'nt':
+        if output_stream != STREAM_STDERR:
+            stdout = tempfile.TemporaryFile()
+        else:
+            stdout = None
+
+        if output_stream != STREAM_STDOUT:
+            stderr = tempfile.TemporaryFile()
+        else:
+            stderr = None
+    else:
+        stdout = stderr = None
+
+    out = popen(cmd, stdout=stdout, stderr=stderr, output_stream=output_stream, extra_env=env)
 
     if out is not None:
-        code = code.encode('utf8')
+        if code is not None:
+            code = code.encode('utf8')
+
         out = out.communicate(code)
+
+        if code is None and os.name == 'nt':
+            out = list(out)
+
+            for f, index in ((stdout, 0), (stderr, 1)):
+                if f is not None:
+                    f.seek(0)
+                    out[index] = f.read()
+
         return combine_output(out)
     else:
         return ''
@@ -1152,13 +1179,7 @@ def tmpfile(cmd, code, filename, suffix='', output_stream=STREAM_STDOUT, env=Non
         else:
             cmd.append(path)
 
-        out = popen(cmd, output_stream=output_stream, extra_env=env)
-
-        if out:
-            out = out.communicate()
-            return combine_output(out)
-        else:
-            return ''
+        return communicate(cmd, output_stream=output_stream, env=env)
     finally:
         os.remove(path)
 
@@ -1200,42 +1221,38 @@ def tmpdir(cmd, files, filename, code, output_stream=STREAM_STDOUT, env=None):
                 shutil.copyfile(f, target)
 
         os.chdir(d)
-        out = popen(cmd, output_stream=output_stream, extra_env=env)
+        out = communicate(cmd, output_stream=output_stream, env=env)
 
         if out:
-            out = out.communicate()
-            out = combine_output(out, sep='\n')
-
             # filter results from build to just this filename
             # no guarantee all syntaxes are as nice about this as Go
             # may need to improve later or just defer to communicate()
             out = '\n'.join([
                 line for line in out.split('\n') if filename in line.split(':', 1)[0]
             ])
-        else:
-            out = ''
 
     return out or ''
 
 
-def popen(cmd, output_stream=STREAM_BOTH, env=None, extra_env=None):
+def popen(cmd, stdout=None, stderr=None, output_stream=STREAM_BOTH, env=None, extra_env=None):
     """Open a pipe to an external process and return a Popen object."""
 
     info = None
 
     if os.name == 'nt':
         info = subprocess.STARTUPINFO()
-        info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        info.dwFlags |= subprocess.STARTF_USESTDHANDLES | subprocess.STARTF_USESHOWWINDOW
         info.wShowWindow = subprocess.SW_HIDE
 
     if output_stream == STREAM_BOTH:
-        stdout = stderr = subprocess.PIPE
+        stdout = stdout or subprocess.PIPE
+        stderr = stderr or subprocess.PIPE
     elif output_stream == STREAM_STDOUT:
-        stdout = subprocess.PIPE
+        stdout = stdout or subprocess.PIPE
         stderr = subprocess.DEVNULL
     else:  # STREAM_STDERR
         stdout = subprocess.DEVNULL
-        stderr = subprocess.PIPE
+        stderr = stderr or subprocess.PIPE
 
     if env is None:
         env = create_environment()
@@ -1245,9 +1262,13 @@ def popen(cmd, output_stream=STREAM_BOTH, env=None, extra_env=None):
 
     try:
         return subprocess.Popen(
-            cmd, stdin=subprocess.PIPE,
-            stdout=stdout, stderr=stderr,
-            startupinfo=info, env=env)
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=stdout,
+            stderr=stderr,
+            startupinfo=info,
+            env=env
+        )
     except Exception as err:
         from . import persist
         persist.printf('ERROR: could not launch', repr(cmd))
@@ -1266,8 +1287,8 @@ def apply_to_all_views(callback):
 
 # misc utils
 
-def clear_caches():
-    """Clear the caches of all methods in this module that use an lru_cache."""
+def clear_path_caches():
+    """Clear the caches of all path-related methods in this module that use an lru_cache."""
     create_environment.cache_clear()
     which.cache_clear()
     find_python.cache_clear()
