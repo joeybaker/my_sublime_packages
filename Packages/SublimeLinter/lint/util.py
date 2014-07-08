@@ -14,11 +14,13 @@
 from functools import lru_cache
 from glob import glob
 import json
+import locale
 from numbers import Number
 import os
 import re
 import shutil
 from string import Template
+import stat
 import sublime
 import subprocess
 import sys
@@ -502,6 +504,7 @@ def climb(start_dir, limit=None):
             limit -= 1
 
 
+@lru_cache(maxsize=None)
 def find_file(start_dir, name, parent=False, limit=None, aux_dirs=[]):
     """
     Find the given file by searching up the file hierarchy from start_dir.
@@ -1076,12 +1079,27 @@ def get_subl_executable_path():
 
 # popen utils
 
+def decode(bytes):
+    """
+    Decode and return a byte string using utf8, falling back to system's encoding if that fails.
+
+    So far we only have to do this because javac is so utterly hopeless it uses CP1252
+    for its output on Windows instead of UTF8, even if the input encoding is specified as UTF8.
+    Brilliant! But then what else would you expect from Oracle?
+
+    """
+    if not bytes:
+        return ''
+
+    try:
+        return bytes.decode('utf8')
+    except UnicodeError:
+        return bytes.decode(locale.getpreferredencoding(), errors='replace')
+
+
 def combine_output(out, sep=''):
     """Return stdout and/or stderr combined into a string, stripped of ANSI colors."""
-    output = sep.join((
-        (out[0].decode('utf8') or '') if out[0] else '',
-        (out[1].decode('utf8') or '') if out[1] else '',
-    ))
+    output = sep.join((decode(out[0]), decode(out[1])))
 
     return ANSI_COLOR_RE.sub('', output)
 
@@ -1138,6 +1156,11 @@ def create_tempdir():
         shutil.rmtree(tempdir)
 
     os.mkdir(tempdir)
+
+    # Make sure the directory can be removed by anyone in case the user
+    # runs ST later as another user.
+    os.chmod(tempdir, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+
     from . import persist
     persist.debug('temp directory:', tempdir)
 
