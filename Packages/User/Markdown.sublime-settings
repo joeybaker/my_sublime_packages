@@ -6,4 +6,7 @@
 		"txt",
 		"md"
 	]
+  , "font_size": 14
+  , "line_padding_top": 1
+  , "line_padding_bottom": 3
 }
