@@ -1,3 +1,14 @@
 [
 	  { "keys": ["super+shift+ctrl+w"], "command": "wrap_each" }
+    , {
+        "keys": ["super+shift+g"],
+        "command": "grasp",
+        "context": [
+            {
+                "key": "selector",
+                "operator": "equal",
+                "operand": "source.js"
+            }
+        ]
+    }
 ]
