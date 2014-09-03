@@ -1,4 +1,5 @@
 {
+	"always_prompt_for_file_reload": false,
 	"auto_complete": true,
 	"auto_complete_commit_on_tab": true,
 	"auto_complete_delay": 50,
@@ -16,9 +17,9 @@
 	"auto_match_enabled": true,
 	"caret_extra_bottom": 0,
 	"caret_extra_top": 0,
-	"caret_extra_width": 8,
-	"caret_style": "smooth",
-	"color_scheme": "Packages/User/Monokai (SL).tmTheme",
+	"caret_extra_width": 1,
+	"caret_style": "solid",
+	"color_scheme": "Packages/Monokai Extended/Monokai Extended.tmTheme",
 	"default_encoding": "UTF-8",
 	"default_line_ending": "unix",
 	"detect_indentation": true,
