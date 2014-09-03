@@ -1,12 +1,15 @@
 {
+	"caret_extra_bottom": 1,
+	"caret_extra_top": 3,
 	"extensions":
 	[
 		"mdown",
 		"mmd",
 		"txt",
 		"md"
-	]
-  , "font_size": 14
-  , "line_padding_top": 1
-  , "line_padding_bottom": 3
+	],
+	"font_size": 14,
+	"line_padding_bottom": 3,
+	"line_padding_top": 1,
+	"tab_size": 4
 }
