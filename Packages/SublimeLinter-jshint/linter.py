@@ -22,7 +22,7 @@ class JSHint(Linter):
     executable = 'jshint'
     version_args = '--version'
     version_re = r'\bv(?P<version>\d+\.\d+\.\d+)'
-    version_requirement = '>= 2.4.0'
+    version_requirement = '>= 2.5.0'
     regex = (
         r'^(?:(?P<fail>ERROR: .+)|'
         r'.+?: line (?P<line>\d+), col (?P<col>\d+), '
@@ -50,7 +50,7 @@ class JSHint(Linter):
 
     def cmd(self):
         """Return the command line to execute."""
-        command = [self.executable_path, '--verbose']
+        command = [self.executable_path, '--verbose', '--filename', '@']
 
         if self.syntax == 'html':
             command.append('--extract=always')
