@@ -2,6 +2,7 @@
 	"extensions":
 	[
 		".jshintrc",
-		"geojson"
+		"geojson",
+		".jscsrc"
 	]
 }
