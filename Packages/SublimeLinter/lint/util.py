@@ -17,6 +17,7 @@ import json
 import locale
 from numbers import Number
 import os
+import getpass
 import re
 import shutil
 from string import Template
@@ -58,7 +59,7 @@ ANSI_COLOR_RE = re.compile(r'\033\[[0-9;]*m')
 UNSAVED_FILENAME = 'untitled'
 
 # Temp directory used to store temp files for linting
-tempdir = os.path.join(tempfile.gettempdir(), 'SublimeLinter3')
+tempdir = os.path.join(tempfile.gettempdir(), 'SublimeLinter3-' + getpass.getuser())
 
 
 # settings utils
@@ -217,7 +218,7 @@ def generate_color_scheme_async():
     Generate a modified copy of the current color scheme that contains SublimeLinter color entries.
 
     The current color scheme is checked for SublimeLinter color entries. If any are missing,
-    the scheme is copied, the entries are added, and the color scheme is rewritten to Packages/User.
+    the scheme is copied, the entries are added, and the color scheme is rewritten to Packages/User/SublimeLinter.
 
     """
 
@@ -267,17 +268,20 @@ def generate_color_scheme_async():
         color = persist.settings.get('{}_color'.format(style), DEFAULT_MARK_COLORS[style]).lstrip('#')
         styles.append(ElementTree.XML(COLOR_SCHEME_STYLES[style].format(color)))
 
-    # Write the amended color scheme to Packages/User
+    if not os.path.exists(os.path.join(sublime.packages_path(), 'User', 'SublimeLinter')):
+        os.makedirs(os.path.join(sublime.packages_path(), 'User', 'SublimeLinter'))
+
+    # Write the amended color scheme to Packages/User/SublimeLinter
     original_name = os.path.splitext(os.path.basename(scheme))[0]
     name = original_name + ' (SL)'
-    scheme_path = os.path.join(sublime.packages_path(), 'User', name + '.tmTheme')
+    scheme_path = os.path.join(sublime.packages_path(), 'User', 'SublimeLinter', name + '.tmTheme')
 
     with open(scheme_path, 'w', encoding='utf8') as f:
         f.write(COLOR_SCHEME_PREAMBLE)
         f.write(ElementTree.tostring(plist, encoding='unicode'))
 
     # Set the amended color scheme to the current color scheme
-    path = os.path.join('User', os.path.basename(scheme_path))
+    path = os.path.join('User', 'SublimeLinter', os.path.basename(scheme_path))
     prefs.set('color_scheme', packages_relative_path(path))
     sublime.save_settings('Preferences.sublime-settings')
 
@@ -288,8 +292,9 @@ def change_mark_colors(error_color, warning_color):
     error_color = error_color.lstrip('#')
     warning_color = warning_color.lstrip('#')
 
-    path = os.path.join(sublime.packages_path(), 'User', '*.tmTheme')
-    themes = glob(path)
+    base_path = os.path.join(sublime.packages_path(), 'User', '*.tmTheme')
+    sublime_path = os.path.join(sublime.packages_path(), 'User', 'SublimeLinter', '*.tmTheme')
+    themes = glob(sublime_path) + glob(base_path)
 
     for theme in themes:
         with open(theme, encoding='utf8') as f:
@@ -1021,6 +1026,11 @@ def find_windows_python(version):
 def find_python_script(python_path, script):
     """Return the path to the given script, or None if not found."""
     if sublime.platform() in ('osx', 'linux'):
+        pyenv = which('pyenv')
+        if pyenv:
+            out = run_shell_cmd((pyenv, 'which', script)).strip().decode()
+            if os.path.isfile(out):
+                return out
         return which(script)
     else:
         # On Windows, scripts may be .exe files or .py files in <python directory>/Scripts

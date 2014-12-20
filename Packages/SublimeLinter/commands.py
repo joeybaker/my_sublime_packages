@@ -13,6 +13,7 @@
 
 import datetime
 from fnmatch import fnmatch
+from glob import glob
 import json
 import os
 import re
@@ -1092,6 +1093,25 @@ class SublimelinterNewPackageControlMessageCommand(SublimelinterPackageControlCo
         wrapper = TextWrapper(initial_indent='- ', subsequent_indent='  ')
         messages = list(map(lambda msg: '\n'.join(wrapper.wrap(msg)), messages))
         return '\n\n'.join(messages) + '\n'
+
+
+class SublimelinterClearColorSchemeFolderCommand(sublime_plugin.WindowCommand):
+
+    """A command that clears all of SublimeLinter made color schemes."""
+
+    def run(self):
+        """Run the command."""
+        base_path = os.path.join(sublime.packages_path(), 'User', '*.tmTheme')
+        sublime_path = os.path.join(sublime.packages_path(), 'User', 'SublimeLinter', '*.tmTheme')
+        themes = glob(base_path) + glob(sublime_path)
+        prefs = sublime.load_settings('Preferences.sublime-settings')
+        scheme = prefs.get('color_scheme')
+
+        for theme in themes:
+            # Ensure it is a (SL) theme and it is not current current scheme
+            if re.search(r'\(SL\)', theme) and os.path.normpath(scheme) not in theme:
+                persist.debug('deleting {}'.format(os.path.split(theme)[1]))
+                os.remove(theme)
 
 
 class SublimelinterClearCachesCommand(sublime_plugin.WindowCommand):
