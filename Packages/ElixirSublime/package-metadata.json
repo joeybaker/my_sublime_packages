@@ -1,0 +1,1 @@
+{"version": "1.0.4", "platforms": ["*"], "url": "https://github.com/vishnevskiy/ElixirSublime", "sublime_text": ">=3000", "dependencies": [], "description": "Elixir plugin for SublimeText 3 providing code completion and linting."}

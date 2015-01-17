@@ -1,0 +1,11 @@
+{
+	"extensions":
+	[
+		"markdown",
+		"mdown",
+		"md"
+	],
+	"font_size": 14.0,
+	"spell_check": true,
+	"wrap_width": 70
+}
