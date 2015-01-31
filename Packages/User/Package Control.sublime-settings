@@ -9,6 +9,7 @@
 	],
 	"installed_packages":
 	[
+		"6to5",
 		"AdvancedNewFile",
 		"AlignTab",
 		"ApacheConf.tmLanguage",
