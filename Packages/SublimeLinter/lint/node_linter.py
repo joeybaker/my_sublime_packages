@@ -12,6 +12,7 @@
 
 import json
 import hashlib
+import sublime
 
 from functools import lru_cache
 from os import path, access, X_OK
@@ -159,7 +160,7 @@ class NodeLinter(linter.Linter):
 
         parent = path.normpath(path.join(cwd, '../'))
 
-        if parent == '/':
+        if parent == '/' or parent == cwd:
             return None
 
         return self.rev_parse_manifest_path(parent)
@@ -183,6 +184,9 @@ class NodeLinter(linter.Linter):
         node_modules_bin = path.normpath(path.join(cwd, 'node_modules/.bin/'))
 
         binary = path.join(node_modules_bin, cmd)
+
+        if sublime.platform() == 'windows' and path.splitext(binary)[1] != '.cmd':
+            binary += '.cmd'
 
         return binary if binary and access(binary, X_OK) else None
 
