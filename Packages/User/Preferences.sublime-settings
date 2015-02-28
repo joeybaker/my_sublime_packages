@@ -21,7 +21,21 @@
 		"subviews",
 		"subview's",
 		"readme",
-		"admin"
+		"admin",
+		"nodemon",
+		"repo",
+		"grep",
+		"dedupe",
+		"config",
+		"gitignore",
+		"localhost",
+		"etc…",
+		"urls",
+		"mortem",
+		"admins",
+		"apps",
+		"jobsites",
+		"unsubscribe"
 	],
 	"always_prompt_for_file_reload": false,
 	"auto_complete": true,
@@ -104,8 +118,8 @@
 	"highlight_line": true,
 	"ignored_packages":
 	[
-		"Markdown",
-		"Vintage"
+		"Vintage",
+		"Markdown"
 	],
 	"ignored_words":
 	[
@@ -114,6 +128,7 @@
 		"Getable",
 		"Instapaper",
 		"Meraki",
+		"Minifyify",
 		"Pressthink",
 		"Twitter",
 		"Ubiquiti",
