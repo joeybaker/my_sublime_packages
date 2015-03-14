@@ -1,0 +1,88 @@
+[
+
+    /////////////////
+    // COMMIT VIEW //
+    /////////////////
+
+    {
+        "keys": ["ctrl+enter"],
+        "command": "gs_commit_view_do_commit",
+        "context": [
+            { "key": "setting.git_savvy.get_long_text_view", "operator": "equal", "operand": true }
+        ]
+    },
+    {
+        "keys": ["ctrl+s"],
+        "command": "gs_commit_view_sign",
+        "context": [
+            { "key": "setting.git_savvy.get_long_text_view", "operator": "equal", "operand": true }
+        ]
+    },
+
+
+    ///////////////
+    // DIFF VIEW //
+    ///////////////
+
+    {
+        "keys": ["ctrl+enter"],
+        "command": "gs_diff_stage_or_reset_hunk",
+        "context": [
+            { "key": "setting.git_savvy.diff_view", "operator": "equal", "operand": true }
+        ]
+    },
+    {
+        "keys": ["ctrl+backspace"],
+        "command": "gs_diff_stage_or_reset_hunk",
+        "args": { "reset": true },
+        "context": [
+            { "key": "setting.git_savvy.diff_view", "operator": "equal", "operand": true },
+            { "key": "setting.git_savvy.diff_view.in_cached_mode", "operator": "equal", "operand": false }
+        ]
+    },
+
+    ////////////////
+    // BLAME VIEW //
+    ////////////////
+
+    {
+        "keys": ["ctrl+enter"],
+        "command": "gs_blame_open_commit",
+        "context": [
+            { "key": "setting.git_savvy.blame_view", "operator": "equal", "operand": true }
+        ]
+    },
+
+    ///////////////
+    // HELP VIEW //
+    ///////////////
+
+    {
+        "keys": ["ctrl+enter"],
+        "command": "gs_help_goto_link",
+        "context": [
+            { "key": "setting.git_savvy.help_view", "operator": "equal", "operand": true },
+            { "key": "selector", "operator": "equal", "operand": "meta.link.inline.markdown"}
+        ]
+    },
+    {
+        "keys": ["ctrl+backspace"],
+        "command": "gs_help_goto_previous",
+        "context": [
+            { "key": "setting.git_savvy.help_view", "operator": "equal", "operand": true }
+        ]
+    },
+
+    //////////////////////
+    // INLINE DIFF VIEW //
+    //////////////////////
+
+    {
+        "keys": ["ctrl+z"],
+        "command": "gs_inline_diff_undo",
+        "context": [
+            { "key": "setting.git_savvy.inline_diff_view", "operator": "equal", "operand": true }
+        ]
+    }
+
+]
