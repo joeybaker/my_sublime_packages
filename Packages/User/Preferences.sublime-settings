@@ -35,7 +35,10 @@
 		"admins",
 		"apps",
 		"jobsites",
-		"unsubscribe"
+		"unsubscribe",
+		"timeline",
+		"mixin",
+		"mockup"
 	],
 	"always_prompt_for_file_reload": false,
 	"auto_complete": true,
@@ -134,6 +137,7 @@
 		"Ubiquiti",
 		"WiFi",
 		"changelog",
+		"codebase",
 		"datastore",
 		"javascript",
 		"json",
