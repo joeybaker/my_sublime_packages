@@ -10,14 +10,14 @@ class RemotesMixin():
         url/resource.
         """
         entries = self.git("remote", "-v").splitlines()
-        return OrderedDict(re.match("([a-zA-Z_-]+)\t([^ ]+)", entry).groups() for entry in entries)
+        return OrderedDict(re.match("([0-9a-zA-Z_-]+)\t([^ ]+)", entry).groups() for entry in entries)
 
-    def fetch(self, remote=None):
+    def fetch(self, remote=None, prune=True):
         """
         If provided, fetch all changes from `remote`.  Otherwise, fetch
         changes from all remotes.
         """
-        self.git("fetch", remote)
+        self.git("fetch", "--prune" if prune else None, remote)
 
     def get_remote_branches(self):
         """
@@ -33,9 +33,9 @@ class RemotesMixin():
         """
         self.git("pull", remote, branch)
 
-    def push(self, remote=None, branch=None):
+    def push(self, remote=None, branch=None, force=False):
         """
         Push to the specified remote and branch if provided, otherwise
         perform default `git push`.
         """
-        self.git("push", remote, branch)
+        self.git("push", "--force" if force else None, remote, branch)

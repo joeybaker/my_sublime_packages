@@ -60,6 +60,10 @@
         "command": "gs_checkout_remote_branch"
     },
     {
+        "caption": "git: checkout current file",
+        "command": "gs_checkout_current_file"
+    },
+    {
         "caption": "git: fetch",
         "command": "gs_fetch"
     },
@@ -70,6 +74,11 @@
     {
         "caption": "git: push",
         "command": "gs_push"
+    },
+    {
+        "caption": "git: push (force)",
+        "command": "gs_push",
+        "args": { "force": true }
     },
     {
         "caption": "git: push to existing branch",
@@ -159,5 +168,17 @@
     {
         "caption": "GitSavvy: view recorded log",
         "command": "gs_view_git_log"
+    },
+    {
+        "caption": "git: tags",
+        "command": "gs_show_tags"
+    },
+    {
+        "caption": "git: quick tag",
+        "command": "gs_tag_create"
+    },
+    {
+        "caption": "git: branch",
+        "command": "gs_show_branch"
     }
 ]

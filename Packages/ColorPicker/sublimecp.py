@@ -281,6 +281,7 @@ class ColorPicker(object):
     def pick(self, window, starting_color=None):
         start_color = None
         start_color_osx = None
+        win_use_new_picker = False
 
         if starting_color is not None:
             svg_color_hex = self.SVGColors.get(starting_color, None)
@@ -292,25 +293,35 @@ class ColorPicker(object):
                 start_color_osx = starting_color
 
         if sublime.platform() == 'windows':
-            color = win_pick(window, start_color)
+            s = sublime.load_settings("ColorPicker.sublime-settings")
+            win_use_new_picker = s.get('win_use_new_picker', True)
+            if win_use_new_picker:
+                args = [os.path.join(sublime.packages_path(), binpath)]
+                if start_color:
+                    args.append(start_color)
+            else:
+                color = win_pick(window, start_color)
 
         elif sublime.platform() == 'osx':
             args = [os.path.join(sublime.packages_path(), binpath)]
             if start_color_osx:
                 args.append('-startColor')
                 args.append(start_color_osx)
-
         else:
             args = [os.path.join(sublime.packages_path(), binpath)]
             if start_color:
                 args.append(start_color)
 
-        if sublime.platform() != 'windows':
+        if sublime.platform() != "windows" or win_use_new_picker:
             proc = subprocess.Popen(args, stdout=subprocess.PIPE)
             color = proc.communicate()[0].strip()
 
         if color:
-            if sublime.platform() != 'windows' or sublime_version == 2:
+            if (
+                sublime.platform() != 'windows' or
+                win_use_new_picker or
+                sublime_version == 2
+            ):
                 color = color.decode('utf-8')
 
         return color
@@ -353,34 +364,37 @@ class ColorPickCommand(sublime_plugin.TextCommand):
         cp = ColorPicker()
         color = cp.pick(self.view.window(), selected)
 
-        # Determine user preference for case of letters (default upper)
-        s = sublime.load_settings("ColorPicker.sublime-settings")
-        upper_case = s.get("color_upper_case", True)
-        if upper_case:
-            color = color.upper()
-        else:
-            color = color.lower()
-
-        # replace all regions with color
-        for region in sel:
-            word = self.view.word(region)
-            # if the selected word is a valid color, replace it
-            if cp.is_valid_hex_color(self.view.substr(word)):
-                # include '#' if present
-                if self.view.substr(word.a - 1) == '#':
-                    word = sublime.Region(word.a - 1, word.b)
-                # replace
-                self.view.replace(edit, word, '#' + color)
-            # otherwise just replace the selected region
+        if color:
+            # Determine user preference for case of letters (default upper)
+            s = sublime.load_settings("ColorPicker.sublime-settings")
+            upper_case = s.get("color_upper_case", True)
+            if upper_case:
+                color = color.upper()
             else:
-                self.view.replace(edit, region, '#' + color)
+                color = color.lower()
+
+            # replace all regions with color
+            for region in sel:
+                word = self.view.word(region)
+                # if the selected word is a valid color, replace it
+                if cp.is_valid_hex_color(self.view.substr(word)):
+                    # include '#' if present
+                    if self.view.substr(word.a - 1) == '#':
+                        word = sublime.Region(word.a - 1, word.b)
+                    # replace
+                    self.view.replace(edit, word, '#' + color)
+                # otherwise just replace the selected region
+                else:
+                    self.view.replace(edit, region, '#' + color)
 
 
 libdir = os.path.join('ColorPicker', 'lib')
 if sublime.platform() == 'osx':
     binpath = os.path.join(libdir, 'osx_colorpicker')
-else:
+elif sublime.platform() == 'linux':
     binpath = os.path.join(libdir, 'linux_colorpicker.py')
+else:
+    binpath = os.path.join(libdir, 'win_colorpicker.exe')
 
 
 def plugin_loaded():

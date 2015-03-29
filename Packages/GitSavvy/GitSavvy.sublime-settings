@@ -51,5 +51,31 @@
     /*
         Change this to `false` to suppress Git status in ST3 status bar.
      */
-    "git_status_in_status_bar": true
+    "git_status_in_status_bar": true,
+
+    /*
+        When entering a tag message, this will be used if the message is empty.
+        The replacement value "{tag_name}" is optional, but recommended.
+     */
+    "default_tag_message": "Tag {tag_name}",
+
+    /*
+        For each command specified, always include the command line flags
+        indicated in the global_flags hash.
+     */
+    "global_flags": {
+        // "pull": ["--dry-run"]
+    },
+
+    /*
+        Set this to `true` to display remotes in the branch dashboard by default.
+     */
+    "show_remotes_in_branch_dashboard": false,
+
+    /*
+        Update the desired graph arguments for a customized experience.
+
+        NOTE: Changes you make may break in-view functionality, so use with caution.
+     */
+    "git_graph_args": ["log", "--oneline", "--graph", "--all", "--decorate"]
 }
