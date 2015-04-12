@@ -122,8 +122,9 @@
 	"highlight_line": true,
 	"ignored_packages":
 	[
+		"GitSavvy",
+		"Vintage",
 		"Markdown",
-		"Vintage"
 		"CSS"
 	],
 	"ignored_words":
