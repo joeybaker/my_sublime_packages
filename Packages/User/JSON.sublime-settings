@@ -3,6 +3,7 @@
 	[
 		".jshintrc",
 		"geojson",
-		".jscsrc"
+		".jscsrc",
+		".eslintrc"
 	]
 }
