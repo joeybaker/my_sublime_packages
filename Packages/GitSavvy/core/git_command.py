@@ -46,6 +46,8 @@ class GitCommand(StatusMixin,
     Base class for all Sublime commands that interact with git.
     """
 
+    _last_remotes_used = {}
+
     def git(self, *args, stdin=None, working_dir=None, show_panel=False, throw_on_stderr=True):
         """
         Run the git command specified in `*args` and return the output
@@ -147,12 +149,24 @@ class GitCommand(StatusMixin,
     def repo_path(self):
         return self._repo_path()
 
+    @property
+    def short_repo_path(self):
+        if "HOME" in os.environ:
+            return self.repo_path.replace(os.environ["HOME"], "~")
+        else:
+            return self.repo_path
+
     def _repo_path(self, throw_on_stderr=True):
         """
         Return the absolute path to the git repo that contains the file that this
         view interacts with.  Like `file_path`, this can be overridden by setting
         the view's `git_savvy.repo_path` setting.
         """
+        def invalid_repo():
+            if throw_on_stderr:
+                raise ValueError("Unable to determine Git repo path.")
+            return None
+
         # The below condition will be true if run from a WindowCommand and false
         # from a TextCommand.
         view = self.window.active_view() if hasattr(self, "window") else self.view
@@ -160,17 +174,27 @@ class GitCommand(StatusMixin,
 
         if not repo_path:
             file_path = self.file_path
-            working_dir = file_path and os.path.dirname(self.file_path)
+            file_dir = os.path.dirname(file_path) if file_path else None
+            working_dir = file_path and os.path.isdir(file_dir) and file_dir
+
             if not working_dir:
                 window_folders = sublime.active_window().folders()
-                working_dir = window_folders[0] if window_folders else None
+                if not window_folders or not os.path.isdir(window_folders[0]):
+                    return invalid_repo()
+                working_dir = window_folders[0]
+
             stdout = self.git(
                 "rev-parse",
                 "--show-toplevel",
                 working_dir=working_dir,
                 throw_on_stderr=throw_on_stderr
                 )
+
             repo_path = stdout.strip()
+
+            if not repo_path:
+                return invalid_repo()
+
             view.settings().set("git_savvy.repo_path", repo_path)
 
         return repo_path
@@ -215,3 +239,20 @@ class GitCommand(StatusMixin,
             args = [git_cmd] + global_flags[git_cmd] + addl_args
 
         return args
+
+    @property
+    def last_remote_used(self):
+        """
+        With this getter and setter, keep global track of last remote used
+        for each repo.  Will return whatever was set last, or "origin" if
+        never set.
+        """
+        return self._last_remotes_used.get(self.repo_path, "origin")
+
+    @last_remote_used.setter
+    def last_remote_used(self, value):
+        """
+        Setter for above property.  Saves per-repo information in
+        class attribute dict.
+        """
+        self._last_remotes_used[self.repo_path] = value

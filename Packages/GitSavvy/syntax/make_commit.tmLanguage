@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>hidden</key>
+	<true/>
 	<key>name</key>
 	<string>GitSavvy Make Commit</string>
 	<key>patterns</key>
@@ -29,6 +31,23 @@
 			<string>(\w+/\w+)?#[0-9]+</string>
 			<key>name</key>
 			<string>constant.other.git-savvy.make-commit.issue-ref</string>
+		</dict>
+		<dict>
+			<key>begin</key>
+			<string>^(?=diff --git a/)</string>
+			<key>comment</key>
+			<string>diff section</string>
+			<key>end</key>
+			<string>^$</string>
+			<key>name</key>
+			<string>meta.git-savvy.commit-diff</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>source.diff</string>
+				</dict>
+			</array>
 		</dict>
 	</array>
 	<key>scopeName</key>

@@ -2,8 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>hidden</key>
+	<true/>
 	<key>name</key>
-	<string>GitSavvy Status</string>
+	<string>GitSavvy Branch</string>
 	<key>patterns</key>
 	<array>
 		<dict>
@@ -151,8 +153,8 @@
 		</dict>
 	</array>
 	<key>scopeName</key>
-	<string>git-savvy.status</string>
+	<string>git-savvy.branch</string>
 	<key>uuid</key>
-	<string>56ea09df-2601-4d20-bb8d-b6834db991c4</string>
+	<string>cdefe65b-6603-4494-b969-af100f96472a</string>
 </dict>
 </plist>

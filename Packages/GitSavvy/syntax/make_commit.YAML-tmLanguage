@@ -2,6 +2,7 @@
 name: GitSavvy Make Commit
 scopeName: git-savvy.make-commit
 uuid: 0d4c19fb-b197-4d90-806e-7212e542c86b
+hidden: true
 
 patterns:
 - comment: commit header
@@ -13,3 +14,9 @@ patterns:
 - comment: issue
   name: constant.other.git-savvy.make-commit.issue-ref
   match: (\w+/\w+)?#[0-9]+
+- comment: diff section
+  name: meta.git-savvy.commit-diff
+  begin: ^(?=diff --git a/)
+  end: ^$
+  patterns:
+  - include: source.diff

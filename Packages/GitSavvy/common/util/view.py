@@ -54,9 +54,9 @@ def get_is_view_of_type(view, typ):
     return not not view.settings().get("git_savvy.{}_view".format(typ))
 
 
-#####################
-# CROSS-APPLICATION #
-#####################
+##########
+# GLOBAL #
+##########
 
 def refresh_gitsavvy(view):
     """
@@ -65,9 +65,12 @@ def refresh_gitsavvy(view):
     """
     if view.settings().get("git_savvy.interface") is not None:
         view.run_command("gs_interface_refresh")
-    elif view.settings().get("git_savvy.status_view"):
-        view.run_command("gs_status_refresh")
     view.run_command("gs_update_status_bar")
+
+
+def handle_closed_view(view):
+    if view.settings().get("git_savvy.interface") is not None:
+        view.run_command("gs_interface_close")
 
 
 ############################
@@ -97,6 +100,9 @@ def _region_within_regions(all_outer, inner):
 
 
 def get_lines_from_regions(view, regions, valid_ranges=None):
+    if valid_ranges == []:
+        return []
+
     full_line_regions = (view.full_line(region) for region in regions)
 
     valid_regions = ([region for region in full_line_regions if _region_within_regions(valid_ranges, region)]

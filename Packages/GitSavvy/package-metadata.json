@@ -1,1 +1,1 @@
-{"version": "1.3.3", "sublime_text": ">=3000", "dependencies": [], "url": "https://github.com/divmain/GitSavvy", "platforms": ["*"], "description": "Full git and GitHub integration with Sublime Text 3."}
+{"platforms": ["*"], "sublime_text": ">=3000", "version": "1.4.1", "dependencies": [], "description": "Full git and GitHub integration with Sublime Text 3.", "url": "https://github.com/divmain/GitSavvy"}
