@@ -122,11 +122,11 @@
 	"highlight_line": true,
 	"ignored_packages":
 	[
-		"GitSavvy",
-		"Vintage",
-		"Markdown",
 		"Lodash modules snippets",
-		"CSS"
+		"CSS",
+		"Markdown",
+		"Vintage",
+		"GitSavvy"
 	],
 	"ignored_words":
 	[

@@ -1,3 +1,0 @@
-SublimeLinter-ruby 1.0.7
--------------------------
-- Added erb ("HTML (Rails)") support.
