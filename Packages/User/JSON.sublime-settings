@@ -4,6 +4,7 @@
 		".jshintrc",
 		"geojson",
 		".jscsrc",
-		".eslintrc"
+		".eslintrc",
+		".babelrc"
 	]
 }
