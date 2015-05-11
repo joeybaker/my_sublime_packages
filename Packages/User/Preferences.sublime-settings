@@ -124,16 +124,15 @@
 	"font_options":
 	[
 	],
-	"font_size": 12,
 	"gutter": true,
 	"highlight_line": true,
 	"ignored_packages":
 	[
+		"GitSavvy",
+		"Markdown",
 		"Lodash modules snippets",
 		"CSS",
-		"Markdown",
-		"Vintage",
-		"GitSavvy"
+		"Vintage"
 	],
 	"ignored_words":
 	[
