@@ -39,7 +39,14 @@
 		"timeline",
 		"mixin",
 		"mockup",
-		"performant"
+		"performant",
+		"faux",
+		"Fallbacks",
+		"Reacts's",
+		"React's",
+		"polyfill",
+		"stylesheets",
+		"fallbacks"
 	],
 	"always_prompt_for_file_reload": false,
 	"auto_complete": true,
@@ -145,6 +152,7 @@
 		"datastore",
 		"javascript",
 		"json",
+		"matchmedia",
 		"npm",
 		"online",
 		"plugin",
