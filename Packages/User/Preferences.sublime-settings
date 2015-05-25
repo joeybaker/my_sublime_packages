@@ -46,7 +46,9 @@
 		"React's",
 		"polyfill",
 		"stylesheets",
-		"fallbacks"
+		"fallbacks",
+		"programatically",
+		"transpile"
 	],
 	"always_prompt_for_file_reload": false,
 	"auto_complete": true,
