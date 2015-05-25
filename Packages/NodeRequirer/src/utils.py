@@ -4,7 +4,7 @@ import io
 import json
 import re
 from io import StringIO
-
+from difflib import SequenceMatcher
 from .modules import core_modules
 
 SETTINGS_FILE = "NodeRequirer.sublime-settings"
@@ -67,6 +67,20 @@ def is_core_module(module):
 
 def is_local_file(module):
     return '/' in module
+
+
+def dirs_to_exclude(view=None):
+    """Return directories to exclude when searching for files."""
+    defaults = ['node_modules', '.git', 'bower_components']
+    dirs = get_project_pref('exclude_dirs') or defaults
+    return set(dirs)
+
+
+def file_exclude_patterns(view=None):
+    """Return file patterns to exclude when searching for files."""
+    defaults = ['.jpg', '.png', 'DS_STORE', '.gitignore', '.md', 'LICENSE']
+    patterns = get_project_pref('file_exclude_patterns') or defaults
+    return set(patterns)
 
 
 def aliased(module_path, view=None):
@@ -213,3 +227,19 @@ def findup(path, relative_path):
         path = os.path.dirname(path)
 
     return False
+
+
+def fuzzy_match(first, second):
+    return SequenceMatcher(None, first, second).ratio()
+
+
+def best_fuzzy_match(s_list, string):
+    best_string = s_list.pop()
+    best_ratio = fuzzy_match(best_string, string)
+    for item in s_list:
+        ratio = fuzzy_match(item, string)
+        if ratio > best_ratio:
+            best_ratio = ratio
+            best_string = item
+
+    return best_string
