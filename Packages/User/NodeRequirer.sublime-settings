@@ -52,7 +52,9 @@
         "connect-sdb": "SdbStore",
         "connect-sqlite3": "SQLiteStore",
         "package.json": "pkg",
-        "tape": "test"
+        "tape": "test",
+        "rethinkdb": "r",
+        "rethinkdbdash": "r"
     },
   // Don't insert semicolons at the end of lines
   "semicolon_free": true,
