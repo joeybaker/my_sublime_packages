@@ -132,8 +132,9 @@
 	[
 		"GitSavvy",
 		"Markdown",
-		"Lodash modules snippets",
 		"Vintage",
+		"MarkdownTOC",
+		"Lodash modules snippets",
 		"CSS"
 	],
 	"ignored_words":
