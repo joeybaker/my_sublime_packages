@@ -47,6 +47,12 @@
                 "@disable": false,
                 "args": [],
                 "excludes": []
+            },
+            "shellcheck": {
+                "@disable": false,
+                "args": [],
+                "exclude": "",
+                "excludes": []
             }
         },
         "mark_style": "fill",
