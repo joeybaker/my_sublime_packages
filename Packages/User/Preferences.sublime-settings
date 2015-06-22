@@ -131,11 +131,13 @@
 	"ignored_packages":
 	[
 		"GitSavvy",
-		"Markdown",
-		"Vintage",
+		"CSS",
 		"MarkdownTOC",
 		"Lodash modules snippets",
-		"CSS"
+		"Vintage",
+		"Markdown",
+		"ElixirSublime",
+		"Backbone.js"
 	],
 	"ignored_words":
 	[
