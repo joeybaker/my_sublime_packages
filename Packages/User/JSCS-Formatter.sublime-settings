@@ -1,0 +1,20 @@
+{
+  // The Nodejs installation path
+  "node_path": {
+    "osx": "/usr/local/bin/node"
+  },
+
+  // The location of the the globally installed jscs package
+  "jscs_path": {
+    // "osx": "/usr/local/bin/jscs"
+    "osx": "/Users/joeybaker/server/constructable/node_modules/.bin/jscs"
+  },
+
+  // Specify this path to a JSCS config file to override the default behavior.
+  // Passed to JSCS as --config. Read more here:
+  // http://jscs.info/overview.html#-config-
+  "config_path": "/Users/joeybaker/server/constructable/.jscsrc",
+
+  // Automatically format when a file is saved.
+  "format_on_save": true
+}
