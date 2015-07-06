@@ -43,9 +43,9 @@ class ESLint(NodeLinter):
 
     def find_errors(self, output):
         """
-        Parses errors from linter's output
+        Parse errors from linter's output.
 
-        We override this method to handle parsing eslint crashes
+        We override this method to handle parsing eslint crashes.
         """
 
         match = self.config_fail_regex.match(output)
@@ -64,7 +64,6 @@ class ESLint(NodeLinter):
         Extract and return values from match.
 
         We override this method to silent warning by .eslintignore settings.
-
         """
 
         match, line, col, error, warning, message, near = super().split_match(match)
@@ -79,9 +78,11 @@ class ESLint(NodeLinter):
         if '__RELATIVE_TO_FOLDER__' in cmd:
 
             relfilename = self.filename
+            window = self.view.window()
 
-            if int(sublime.version()) >= 3080:
-                window = self.view.window()
+            # can't get active folder, it will work only if there is one folder in project
+            if int(sublime.version()) >= 3080 and len(window.folders()) < 2:
+
                 vars = window.extract_variables()
 
                 if 'folder' in vars:
