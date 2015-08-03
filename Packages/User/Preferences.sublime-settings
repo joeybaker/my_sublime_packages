@@ -132,15 +132,15 @@
 	"ignored_packages":
 	[
 		"Vintage",
+		"Markdown",
 		"MarkdownTOC",
+		"ReactJS",
 		"CSS",
 		"GitSavvy",
-		"JSX",
-		"Lodash modules snippets",
-		"Markdown",
 		"Backbone.js",
-		"ReactJS",
-		"ElixirSublime"
+		"JSX",
+		"ElixirSublime",
+		"Lodash modules snippets"
 	],
 	"ignored_words":
 	[
