@@ -64,9 +64,9 @@ Update `eslint` instance, probably you use outdated version and SublimeLinter do
 
 ##### I want plugin to use my `.eslintignore` settings.
 
-It does it now.
+It does it now. 
 
-##### I want not to lint files if there is no `.eslintrc` file in project folder.
+##### I want not to lint files if there is no `.eslintrc` file in project folder (for ESLint <1.0.0).
 
 Use `--reset` [ESLint](http://eslint.org/docs/user-guide/command-line-interface#reset) option, add it to your SublimeLinter global settings or project `.sublimelinterrc` file as below. Add `--no-reset` option to project `.sublimelinterrc` to overwrite it back.
 
@@ -86,6 +86,23 @@ Use `--reset` [ESLint](http://eslint.org/docs/user-guide/command-line-interface#
 
 Plugin uses the same [configuration hierarchy](http://eslint.org/docs/user-guide/configuring#configuration-cascading-and-hierarchy) as `eslint` itself, so add `.eslintrc` to your home directory or ancestor directory of project.
 
+##### I want to use custom rules, global `.eslintignore` file, etc.
+
+You can specify **any** [CLI options](http://eslint.org/docs/user-guide/command-line-interface#options) of `eslint` with `args` key in SublimeLinter configs. 
+
+```
+{
+    "linters": {
+        "eslint": {
+            "args": [
+                "--ignore-path", "~/eslint_ignore",
+                "--rulesdir", "~/rules"
+            ]
+        }
+    }
+}
+```
+
 ##### `context.getFilename()` in rule returns relative path.
 
 It is a drawback of supporting `.eslintignore` settings. Add to your SublimeLinter settings:
@@ -101,6 +118,10 @@ It is a drawback of supporting `.eslintignore` settings. Add to your SublimeLint
     }
 }
 ```
+
+##### There is no `SublimeLinter-contrib-eslint` package to install in Package Control packages list.
+
+Check if you already have it installed, please.
 
 ## Contributing
 If you would like to contribute enhancements or fixes, please do the following:
