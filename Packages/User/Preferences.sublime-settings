@@ -48,7 +48,10 @@
 		"stylesheets",
 		"fallbacks",
 		"programatically",
-		"transpile"
+		"transpile",
+		"mentorship",
+		"mindmeld",
+		"Jalapenìƒo"
 	],
 	"always_prompt_for_file_reload": false,
 	"auto_complete": true,
@@ -131,20 +134,21 @@
 	"highlight_line": true,
 	"ignored_packages":
 	[
-		"Vintage",
-		"Markdown",
-		"MarkdownTOC",
-		"ReactJS",
-		"CSS",
-		"GitSavvy",
-		"Backbone.js",
 		"JSX",
 		"ElixirSublime",
-		"Lodash modules snippets"
+		"Lodash modules snippets",
+		"ReactJS",
+		"Vintage",
+		"MarkdownTOC",
+		"Backbone.js",
+		"CSS",
+		"GitSavvy",
+		"Markdown"
 	],
 	"ignored_words":
 	[
 		"Cangelog",
+		"Catholes",
 		"Facebook",
 		"Getable",
 		"Instapaper",
@@ -193,6 +197,7 @@
 	"match_brackets_content": true,
 	"match_brackets_square": true,
 	"match_tags": true,
+	"material_theme_small_tab": true,
 	"move_to_limit_on_up_down": false,
 	"remember_open_files": true,
 	"rulers":
