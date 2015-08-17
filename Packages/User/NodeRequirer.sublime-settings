@@ -54,7 +54,9 @@
         "package.json": "pkg",
         "tape": "test",
         "rethinkdb": "r",
-        "rethinkdbdash": "r"
+        "rethinkdbdash": "r",
+        "react-test-tree": "testTree",
+        "react-helmet": "Helmet"
     },
   // Don't insert semicolons at the end of lines
   "semicolon_free": true,
