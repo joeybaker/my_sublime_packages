@@ -8,7 +8,7 @@ This is a [Sublime Text][st] (version 2 and 3) package that provides
 
 In JavaScript files, the package will handle autocompletion.
 
-The following keys will be found (in JavaScript files):
+The following keys will be bound (in JavaScript files):
 
 `alt+.`  
 Jump to the definition of the thing that the cursor is pointing at. If
@@ -103,12 +103,3 @@ Example:
 ```
 
 Ensure that your `auto_complete` preference is set to `true`. It's enabled by default.
-
-## Alternative package
-
-There exists also [Sublime Tern][stern], a package with similar goals
-(Tern integration for ST). It exposes a slightly different set of
-functionality, and uses the PyV8 bridge, rather than node.js, to run
-the Tern server.
-
-[stern]: https://github.com/emmetio/sublime-tern
