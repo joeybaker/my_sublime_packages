@@ -134,16 +134,16 @@
 	"highlight_line": true,
 	"ignored_packages":
 	[
+		"Backbone.js",
+		"MarkdownTOC",
+		"Vintage",
 		"ElixirSublime",
 		"Lodash modules snippets",
 		"JSX",
 		"Markdown",
-		"CSS",
 		"ReactJS",
-		"GitSavvy",
-		"Backbone.js",
-		"MarkdownTOC",
-		"Vintage"
+		"CSS",
+		"GitSavvy"
 	],
 	"ignored_words":
 	[
