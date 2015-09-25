@@ -17,7 +17,7 @@ Before using this plugin, you must ensure that `eslint` is installed on your sys
    ```
 Or install `eslint` locally in your project folder (**you must have package.json file there**):
     ```
-    npm init -f 
+    npm init -f
     npm install eslint
     ```
 
@@ -64,7 +64,7 @@ Update `eslint` instance, probably you use outdated version and SublimeLinter do
 
 ##### I want plugin to use my `.eslintignore` settings.
 
-It does it now. 
+It does it now.
 
 ##### I want not to lint files if there is no `.eslintrc` file in project folder (for ESLint <1.0.0).
 
@@ -88,7 +88,7 @@ Plugin uses the same [configuration hierarchy](http://eslint.org/docs/user-guide
 
 ##### I want to use custom rules, global `.eslintignore` file, etc.
 
-You can specify **any** [CLI options](http://eslint.org/docs/user-guide/command-line-interface#options) of `eslint` with `args` key in SublimeLinter configs. 
+You can specify **any** [CLI options](http://eslint.org/docs/user-guide/command-line-interface#options) of `eslint` with `args` key in SublimeLinter configs.
 
 ```
 {
@@ -118,6 +118,10 @@ It is a drawback of supporting `.eslintignore` settings. Add to your SublimeLint
     }
 }
 ```
+
+##### Plugin does not lint files in symlinked folders.
+
+It looks like ST/SublimeLinter/ESLint issue. Use solution from previous paragraph, set option `--stdin-filename` to `@`.
 
 ##### There is no `SublimeLinter-contrib-eslint` package to install in Package Control packages list.
 
@@ -149,3 +153,4 @@ Thank you for helping out!
 [settings]: http://sublimelinter.readthedocs.org/en/latest/settings.html
 [linter-settings]: http://sublimelinter.readthedocs.org/en/latest/linter_settings.html
 [inline-settings]: http://sublimelinter.readthedocs.org/en/latest/settings.html#inline-settings
+[eslint_d]: https://github.com/mantoni/eslint_d.js
