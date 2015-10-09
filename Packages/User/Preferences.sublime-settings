@@ -138,11 +138,13 @@
 		"CSS",
 		"ElixirSublime",
 		"GitSavvy",
+		"JSCS-Formatter",
 		"JSX",
 		"Lodash modules snippets",
 		"Markdown",
 		"MarkdownTOC",
 		"ReactJS",
+		"SublimeLinter-jscs",
 		"Vintage"
 	],
 	"ignored_words":
