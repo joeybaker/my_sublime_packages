@@ -78,7 +78,7 @@ def dirs_to_exclude(view=None):
 
 def file_exclude_patterns(view=None):
     """Return file patterns to exclude when searching for files."""
-    defaults = ['.jpg', '.png', 'DS_STORE', '.gitignore', '.md', 'LICENSE']
+    defaults = ['.gif', '.jpg', '.png', 'DS_STORE', '.gitignore', '.md', 'LICENSE']
     patterns = get_project_pref('file_exclude_patterns') or defaults
     return set(patterns)
 
@@ -235,8 +235,12 @@ def fuzzy_match(first, second):
 
 def best_fuzzy_match(s_list, string):
     best_string = s_list.pop()
+    if string in best_string:
+        return best_string
     best_ratio = fuzzy_match(best_string, string)
     for item in s_list:
+        if string in item:
+            return item
         ratio = fuzzy_match(item, string)
         if ratio > best_ratio:
             best_ratio = ratio

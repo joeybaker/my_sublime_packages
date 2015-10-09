@@ -8,9 +8,11 @@ from NodeRequirer.src import utils
 from NodeRequirer.src.RequireSnippet import RequireSnippet
 from NodeRequirer.src.modules import core_modules
 from NodeRequirer.src.ModuleLoader import ModuleLoader
+from NodeRequirer.src.node_bridge import node_bridge
 
 WORD_SPLIT_RE = re.compile(r"\W+")
-
+GLOBAL_IMPORT_RE = re.compile(r"^((var|let|const|\s{0,5})\s\w+\s*=\s*)?require\s*\(")
+ESLINT_UNDEF_RE = re.compile(r'"(.*)" is not defined')
 
 class RequireFromWordCommand(sublime_plugin.TextCommand):
 
@@ -22,17 +24,50 @@ class RequireFromWordCommand(sublime_plugin.TextCommand):
         cursor = self.view.sel()[0]
         word_region = self.view.word(cursor)
         word_text = self.view.substr(word_region)
+        import_undefined_vars = utils.get_project_pref('import_undefined_vars',
+                                                       view=self.view)
 
         self.module_loader = ModuleLoader(self.view.file_name())
-        files = self.module_loader.get_file_list()
+        self.files = self.module_loader.get_file_list()
 
-        module = utils.best_fuzzy_match(files, word_text)
-        self.view.run_command('require_insert_helper', {
-            'args': {
-                'module': module,
-                'type': 'word'
-            }
-        })
+        words = [word_text]
+
+        if cursor.empty() and import_undefined_vars:
+            undef_vars = self.find_undefined_vars()
+            if undef_vars:
+                words = undef_vars
+
+        for word in words:
+            module = utils.best_fuzzy_match(self.files, word)
+            self.view.run_command('require_insert_helper', {
+                'args': {
+                    'module': module,
+                    'type': 'word'
+                }
+            })
+
+    def find_undefined_vars(self):
+        """Executes ESLint if it is installed as local module and finds undefined variables"""
+        eslint_path = os.path.join(self.module_loader.project_folder,
+                                   'node_modules',
+                                   'eslint', 'bin', 'eslint.js')
+        if not os.path.exists(eslint_path):
+            return []
+
+        args = ['-f', 'compact', '--stdin',
+                '--stdin-filename', self.view.file_name()]
+
+        try:
+            text = self.view.substr(sublime.Region(0, self.view.size()))
+            output = node_bridge(text, eslint_path, args)
+        except Exception as e:
+            return []
+
+        return list(set([
+            re.search(ESLINT_UNDEF_RE, line).group(1)
+            for line in output.split('\n')
+            if '(no-undef)' in line
+        ]))
 
 
 class RequireCommand(sublime_plugin.TextCommand):
@@ -163,71 +198,27 @@ class ExportInsertHelperCommand(sublime_plugin.TextCommand):
     def run(self, edit, args):
         """Insert require statement after the module exports are choosen."""
         module_info = get_module_info(args['module'], self.view)
-        self.path = module_info['module_path']
-        self.module_name = module_info['module_name']
-        self.exports = args['exports']
+        module_path = module_info['module_path']
+        module_name = module_info['module_name']
+        exports = args['exports']
+        destructuring = utils.get_pref('destructuring')
         self.edit = edit
 
-        content = self.get_content()
+        snippet = RequireSnippet(
+            module_name,
+            module_path,
+            should_add_var_name=True,
+            should_add_var_statement=True,
+            context_allows_semicolon=True,
+            view=self.view,
+            file_name=self.view.file_name(),
+            exports=exports,
+            destructuring=destructuring
+        )
+
+        content = snippet.get_formatted_code()
         position = self.view.sel()[0].begin()
         self.view.insert(self.edit, position, content)
-
-    def get_content(self):
-        """Get content to insert."""
-        if len(self.exports) == 1:
-            return self.get_single_export_content()
-        return self.get_many_exports_content()
-
-    def get_single_export_content(self):
-        """Get content for a single export."""
-        require_string = 'var {export} = require({q}{path}{q}).{export}'
-
-        return require_string.format(
-            export=self.exports.pop(),
-            q=utils.get_quotes(),
-            path=self.path
-        )
-
-    def get_many_exports_content(self):
-        """Get content for many exports."""
-        destruc = utils.get_pref('destructuring')
-        if destruc is True:
-            return self.get_many_exports_destructured()
-        return self.get_many_exports_standard()
-
-    def get_many_exports_destructured(self):
-        """Get content for many exports with destructuring."""
-        iter_exports = iter(self.exports)
-        first_export = next(iter_exports)
-        require_string = 'var {{{0}'.format(first_export)
-        for export in iter_exports:
-            require_string += ', {0}'.format(export)
-
-        require_string += ' }} = require({q}{path}{q});'.format(
-            path=self.path,
-            q=utils.get_quotes()
-        )
-
-        return require_string
-
-    def get_many_exports_standard(self):
-        """Get content for many exports without destructuring."""
-        quotes = utils.get_quotes()
-        require_string = 'var {module} = require({q}{path}{q});'.format(
-            module=self.module_name,
-            q=quotes,
-            path=self.path
-        )
-        for export in self.exports:
-            require_string += '\n'
-            final = 'var {export} = require({q}{path}{q}).{export};'
-            require_string += final.format(
-                export=export,
-                q=quotes,
-                path=self.path
-            )
-
-        return require_string
 
 
 class RequireInsertHelperCommand(sublime_plugin.TextCommand):
@@ -284,15 +275,26 @@ class RequireInsertHelperCommand(sublime_plugin.TextCommand):
         at the bottom of the import list, rather than at the current
         cursor position.
         """
+
         cursor = self.view.sel()[0]
         prev_region = sublime.Region(0, cursor.begin())
         lines = self.view.lines(prev_region)
         region_for_insertion = None
+        found_imports = False
         for line in lines:
             line_text = self.view.substr(line)
-            if 'require' not in line_text and 'import' not in line_text:
-                region_for_insertion = line
-                break
+
+            is_global_import = (
+                line_text.startswith("import") or
+                re.match(GLOBAL_IMPORT_RE, line_text)
+            )
+
+            if not is_global_import:
+                if found_imports:
+                    region_for_insertion = line
+                    break
+            else:
+                found_imports = True
 
         if region_for_insertion is None:
             region_for_insertion = self.view.line(cursor.begin())
@@ -352,12 +354,7 @@ def get_module_info(module_path, view):
 
         # Capitalize modules named with dashes
         # i.e. some-thing => SomeThing
-        dash_index = module_name.find('-')
-        while dash_index > 0:
-            first = module_name[:dash_index].capitalize()
-            second = module_name[dash_index + 1:].capitalize()
-            module_name = '{fst}{snd}'.format(fst=first, snd=second)
-            dash_index = module_name.find('-')
+        module_name = camelcase(module_name)
 
     # Fix paths for windows
     if os.sep != '/':
@@ -367,3 +364,6 @@ def get_module_info(module_path, view):
         'module_path': module_path,
         'module_name': module_name
     }
+
+def camelcase(str):
+    return ''.join(word[0].upper() + word[1:] for word in str.split('-'))

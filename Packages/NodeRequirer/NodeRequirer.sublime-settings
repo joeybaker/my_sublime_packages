@@ -27,6 +27,15 @@
         "immutable": "Immutable",
         "ramda": "R",
         "react": "React",
+        "react-dom": "ReactDOM",
+        "react-addons-clone-with-props": "cloneWithProps",
+        "react-addons-create-fragment": "createFragment",
+        "react-addons-css-transition-group": "CSSTransitionGroup",
+        "react-addons-linked-state-mixin": "LinkedStateMixin",
+        "react-addons-pure-render-mixin": "PureRenderMixin",
+        "react-addons-shallow-compare": "shallowCompare",
+        "react-addons-transition-group": "TransitionGroup",
+        "react-addons-update": "update",
         "roslib": "ROS",
         "rsvp": "RSVP",
         "underscore": "_",
@@ -51,12 +60,17 @@
         "connect-mysql": "MySQLStore",
         "connect-sdb": "SdbStore",
         "connect-sqlite3": "SQLiteStore",
-        "package.json": "pkg"
+        "package.json": "pkg",
+        "tape": "test",
+        "sequelize": "Sequelize",
+        "r": "rethinkdb",
+        "r": "rethinkdbdash"
     },
 
     // Common "alias" patterns that can be expressed using regular expressions
     "alias-pattern": {
-        "gulp-(.+)": "\\1"
+        "gulp-(.+)": "\\1",
+        "lodash\\.(.+)": "\\1"
     },
 
     // Use 'single' or "double" quotes
@@ -115,4 +129,8 @@
 
     // Allow for tab completion through require statement
     "snippets": true,
+
+    // find and import undefined vars with ESLint
+    // when "Require From Word" called without selected word
+    "import_undefined_vars": false
 }

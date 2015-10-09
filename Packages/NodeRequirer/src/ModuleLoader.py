@@ -158,7 +158,7 @@ class ModuleLoader():
         for dependency in dependencies:
             module_path = os.path.join(modules_path, dependency)
             if not os.path.exists(module_path):
-                return []
+                continue
 
             walk = os.walk(module_path)
             for root, dirs, files in walk:
@@ -206,6 +206,8 @@ class ModuleLoader():
     def get_exports_in_file(self, fpath):
         """get exports in a given file (commonjs)."""
         exports = []
+        if os.path.isdir(fpath):
+            fpath = os.path.join(fpath, 'index.js')
         f = open(fpath, 'r')
         for line in f:
             result = re.search(IS_EXPORT_LINE, line)

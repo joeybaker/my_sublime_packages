@@ -1,6 +1,8 @@
 # NodeRequirer - A Sublime Text 3 plugin for requiring node modules
 #### [Sublime Text 3](http://www.sublimetext.com/3)
 
+<a href='https://pledgie.com/campaigns/29265'><img alt='Click here to lend your support to: NodeRequirer Donations and make a donation at pledgie.com !' src='https://pledgie.com/campaigns/29265.png?skin_name=chrome' border='0' ></a>
+
 ## About
 This is a Sublime Text 3 plugin allowing you to easily require node modules
 without having to worry about relative paths. It parses your project to allow you
@@ -58,14 +60,17 @@ Example `User Plugin Preferences`
 {
     // Type of quotes to use
     "quotes": "single || double",
-
+    
+    // Use 'var', 'const', or 'let' variable declarations
+    "var": "var",
+    
     // Use ES6 import format, when syntactically correct
     "import": false,
 
     "alias": {
         // <module name>: <variable name>
         "underscore": "_"
-    }
+    },
 
     // Use object destructuring when assigning multiple exports
     "destructuring": false,
@@ -75,7 +80,10 @@ Example `User Plugin Preferences`
     "snippet": true,
     // Directories to exclude when searching for files to require
     // The default directories excluded are [".git", "bower_components", "node_modules"]
-    "exclude_dirs": [".git", "bower_components", "node_modules", "somerandom_directory"]
+    "exclude_dirs": [".git", "bower_components", "node_modules", "somerandom_directory"],
+    // File patterns to exclude. Basically does a substring search. Not very fancy
+    // Default patterns: [".jpg", ".png", ".gif", ".md", "LICENSE", ".gitignore", "DS_STORE"]
+    "file_exclude_patterns": []
 }
 ```
 
