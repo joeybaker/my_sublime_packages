@@ -55,6 +55,7 @@
         "tape": "test",
         "rethinkdb": "r",
         "rethinkdbdash": "r",
+        "react-addons-test-utils": "TestUtils",
         "react-test-tree": "testTree",
         "react-helmet": "Helmet"
     },
