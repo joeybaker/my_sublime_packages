@@ -51,7 +51,8 @@
 		"transpile",
 		"mentorship",
 		"mindmeld",
-		"Jalapenìƒo"
+		"Jalapen?",
+		"namespaced"
 	],
 	"always_prompt_for_file_reload": false,
 	"auto_complete": true,
@@ -144,6 +145,7 @@
 		"Markdown",
 		"MarkdownTOC",
 		"ReactJS",
+		"Statusbar Path",
 		"SublimeLinter-jscs",
 		"Vintage"
 	],
