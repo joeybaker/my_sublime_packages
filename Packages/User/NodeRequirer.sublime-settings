@@ -57,7 +57,9 @@
         "rethinkdbdash": "r",
         "react-addons-test-utils": "TestUtils",
         "react-test-tree": "testTree",
-        "react-helmet": "Helmet"
+        "react-helmet": "Helmet",
+        "react-dom": "ReactDOM",
+        "redux-test": "createMockStore"
     },
   // Don't insert semicolons at the end of lines
   "semicolon_free": true,
