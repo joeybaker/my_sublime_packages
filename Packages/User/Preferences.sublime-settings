@@ -52,7 +52,9 @@
 		"mentorship",
 		"mindmeld",
 		"Jalapen?",
-		"namespaced"
+		"namespaced",
+		"googled",
+		"googling"
 	],
 	"always_prompt_for_file_reload": false,
 	"auto_complete": true,
