@@ -134,6 +134,7 @@
 	[
 		"subpixel_antialias"
 	],
+	"font_size": 12,
 	"gutter": true,
 	"highlight_line": true,
 	"ignored_packages":
@@ -207,6 +208,7 @@
 	"material_theme_small_tab": true,
 	"move_to_limit_on_up_down": false,
 	"remember_open_files": true,
+	"revert_font_size": 12,
 	"rulers":
 	[
 		80,
