@@ -59,7 +59,8 @@
         "react-test-tree": "testTree",
         "react-helmet": "Helmet",
         "react-dom": "ReactDOM",
-        "redux-test": "createMockStore"
+        "redux-test": "createMockStore",
+        "autobind-decorator": "autobind"
     },
   // Don't insert semicolons at the end of lines
   "semicolon_free": true,
