@@ -55,7 +55,15 @@
 		"namespaced",
 		"googled",
 		"googling",
-		"rebase"
+		"rebase",
+		"Getable's",
+		"frontend",
+		"roadmap",
+		"blog",
+		"ecommerce",
+		"sitemap",
+		"→",
+		"linting"
 	],
 	"always_prompt_for_file_reload": false,
 	"auto_complete": true,
