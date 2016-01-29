@@ -63,7 +63,9 @@
 		"ecommerce",
 		"sitemap",
 		"→",
-		"linting"
+		"linting",
+		"dropdown",
+		"autosuggest"
 	],
 	"always_prompt_for_file_reload": false,
 	"auto_complete": true,
