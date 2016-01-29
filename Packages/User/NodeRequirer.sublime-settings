@@ -60,7 +60,8 @@
         "react-helmet": "Helmet",
         "react-dom": "ReactDOM",
         "redux-test": "createMockStore",
-        "autobind-decorator": "autobind"
+        "autobind-decorator": "autobind",
+        "react-immutable-proptypes": "ImmutablePropTypes"
     },
   // Don't insert semicolons at the end of lines
   "semicolon_free": true,
