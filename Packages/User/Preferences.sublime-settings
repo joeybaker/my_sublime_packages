@@ -65,7 +65,9 @@
 		"→",
 		"linting",
 		"dropdown",
-		"autosuggest"
+		"autosuggest",
+		"backend",
+		"refactor"
 	],
 	"always_prompt_for_file_reload": false,
 	"auto_complete": true,
