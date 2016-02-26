@@ -65,6 +65,11 @@
                 "args": [],
                 "exclude": "",
                 "excludes": []
+            },
+            "textlint": {
+                "@disable": false,
+                "args": [],
+                "excludes": []
             }
         },
         "mark_style": "fill",
