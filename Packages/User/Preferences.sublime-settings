@@ -159,6 +159,7 @@
 		"Markdown",
 		"ReactJS",
 		"Statusbar Path",
+		"SublimeLinter-flake8",
 		"SublimeLinter-jscs",
 		"Vintage"
 	],

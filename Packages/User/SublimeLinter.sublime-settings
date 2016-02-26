@@ -25,6 +25,18 @@
                 "args": [],
                 "excludes": []
             },
+            "flake8": {
+                "@disable": false,
+                "args": [],
+                "builtins": "",
+                "excludes": [],
+                "ignore": "",
+                "jobs": "1",
+                "max-complexity": -1,
+                "max-line-length": null,
+                "select": "",
+                "show-code": false
+            },
             "jscs": {
                 "@disable": true,
                 "args": [],
