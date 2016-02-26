@@ -159,6 +159,7 @@
 		"JSX",
 		"Lodash modules snippets",
 		"Markdown",
+		"MarkdownTOC",
 		"ReactJS",
 		"Statusbar Path",
 		"SublimeLinter-flake8",
