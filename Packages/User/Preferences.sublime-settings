@@ -154,6 +154,7 @@
 	[
 		"Backbone.js",
 		"CSS",
+		"CSS Completions",
 		"ElixirSublime",
 		"GitSavvy",
 		"JSCS-Formatter",
