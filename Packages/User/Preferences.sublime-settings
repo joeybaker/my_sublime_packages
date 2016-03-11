@@ -67,7 +67,8 @@
 		"dropdown",
 		"autosuggest",
 		"backend",
-		"refactor"
+		"refactor",
+		"backlink"
 	],
 	"always_prompt_for_file_reload": false,
 	"auto_complete": true,
