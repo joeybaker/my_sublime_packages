@@ -10,38 +10,6 @@
 <key>name</key>
 <string>mon_color</string>
 <key>scope</key>
-<string>mcol_D2B48CFF</string>
-<key>settings</key>
-<dict>
-<key>background</key>
-<string>#D2B48CFF</string>
-<key>foreground</key>
-<string>#73552CFF</string>
-<key>caret</key>
-<string>#73552CFF</string>
-</dict>
-</dict>
-
-<dict>
-<key>name</key>
-<string>mon_text_color</string>
-<key>scope</key>
-<string>mcol_text_D2B48CFF</string>
-<key>settings</key>
-<dict>
-<key>background</key>
-<string>#ECECEdFF</string>
-<key>foreground</key>
-<string>#D2B48CFF</string>
-<key>caret</key>
-<string>#73552CFF</string>
-</dict>
-</dict>
-
-<dict>
-<key>name</key>
-<string>mon_color</string>
-<key>scope</key>
 <string>mcol_010203FF</string>
 <key>settings</key>
 <dict>
@@ -67,38 +35,6 @@
 <string>#010203FF</string>
 <key>caret</key>
 <string>#FCFDFEFF</string>
-</dict>
-</dict>
-
-<dict>
-<key>name</key>
-<string>mon_color</string>
-<key>scope</key>
-<string>mcol_FFD700FF</string>
-<key>settings</key>
-<dict>
-<key>background</key>
-<string>#FFD700FF</string>
-<key>foreground</key>
-<string>#4C4000FF</string>
-<key>caret</key>
-<string>#4C4000FF</string>
-</dict>
-</dict>
-
-<dict>
-<key>name</key>
-<string>mon_text_color</string>
-<key>scope</key>
-<string>mcol_text_FFD700FF</string>
-<key>settings</key>
-<dict>
-<key>background</key>
-<string>#ECECEdFF</string>
-<key>foreground</key>
-<string>#FFD700FF</string>
-<key>caret</key>
-<string>#4C4000FF</string>
 </dict>
 </dict>
 
@@ -177,8 +113,6 @@
             <string>invalid.illegal</string>
             <key>settings</key>
             <dict>
-                <key>background</key>
-                <string>#F93232</string>
                 <key>fontStyle</key>
                 <string></string>
                 <key>foreground</key>
@@ -701,7 +635,7 @@
             <key>name</key>
             <string>Markup: Underline</string>
             <key>scope</key>
-            <string>markup.underline,markup.underline.link.markdown,constant.other.reference.link.markdown,meta.image.reference.markdown</string>
+            <string>markup.underline,markup.underline.link.markdown,constant.other.reference.link.markdown,meta.image.reference.markdown,meta.image.inline.markdown</string>
             <key>settings</key>
             <dict>
                 <key>background</key>
