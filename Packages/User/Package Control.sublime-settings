@@ -74,6 +74,7 @@
 		"SublimeLinter-contrib-eslint",
 		"SublimeLinter-csslint",
 		"SublimeLinter-flake8",
+		"SublimeLinter-flow",
 		"SublimeLinter-jscs",
 		"SublimeLinter-jshint",
 		"SublimeLinter-json",

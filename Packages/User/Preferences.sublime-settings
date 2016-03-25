@@ -165,7 +165,9 @@
 		"ReactJS",
 		"Statusbar Path",
 		"SublimeLinter-flake8",
+		"SublimeLinter-flow",
 		"SublimeLinter-jscs",
+		"SublimeLinter-jshint",
 		"Vintage"
 	],
 	"ignored_words":
