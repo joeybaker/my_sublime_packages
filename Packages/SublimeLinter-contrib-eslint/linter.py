@@ -13,17 +13,7 @@
 import sublime
 import os
 import re
-import sys
 from SublimeLinter.lint import NodeLinter
-
-
-def screen_path(path):
-    """Make to use path with parentheses on windows while it does not fix in ST itself."""
-
-    if sys.platform in ('win32'):
-        return '"' + path + '"'
-    else:
-        return path
 
 
 class ESLint(NodeLinter):
@@ -36,7 +26,7 @@ class ESLint(NodeLinter):
     cmd = ('eslint', '--format', 'compact', '--stdin', '--stdin-filename', '__RELATIVE_TO_FOLDER__')
     version_args = '--version'
     version_re = r'v(?P<version>\d+\.\d+\.\d+)'
-    version_requirement = '>= 1.0.0'
+    version_requirement = '>= 2.0.0'
     regex = (
         r'^.+?: line (?P<line>\d+), col (?P<col>\d+), '
         r'(?:(?P<error>Error)|(?P<warning>Warning)) - '
@@ -79,7 +69,7 @@ class ESLint(NodeLinter):
         """
 
         match, line, col, error, warning, message, near = super().split_match(match)
-        if message and message == 'File ignored because of your .eslintignore file. Use --no-ignore to override.':
+        if message and message == 'File ignored because of a matching ignore pattern. Use --no-ignore to override.':
             return match, None, None, None, None, '', None
 
         return match, line, col, error, warning, message, near
@@ -100,9 +90,9 @@ class ESLint(NodeLinter):
                 if 'folder' in vars:
                     relfilename = os.path.relpath(self.filename, vars['folder'])
 
-            cmd[cmd.index('__RELATIVE_TO_FOLDER__')] = screen_path(relfilename)
+            cmd[cmd.index('__RELATIVE_TO_FOLDER__')] = relfilename
 
         elif not code:
-            cmd.append(screen_path(self.filename))
+            cmd.append(self.filename)
 
         return super().communicate(cmd, code)
