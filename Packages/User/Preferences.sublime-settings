@@ -68,7 +68,11 @@
 		"autosuggest",
 		"backend",
 		"refactor",
-		"backlink"
+		"backlink",
+		"doesn’t",
+		"isn’t",
+		"they’ll",
+		"they’re"
 	],
 	"always_prompt_for_file_reload": false,
 	"auto_complete": true,
