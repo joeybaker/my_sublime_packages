@@ -21,12 +21,12 @@ class ESLint(NodeLinter):
     """Provides an interface to the eslint executable."""
 
     syntax = ('javascript', 'html', 'javascriptnext', 'javascript (babel)',
-              'javascript (jsx)', 'jsx-real', 'Vue Component')
+              'javascript (jsx)', 'jsx-real', 'Vue Component', 'vue')
     npm_name = 'eslint'
-    cmd = ('eslint', '--format', 'compact', '--stdin', '--stdin-filename', '__RELATIVE_TO_FOLDER__')
+    cmd = ('eslint', '--format', 'compact', '--stdin', '--stdin-filename', '@')
     version_args = '--version'
     version_re = r'v(?P<version>\d+\.\d+\.\d+)'
-    version_requirement = '>= 2.0.0'
+    version_requirement = '>= 1.0.0'
     regex = (
         r'^.+?: line (?P<line>\d+), col (?P<col>\d+), '
         r'(?:(?P<error>Error)|(?P<warning>Warning)) - '
@@ -68,8 +68,11 @@ class ESLint(NodeLinter):
         We override this method to silent warning by .eslintignore settings.
         """
 
+        v1message = 'File ignored because of your .eslintignore file. Use --no-ignore to override.'
+        v2message = 'File ignored because of a matching ignore pattern. Use --no-ignore to override.'
+
         match, line, col, error, warning, message, near = super().split_match(match)
-        if message and message == 'File ignored because of a matching ignore pattern. Use --no-ignore to override.':
+        if message and (message == v1message or message == v2message):
             return match, None, None, None, None, '', None
 
         return match, line, col, error, warning, message, near
