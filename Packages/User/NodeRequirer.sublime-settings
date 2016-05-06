@@ -61,7 +61,8 @@
         "react-dom": "ReactDOM",
         "redux-test": "createMockStore",
         "autobind-decorator": "autobind",
-        "react-immutable-proptypes": "ImmutablePropTypes"
+        "react-immutable-proptypes": "ImmutablePropTypes",
+        "pure-render-decorator": "pureRender"
     },
   // Don't insert semicolons at the end of lines
   "semicolon_free": true,
@@ -71,7 +72,7 @@
 
   // File extensions to omit when doing a local require.
   // E.g. require('./filename') for ./filename.js if js is omited
-  "omit_extensions": ["js", ".jsx", ".es6"],
+  "omit_extensions": [],
 
   // Use ES6 Import Style
   // i.e. import module from module
