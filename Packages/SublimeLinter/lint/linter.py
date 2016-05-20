@@ -279,6 +279,11 @@ class Linter(metaclass=LinterMeta):
     #
     config_file = None
 
+    # Either '=' or ':'. if '=', the config file argument is joined with the config file
+    # path found by '=' and passed as a single argument. If ':', config file argument and
+    # the value are passed as separate arguments.
+    config_joiner = ':'
+
     # Tab width
     tab_width = 1
 
@@ -557,7 +562,7 @@ class Linter(metaclass=LinterMeta):
             view = window.active_view()
 
             if window.project_file_name():
-                project = os.path.dirname(window.project_file_name())
+                project = os.path.dirname(window.project_file_name()).replace('\\', '/')
 
                 expressions.append({
                     'token': '${project}',
@@ -567,13 +572,13 @@ class Linter(metaclass=LinterMeta):
             expressions.append({
                 'token': '${directory}',
                 'value': (
-                    os.path.dirname(view.file_name()) if
+                    os.path.dirname(view.file_name()).replace('\\', '/') if
                     view and view.file_name() else "FILE NOT ON DISK")
             })
 
         expressions.append({
             'token': '${home}',
-            'value': os.path.expanduser('~').rstrip(os.sep).rstrip(os.altsep) or 'HOME NOT SET'
+            'value': os.path.expanduser('~').rstrip(os.sep).rstrip(os.altsep).replace('\\', '/') or 'HOME NOT SET'
         })
 
         expressions.append({
@@ -1304,7 +1309,10 @@ class Linter(metaclass=LinterMeta):
                 )
 
                 if config:
-                    args += [self.config_file[0], config]
+                    if self.config_joiner == '=':
+                        args.append('{}={}'.format(self.config_file[0], config))
+                    elif self.config_joiner == ':':
+                        args += [self.config_file[0], config]
 
         return args
 
@@ -1344,6 +1352,19 @@ class Linter(metaclass=LinterMeta):
 
                     options[name] = value
 
+    def get_chdir(self, settings):
+        """Find the chdir to use with the linter."""
+        chdir = settings.get('chdir', None)
+
+        if chdir and os.path.isdir(chdir):
+            return chdir
+            persist.debug('chdir has been set to: {0}'.format(chdir))
+        else:
+            if self.filename:
+                return os.path.dirname(self.filename)
+            else:
+                return os.path.realpath('.')
+
     def lint(self, hit_time):
         """
         Perform the lint, retrieve the results, and add marks to the view.
@@ -1370,15 +1391,7 @@ class Linter(metaclass=LinterMeta):
                 return
 
         settings = self.get_view_settings()
-        self.chdir = settings.get('chdir', None)
-
-        if self.chdir and os.path.isdir(self.chdir):
-            persist.debug('chdir has been set to: {0}'.format(self.chdir))
-        else:
-            if self.filename:
-                self.chdir = os.path.dirname(self.filename)
-            else:
-                self.chdir = os.path.realpath('.')
+        self.chdir = self.get_chdir(settings)
 
         with util.cd(self.chdir):
             output = self.run(cmd, self.code)
@@ -1791,7 +1804,7 @@ class Linter(metaclass=LinterMeta):
 
     def get_tempfile_suffix(self):
         """Return the mapped tempfile_suffix."""
-        if self.tempfile_suffix:
+        if self.tempfile_suffix and not self.view.file_name():
             if isinstance(self.tempfile_suffix, dict):
                 suffix = self.tempfile_suffix.get(persist.get_syntax(self.view), self.syntax)
             else:
