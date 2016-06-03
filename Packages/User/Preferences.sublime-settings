@@ -95,6 +95,7 @@
 	"caret_extra_top": 0,
 	"caret_extra_width": 1,
 	"caret_style": "solid",
+	"close_windows_when_empty": true,
 	"color_scheme": "Packages/User/SublimeLinter/Oceanic Next (SL).tmTheme",
 	"default_encoding": "UTF-8",
 	"default_line_ending": "unix",
