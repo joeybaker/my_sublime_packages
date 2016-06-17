@@ -78,7 +78,8 @@
 		"podcast",
 		"Bugsnag",
 		"incentivized",
-		"Adwords"
+		"Adwords",
+		"fundraise"
 	],
 	"always_prompt_for_file_reload": false,
 	"auto_complete": true,
