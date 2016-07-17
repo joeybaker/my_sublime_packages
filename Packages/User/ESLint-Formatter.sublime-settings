@@ -17,7 +17,7 @@
   // Specify this path to an eslint config file to override the default behavior.
   // Passed to eslint as --config. Read more here:
   // http://eslint.org/docs/user-guide/command-line-interface#c---config
-  "config_path": "",
+  // "config_path": "",
 
   // Automatically format when a file is saved.
   "format_on_save": true,
