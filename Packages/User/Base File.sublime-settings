@@ -218,5 +218,15 @@
     // shown.
     // On OS X, this value is overridden in the platform specific settings, so
     // you'll need to place this line in your user settings to override it.
-    "find_selected_text": true
+    "find_selected_text": true,
+
+
+    //
+    // DocBlockr
+    //
+    // Add a '[description]' placeholder for the param tag?
+    "jsdocs_param_description": true,
+
+    // Add a name of parameter in param tag?
+    "jsdocs_param_name": true
 }
