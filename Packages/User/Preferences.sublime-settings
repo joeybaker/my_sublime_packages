@@ -248,6 +248,7 @@
 	"save_on_focus_lost": true,
 	"scroll_past_end": false,
 	"shift_tab_unindent": true,
+	"show_definitions": false,
 	"show_full_path": true,
 	"soda_tabs_autowidth": true,
 	"spell_check": false,
