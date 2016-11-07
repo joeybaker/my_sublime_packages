@@ -247,3 +247,12 @@ def best_fuzzy_match(s_list, string):
             best_string = item
 
     return best_string
+
+def splitext(path):
+    """
+    Works like os.path.splitext but accounts for file names that may contain multiple dots.
+    """
+    path_without_extensions = os.path.join(os.path.dirname(path), os.path.basename(path).split(os.extsep)[0])
+    extensions = os.path.basename(path).split(os.extsep)[1:]
+    if len(extensions) >= 1: extensions = extensions[0]
+    return (path_without_extensions, extensions)

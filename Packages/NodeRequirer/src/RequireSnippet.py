@@ -2,7 +2,11 @@
 import re
 from .utils import get_pref, get_project_pref, get_quotes, should_add_semicolon
 from .utils import get_jscs_options, strip_snippet_groups
+import sublime
 
+quote_block = '("([^"]+)"|\'([^\']+)\')'
+CONTAINS_IMPORT = '^\s*import\s.*\sfrom\s+%s' % quote_block
+CONTAINS_REQUIRE = '.+?require\s*\(\s*%s\s*\)' % quote_block
 
 class RequireSnippet():
 
@@ -22,9 +26,12 @@ class RequireSnippet():
         self.should_add_var_name = should_add_var_name
         self.should_add_var_statement = should_add_var_statement
         self.context_allows_semicolon = context_allows_semicolon
+
         self.es6import = self.get_project_pref('import')
+        if self.es6import == 'detect': self.detect_import()
+
         self.var_type = self.get_project_pref('var')
-        if self.var_type not in ('var', 'const', 'let'):
+        if self.var_type not in ('var', 'const', 'let', 'import'):
             self.var_type = 'var'
         self.file_name = file_name
         self.jscs_options = dict()
@@ -32,6 +39,23 @@ class RequireSnippet():
             self.jscs_options = get_jscs_options(self.file_name)
         self.exports = exports
         self.destructuring = destructuring or self.es6import
+
+    def detect_import(self):
+        """ Helper to determine whether to use es6 or require imports based on file context """
+        if self.contains_match(CONTAINS_IMPORT): self.es6import = True
+        elif self.contains_match(CONTAINS_REQUIRE): self.es6import = False
+        else: self.es6import = self.get_project_pref('detect_prefer_imports')
+
+
+    def contains_match(self, regexp):
+        """
+            Helper to determine whether a regexp is contained in the current file in sublime 3 or sublime 2
+        """
+        # If the regexp is not found, find will return a tuple (-1, -1) in Sublime 3 or None in Sublime 2 
+        # https://github.com/SublimeTextIssues/Core/issues/534
+        contains_import = self.view.find(regexp, 0)
+        return contains_import.size() > 0 if float(sublime.version()) >= 3000 else contains_import is not None
+
 
     def get_formatted_code(self):
         """Return formatted code for insertion."""

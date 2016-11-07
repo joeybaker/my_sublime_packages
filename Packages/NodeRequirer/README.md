@@ -64,8 +64,12 @@ Example `User Plugin Preferences`
     // Use 'var', 'const', or 'let' variable declarations
     "var": "var",
     
-    // Use ES6 import format, when syntactically correct
-    "import": false,
+    // Use ES6 import format, when syntactically correct. Use detect to determine based on file buffer
+    "import": "detect",
+
+    // Whether to use ES6 import or require in detect mode when
+    // the format could not be identified (e.g. when neither were used in file)
+    "detect_prefer_import": true,
 
     "alias": {
         // <module name>: <variable name>
