@@ -78,4 +78,5 @@
   // Use ES6 Import Style
   // i.e. import module from module
   "import": true,
+  "dirname_as_index": true
 }
