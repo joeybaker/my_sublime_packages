@@ -17,7 +17,7 @@ import sublime
 import re
 from . import version as ver
 from .rgba import RGBA
-from . import csscolors
+from . import x11colors
 from .st_color_scheme_matcher import ColorSchemeMatcher
 import jinja2
 from pygments.formatters import HtmlFormatter
@@ -238,7 +238,8 @@ class Scheme2CSS(object):
             "mdpopups_version": ver.version(),
             "color_scheme": self.scheme_file,
             "use_pygments": not settings.get('mdpopups.use_sublime_highlighter', False),
-            "default_formatting": settings.get('mdpopups.default_formatting', True)
+            "default_formatting": settings.get('mdpopups.default_formatting', True),
+            "default_style": settings.get('mdpopups.default_style', True)
         }
         self.html_border = rgba.get_rgb()
         self.fground = self.process_color(color_settings.get("foreground", '#000000'))
@@ -284,7 +285,7 @@ class Scheme2CSS(object):
             return None
 
         if not color.startswith('#'):
-            color = csscolors.name2hex(color)
+            color = x11colors.name2hex(color)
             if color is None:
                 return None
 
