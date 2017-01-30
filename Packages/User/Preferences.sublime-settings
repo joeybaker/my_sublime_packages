@@ -81,7 +81,8 @@
 		"Adwords",
 		"fundraise",
 		"strategize",
-		"internet"
+		"internet",
+		"Cloudflare"
 	],
 	"always_prompt_for_file_reload": false,
 	"always_show_minimap_viewport": true,
