@@ -26,7 +26,6 @@ Takes 3 arguments
     ```
 
 3. [install package control](https://sublime.wbond.net/installation)
-4. Install packages for the linter `sudo npm i -g csslint jshint`
 
 
 ## Upgrading to ST3
