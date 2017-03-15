@@ -22,7 +22,7 @@ Takes 3 arguments
 3. past the following code into your shell
 
     ```bash
-    cd ~/Library/Application\ Support/Sublime\ Text\ 3/ && rm -rf Packages Installed\ Packages; git init && git remote add origin https://joeybaker@github.com/joeybaker/my_sublime_packages.git && git fetch && git checkout st3
+    cd ~/Library/Application\ Support/Sublime\ Text\ 3/ && rm -rf Packages Installed\ Packages && git init && git remote add origin https://joeybaker@github.com/joeybaker/my_sublime_packages.git && git fetch && git checkout st3
     ```
 
 3. [install package control](https://sublime.wbond.net/installation)
