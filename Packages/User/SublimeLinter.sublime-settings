@@ -55,6 +55,11 @@
                 "ignore": "",
                 "strict": true
             },
+            "rubocop": {
+                "@disable": false,
+                "args": [],
+                "excludes": []
+            },
             "ruby": {
                 "@disable": false,
                 "args": [],
