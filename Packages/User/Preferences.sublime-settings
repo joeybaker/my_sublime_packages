@@ -185,7 +185,6 @@
 		"SublimeLinter-flow",
 		"SublimeLinter-jscs",
 		"SublimeLinter-jshint",
-		"tern_for_sublime",
 		"Vintage"
 	],
 	"ignored_words":
