@@ -2,7 +2,6 @@
 	"extensions":
 	[
 		"jsx",
-		"js",
 		"es6",
 		"es5"
 	]

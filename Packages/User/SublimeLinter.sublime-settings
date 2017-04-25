@@ -95,10 +95,11 @@
         "show_errors_on_save": false,
         "show_marks_in_minimap": true,
         "syntax_map": {
+            "JavaScript (babel)": "javascript",
+            "JavaScript (vscode)": "javascript",
             "html (django)": "html",
             "html (rails)": "html",
             "html 5": "html",
-            "javascript (babel)": "javascript",
             "php": "html",
             "python django": "python"
         },
