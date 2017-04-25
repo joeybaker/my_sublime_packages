@@ -172,6 +172,7 @@
 		"CSS",
 		"CSS Completions",
 		"ElixirSublime",
+		"Flow",
 		"GitSavvy",
 		"JSCS-Formatter",
 		"JsFormat",
@@ -182,7 +183,6 @@
 		"ReactJS",
 		"Six",
 		"SublimeLinter-flake8",
-		"SublimeLinter-flow",
 		"SublimeLinter-jscs",
 		"SublimeLinter-jshint",
 		"Vintage"

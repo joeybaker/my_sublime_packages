@@ -37,6 +37,12 @@
                 "select": "",
                 "show-code": false
             },
+            "flow": {
+                "@disable": false,
+                "args": [],
+                "excludes": [],
+                "show-all-errors": true
+            },
             "jscs": {
                 "@disable": true,
                 "args": [],
