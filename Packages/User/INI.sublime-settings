@@ -2,6 +2,7 @@
 	"extensions":
 	[
 		".editorconfig",
-		".vimrc"
+		".vimrc",
+		".flowconfig"
 	]
 }
