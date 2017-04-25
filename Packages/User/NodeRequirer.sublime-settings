@@ -63,7 +63,8 @@
         "autobind-decorator": "autobind",
         "react-immutable-proptypes": "ImmutablePropTypes",
         "pure-render-decorator": "pureRender",
-        "ava": "test"
+        "ava": "test",
+        "proptypes": "PropTypes"
     },
   // Don't insert semicolons at the end of lines
   "semicolon_free": true,
