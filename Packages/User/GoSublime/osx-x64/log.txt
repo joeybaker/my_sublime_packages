@@ -1,0 +1,6 @@
+Gocode pkg: "github.com/scriptdash/services/filling/parata"
+Gocode env: gocode.margoEnv{LibPath:"/usr/local/Cellar/go/1.8.1/libexec/pkg/darwin_amd64:/Users/joeybaker/server/go/pkg/darwin_amd64", GOOS:"darwin", GOARCH:"amd64", Compiler:"gc", GOROOT:"/usr/local/Cellar/go/1.8.1/libexec", GOPATH:"/Users/joeybaker/server/go", InstallSuffix:""}
+Gocode pkg: "github.com/scriptdash/services/db"
+Gocode pkg: "github.com/scriptdash/services/filling/parata"
+Gocode pkg: "github.com/scriptdash/services/db"
+Gocode pkg: "github.com/scriptdash/services/filling/parata"
